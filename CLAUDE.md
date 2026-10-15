@@ -9,12 +9,12 @@ because this is a GPL-3.0 fork of `HyDE-Project/HyDE` and should stay readable t
 
 ## What this repository is
 
-- A fork of HyDE cut at upstream `aceb94ee` (2026-09-20, the Lua-configuration era). `main` is that
-  commit plus a small set of commits listed in `LITE.md`. Keep that set small and rebase-friendly:
-  prefer removing a line from a list over editing the middle of an upstream script, and say in
-  `LITE.md` what each change is and why.
-- `upstream` is `HyDE-Project/HyDE` (fetch only; pushing to it is disabled on purpose). `origin` is
-  this repository.
+- A fork of HyDE cut at upstream `aceb94ee` (2026-09-20, the Lua-configuration era), published as a tree
+  with no earlier history (see `LITE.md`, "History"). What differs from that commit is listed in `LITE.md`.
+  Keep the set small and port-friendly: prefer removing a line from a list over editing the middle of an
+  upstream script, and say in `LITE.md` what each change is and why.
+- `origin` is this repository. HyDE shares no history with it, so it is not a git remote you rebase on:
+  upstream changes are ported as a patch (`LITE.md`, "Following upstream"). Never push to HyDE.
 
 ## Decisions already taken (do not re-litigate; build on them)
 
@@ -45,7 +45,7 @@ because this is a GPL-3.0 fork of `HyDE-Project/HyDE` and should stay readable t
 - Only files the owner owns are tracked. Never commit what HyDE generates or overwrites
   (`~/.cache/hyde`, `~/.config/waybar/theme.css`, `~/.config/hypr/themes/*`, compiled caches).
 - Changes in `Scripts/` or `Configs/.local/lib/hyde/` (HyDE's own code) are the expensive ones: each
-  one is a future rebase conflict. Make them minimal, put the reason in a comment and in `LITE.md`.
+  one is a future porting conflict. Make them minimal, put the reason in a comment and in `LITE.md`.
 - Hyprland's configuration here is **Lua** (`hyprland.lua`), not `hyprland.conf`.
 - Never run `hyprlock` to "test" it: it really locks the screen.
 - End commit messages with the co-author line your harness gives you.

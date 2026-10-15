@@ -15,7 +15,8 @@ something or make something easier to understand.
 ## Keep the difference from upstream small
 
 This repository is HyDE at commit `aceb94ee` plus the changes listed in [`LITE.md`](LITE.md). Every edit to
-HyDE's own code (`Scripts/`, `Configs/.local/lib/hyde/`) is a future rebase conflict, so:
+HyDE's own code (`Scripts/`, `Configs/.local/lib/hyde/`) is a future porting conflict (upstream changes are
+applied to it as a patch, see [`LITE.md`](LITE.md), "Following upstream"), so:
 
 - prefer removing a line from a list over editing the middle of an upstream script;
 - put the reason in a comment next to the change;

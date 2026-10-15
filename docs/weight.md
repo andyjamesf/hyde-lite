@@ -26,7 +26,7 @@ What the 45 MiB are now (by top-level directory, tracked bytes; `git ls-files` s
 
 The biggest single files are `hydectl` (12.8 MiB), `Sddm_Candy.tar.gz` (6.0), `hyde-ipc` (2.7) and the README
 screenshots (about 2 each). Candidates for a further diet, none done because each is upstream's and would be a
-rebase conflict (see `CONTRIBUTING.md`):
+porting conflict (see `CONTRIBUTING.md`):
 
 - `Configs/.local/bin/hydectl` and `hyde-ipc`: prebuilt Rust binaries committed upstream. A public repository
   that ships binaries should say where their source is (HyDE-Project) or build them in the installer instead.
@@ -39,17 +39,14 @@ Removed on 2026-10-15: six fastfetch logos (2 MiB) and five archives nothing rea
 
 ```sh
 git count-objects -vH            # size-pack
-git rev-list --objects --all | git cat-file --batch-check='%(objecttype) %(objectname) %(objectsize) %(rest)' \
-  | awk '$1=="blob"' | sort -k3 -n -r | head
+git rev-list --count HEAD
 ```
 
-A full clone is **about 1 GiB** (pack of 3735 commits measured after `git fetch --depth=2000`; the real number for
-a complete clone is at least that). Nearly all of it is upstream HyDE's history: the largest blobs are old
-wallpapers under `Configs/.config/swww/` (20-30 MiB each). It is the same history anyone gets from
-`HyDE-Project/HyDE`, so it is not new exposure, but it makes `git clone` slow. The README's install steps
-use a plain clone; `git clone --depth 1` is much smaller and is enough to install.
-
-Only 113 commits are hyde-lite's own (`git rev-list --count aceb94ee..HEAD`).
+This repository has one commit and no earlier history (see `LITE.md`, "History"). Measured on 2026-10-15 with
+`time git clone https://github.com/andyjamesf/hyde-lite` into an empty directory: 2.2 s, `size-pack` 32.31 MiB,
+1 commit, 1058 objects; `.git` is 33 MiB and the working tree 48 MiB. The README's install steps use a plain
+clone, and `git clone --depth 1` gives the same result here. HyDE's own history is about 1 GiB (mostly old
+wallpapers) and is not part of this repository.
 
 ## What gets installed
 

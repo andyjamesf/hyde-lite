@@ -1,8 +1,8 @@
 # HyDE LiTE
 
 A branch of HyDE with what a Quickshell setup does not need taken out, and one change to make
-colour changes faster. It is meant to be rebased on upstream: every cut is a line removed from a list,
-not an edit inside a script, so an update brings few conflicts.
+colour changes faster. It follows upstream by porting its changes (see "Following upstream"): every cut is a
+line removed from a list, not an edit inside a script, so an upstream patch applies with few conflicts.
 
 Not a standalone desktop: the bar, notifications, launcher and logout menu are expected to come from
 a shell installed on top (waybar, rofi, dunst, swaync and wlogout are not installed here).
@@ -17,15 +17,15 @@ a shell installed on top (waybar, rofi, dunst, swaync and wlogout are not instal
 | `Scripts/pkg_core.lst` | same four packages out of the legacy list that `install_pkg.sh` reads |
 | `Scripts/themepatcher.lst` | one theme (Nordic Blue, 3 MB) instead of twelve. HyDE falls back to the first theme of the list when `HYDE_THEME` is missing (`globalcontrol.sh`), so any one will do |
 | `Scripts/pkg_core.lst` (addition) | `ttf-jetbrains-mono-nerd`: the island's icon font (and the login screen's, which copies it) used to come only from an archive download that lite does not run, so the icons showed as boxes on a clean install |
-| `Scripts/install.sh` | the six `cat <<"EOF"` ASCII banners became `banner <<"EOF"`, and a `banner` function skips them when `HYDE_LITE` is set (the lite installer prints its own header and step titles). Run alone, the script prints them as before. One word per banner, so a rebase conflict is one line |
+| `Scripts/install.sh` | the six `cat <<"EOF"` ASCII banners became `banner <<"EOF"`, and a `banner` function skips them when `HYDE_LITE` is set (the lite installer prints its own header and step titles). Run alone, the script prints them as before. One word per banner, so a porting conflict is one line |
 | `Configs/.local/lib/hyde/color.set.sh` | GNU `parallel` replaced by `xargs -P` when rendering the wallbash templates |
 | `Configs/.local/share/wallbash/` | no `always/dunst.dcol`, `scripts/dunst.sh`, `scripts/swaync.sh`, `theme/swaync.dcol`: they render into configs of apps lite does not install, and `tests/python/check_wallbash_targets.py` fails on them |
 | `dotfiles` submodule, `.gitmodules` entry | removed (the edition's gitlink to the private the owner's private dotfiles repository): CI could not clone it. D1 is still open; the root `install.sh` and `README.md` from the edition still refer to `dotfiles/` until they are decided |
 | `install.sh` (repository root) | removed (the edition's stopgap, which cloned the earlier combined repository and the `dotfiles` submodule); the one-command installer is PLAN 5.1, now a new `install.sh` for a generic PC (a wrapper that runs `Scripts/install.sh` in separate steps; see the `Scripts/install.sh` row for its one edit) |
-| `README.md` and documentation | `README.md` is rewritten for hyde-lite (upstream's is in the upstream repository). Removed 2026-10-14 (owner asked for a clean-up): the translated READMEs, keybinding lists and Hyprdots-to-HyDE notes under `Source/docs` and `Source/assets/keybinds`, and from the root `Hyprdots-to-HyDE.md`, `README.edition.md`, `MIGRATION-LUA.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `CONTRIBUTORS.md`, `COMMIT_MESSAGE_GUIDELINES.md`, `RELEASE_POLICY.md`, `TEAM_ROLES.md`, `TESTING.md` (upstream's contribution and release process, which does not apply here). Every one is a delete/modify conflict to resolve by deleting on a rebase. `.github/PULL_REQUEST_TEMPLATE.md` is replaced by a short lite template, and `CREDITS.md` is rewritten (upstream's first-person text and its Ko-fi section are gone, the HyDE and hyprdots credit and the contributors link stay), and `THIRD_PARTY.md` is new: what is original, what is HyDE's, which files carry another project's notice, and which shipped assets have an unverified licence. Kept: `KEYBINDINGS.md` (referenced from `hyprland.lua`), `CREDITS.md`, `LICENSE`, and the READMEs inside the shells, `Scripts/hydevm`, wallbash and the config schema. `.github/scripts/promote_to_*.sh` and `warn-master-pr.yml` still name the removed files in message text; they belong to upstream's release flow |
+| `README.md` and documentation | `README.md` is rewritten for hyde-lite (upstream's is in the upstream repository). Removed 2026-10-14 (owner asked for a clean-up): the translated READMEs, keybinding lists and Hyprdots-to-HyDE notes under `Source/docs` and `Source/assets/keybinds`, and from the root `Hyprdots-to-HyDE.md`, `README.edition.md`, `MIGRATION-LUA.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `CONTRIBUTORS.md`, `COMMIT_MESSAGE_GUIDELINES.md`, `RELEASE_POLICY.md`, `TEAM_ROLES.md`, `TESTING.md` (upstream's contribution and release process, which does not apply here). Every one is a delete/modify conflict to resolve by deleting when porting. `.github/PULL_REQUEST_TEMPLATE.md` is replaced by a short lite template, and `CREDITS.md` is rewritten (upstream's first-person text and its Ko-fi section are gone, the HyDE and hyprdots credit and the contributors link stay), and `THIRD_PARTY.md` is new: what is original, what is HyDE's, which files carry another project's notice, and which shipped assets have an unverified licence. Kept: `KEYBINDINGS.md` (referenced from `hyprland.lua`), `CREDITS.md`, `LICENSE`, and the READMEs inside the shells, `Scripts/hydevm`, wallbash and the config schema. `.github/scripts/promote_to_*.sh` and `warn-master-pr.yml` still name the removed files in message text; they belong to upstream's release flow |
 | removed apps' configs | deleted (owner asked 2026-10-13): `Configs/.config/{waybar,swaync,dunst,rofi}`, `Configs/.local/share/{waybar,hyde/rofi}`, their dots (`Scripts/dots/{waybar,rofi,wlogout,dunst,swaync}.toml`), the `notification-daemon` group and the includes in `dots.toml`. 247 upstream files; each upstream change to them is now a delete/modify conflict to resolve by deleting. Still present: `Configs/.config/wlogout` (the upstream `test_monitor_scale` reads its layout and style, so removing it turns CI red), and the `Configs/.local/lib/hyde` helpers that mention rofi (`rofiselect.sh` and others), left because other scripts call them, and the commented rofi binds in `key_binds.lua` |
 | `Configs/.local/share/hypr/lua/key_binds.lua` | `F10`/`F11`/`F12` volume binds and the `SUPER (+ SHIFT) + KP_*` workspace 11-20 binds restored after the edition's cleanup (`4d31761`) removed them: the upstream bind test requires them |
-| `.github/` | removed 2026-10-14 for the public release: upstream's release flow (`workflows/{ci,test,lock,refresh-release,warn-master-pr}.yml`, `scripts/promote_*`, `remind-release.py`), `FUNDING.yml` (upstream's Ko-fi), `renovate.json5`, `codecov.yml`, `.all-contributorsrc`, and two issue templates. Added: a small `workflows/ci.yml` (checks, unit tests, shellcheck, ruff, luacheck, markdownlint, gitleaks, actionlint), `ISSUE_TEMPLATE/config.yml`, and rewritten bug and feature templates. Every one is a delete/modify conflict to resolve by deleting on a rebase |
+| `.github/` | removed 2026-10-14 for the public release: upstream's release flow (`workflows/{ci,test,lock,refresh-release,warn-master-pr}.yml`, `scripts/promote_*`, `remind-release.py`), `FUNDING.yml` (upstream's Ko-fi), `renovate.json5`, `codecov.yml`, `.all-contributorsrc`, and two issue templates. Added: a small `workflows/ci.yml` (checks, unit tests, shellcheck, ruff, luacheck, markdownlint, gitleaks, actionlint), `ISSUE_TEMPLATE/config.yml`, and rewritten bug and feature templates. Every one is a delete/modify conflict to resolve by deleting when porting |
 | `tests` submodule, `.gitmodules` | removed: it pointed at `HyDE-Project/tests`, which tests upstream's own wallbash targets and waybar/rofi-era scripts. hyde-lite's tests are `tools/tests/` (run by `tools/check.sh`) |
 | `Source/assets/` | removed (35 MiB): upstream's README screenshots and logos of waybar, rofi and wlogout setups that lite does not install. `KEYBINDINGS.md` lost its banner, distro logos, dead translation links and external heading images; its text is unchanged |
 | `Configs/.config/fastfetch/logo/` | six logos of anime characters removed (2 MiB, origin unknown); `hyprland.icon` stays. `fastfetch.sh logo` picks a random `*.icon` from that folder, so one is enough |
@@ -35,15 +35,13 @@ a shell installed on top (waybar, rofi, dunst, swaync and wlogout are not instal
 | `.luacheckrc`, `.gitignore` | new / rewritten (the old `./.*` pattern never matched anything) |
 | colour pipeline | new, additive: `Scripts/dots/colour.toml` deploys `wallpaper-palette`, `wallpaper-library`, `wallbash-matugen`, `Configs/.config/matugen`, a fontconfig rule, and the `matugen.dcol` / `quickshell.dcol` wallbash templates (under `Configs/.config/hyde/wallbash/always`). Copied unchanged from the owner's private dotfiles repository at `213c2a5`, together with that commit range's shell updates (`PickPalette.qml`, `Theme.qml`, `Config.qml`, island `Palettes.qml`). No upstream HyDE file is edited |
 
-## The Quickshell Edition commits
+## History
 
-The 19 code commits of the earlier combined repository (`origin/edition`, `git log aceb94ee..origin/edition
---no-merges`, without the `dotfiles: <sha>` bumps) are cherry-picked with `-x`, so each message names its
-source. Two conflicts, both resolved by keeping the lite cuts: `core.toml` and `pkg_core.lst` lost the
-edition's `rofi` lines. One follow-up commit adds `python` to `pkg_core.lst` (the shell's calendar reader;
-`quickshell.toml` already had it) and fixes the comment in `quickshell.toml` that said rofi stays installed.
-The edition's shell copy under `Configs/.config/quickshell/` is stale and is replaced when the shells are
-imported (PLAN 1.2).
+This repository starts from a tree export made on 2026-10-15; it has no earlier history. The development
+repository it came from kept HyDE's whole history (about 1 GB, mostly old wallpapers) and early commits
+authored with a personal e-mail address, so the tree was published fresh instead. That history stays in a
+private repository. The rows above and below still say what differs from upstream HyDE at the commit this
+tree was cut from, `aceb94ee` (2026-09-20, the Lua-configuration era).
 
 ## Measured
 
@@ -82,15 +80,29 @@ they are used is the owner's call: `firefox`, `ark`, `nwg-look`, `nwg-displays`,
 ./install.sh        # see README.md
 ```
 
-To follow upstream (`upstream` is HyDE itself and pushing to it is disabled; `origin` is this repository):
+## Following upstream
 
-```
-git fetch upstream && git rebase upstream/master
+This repository shares no git history with HyDE, so `git rebase upstream/master` and `git merge upstream/master`
+do not work. Upstream changes are ported as a patch. The base is `aceb94ee`; HyDE's own code is `Scripts/` and
+`Configs/.local/lib/hyde/` (see `CONTRIBUTING.md`):
+
+```sh
+# in a clone of HyDE (a blobless one is enough: git clone --filter=blob:none https://github.com/HyDE-Project/HyDE)
+git diff aceb94ee origin/master -- Scripts Configs/.local/lib/hyde > /tmp/upstream.patch
+
+# in this repository, on a branch
+git apply --reject /tmp/upstream.patch      # applies what fits, writes *.rej for the hunks that do not
+git status --short                          # look for the *.rej files and fix them by hand, then delete them
 ```
 
-This branch was cut from upstream `aceb94e`, the commit the owner's `hyde.lock` pins. Upstream has moved on
-since (it was 154 commits ahead when this repository was created), so rebasing is a deliberate step, not
-something to do blindly: re-run the installer and the timing checks on a clean Arch system afterwards.
+Measured on 2026-10-15 against HyDE `master` (`fa2fd57a`, 154 commits after `aceb94ee`, tip dated 2026-10-03):
+the diff of those two paths is 52 files and 178 hunks (the whole tree: 126 files); `git apply --reject` applied
+42 files, skipped 3 that hyde-lite removed (`Scripts/dots-groups/notification-daemon.toml`, `Scripts/dots/swaync.toml`,
+`Scripts/dots/waybar.toml`, which is the right outcome) and rejected 3 hunks in 3 files
+(`Configs/.local/lib/hyde/color.set.sh`, `Scripts/dots-groups/extra.toml`, `Scripts/dots/deps.toml`: the lines this
+file's table above says were cut). `git apply --3way` is not usable: the base blobs are not in this repository.
+NOT TESTED: that the result installs; after porting, run `tools/check.sh` and the installer on a clean Arch system,
+and move the base in this file and in `CONTRIBUTING.md` to the upstream commit you ported up to.
 
 ## Testing
 

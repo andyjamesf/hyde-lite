@@ -6,7 +6,7 @@
 #   bash tools/export_clean.sh --without-internal DEST also leave out docs/internal (the maintainer's work notes)
 #
 # Why a fresh tree and not this history: 23 of the hyde-lite commits carry a personal e-mail address as author and
-# the history is about 1 GB (HyDE's). See docs/internal/PUBLISHING.md.
+# the history is about 1 GB (HyDE's). The audit that led to this is kept in the maintainer's private notes.
 set -euo pipefail
 
 internal=1
