@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+# One folder with every wallpaper the installed HyDE themes ship, so wallpapers can be picked
+# without going through a theme: the pickers of both shells already scan ~/Pictures/Wallpapers, and
+# matugen colours whichever one is set (see wallpaper-palette).
+#
+#   wallpaper-library          link every theme wallpaper into ~/Pictures/Wallpapers
+#   wallpaper-library --clean  remove the links this script made (files of yours are never touched)
+#   wallpaper-library next | prev | random
+#                              set the next, previous or a random wallpaper of the folder. Same
+#                              folder and same order as the pickers' grid, so stepping through them
+#                              and scrolling the grid agree; it never touches the theme. HyDE's own
+#                              --next only walks the current theme's wallpapers.
+#
+# They are links, not copies: the themes hold the files (about 1.6 GB), and a copy of each would
+# double that. A link is named "<Theme> - <file>" because several themes call theirs wallpaper-1.png.
+# Run it again after installing a theme; it only adds what is missing and drops links whose file went.
+set -euo pipefail
+
+themes="${HYDE_CONFIG_HOME:-$HOME/.config/hyde}/themes"
+dest="${XDG_PICTURES_DIR:-$HOME/Pictures}/Wallpapers"
+
+# Wallpapers of the folder, in the order the pickers list them (find -L follows the links; sort -V).
+list_walls() {
+    find -L "$dest" -maxdepth 1 -type f ! -name 'wall.*' \
+        \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.gif' -o -iname '*.webp' \) \
+        -print0 | sort -zV
+}
+
+cycle() {
+    local walls=() inodes=() cur i idx=-1 n new
+    mapfile -d '' walls < <(list_walls)
+    n=${#walls[@]}
+    ((n > 0)) || { echo "no wallpapers in $dest (run wallpaper-library first)" >&2; exit 1; }
+    # One stat for all of them: comparing inodes finds the current one without 500 readlinks.
+    mapfile -t inodes < <(stat -L -c %i -- "${walls[@]}")
+    cur=$(stat -L -c %i -- "${XDG_CACHE_HOME:-$HOME/.cache}/hyde/wall.set" 2>/dev/null || true)
+    for i in "${!inodes[@]}"; do [[ "${inodes[i]}" == "$cur" ]] && { idx=$i; break; }; done
+    case "$1" in
+        next) new=$(((idx + 1) % n)) ;;
+        prev) ((idx < 0)) && new=$((n - 1)) || new=$(((idx - 1 + n) % n)) ;;
+        random) new=$((RANDOM % n)); ((n > 1 && new == idx)) && new=$(((new + 1) % n)) ;;
+    esac
+    hyde-shell wallpaper --global -s "${walls[new]}" >/dev/null 2>&1
+    echo "$((new + 1))/$n  ${walls[new]##*/}"
+}
+
+case "${1:-}" in
+    next | prev | random) cycle "$1"; exit 0 ;;
+    "" | --clean) ;;
+    *) sed -n '2,16p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
+esac
+
+# Only links into the themes folder count as ours.
+ours() { [[ -L "$1" && "$(readlink "$1")" == "$themes"/* ]]; }
+
+mkdir -p "$dest"
+for l in "$dest"/*; do
+    [[ -e "$l" || -L "$l" ]] || continue
+    if ours "$l" && { [[ "${1:-}" == "--clean" ]] || [[ ! -e "$l" ]]; }; then rm -- "$l"; fi
+done
+[[ "${1:-}" == "--clean" ]] && { echo "removed the theme links from $dest"; exit 0; }
+
+added=0
+while IFS= read -r -d '' f; do
+    theme="${f#"$themes"/}"; theme="${theme%%/*}"
+    link="$dest/$theme - ${f##*/}"
+    [[ -e "$link" || -L "$link" ]] && continue
+    ln -s -- "$f" "$link"
+    added=$((added + 1))
+done < <(find "$themes" -mindepth 3 -maxdepth 3 -path '*/wallpapers/*' -type f \
+    \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.gif' -o -iname '*.webp' \) -print0 | sort -z)
+
+echo "$added new, $(find "$dest" -maxdepth 1 -type l | wc -l) wallpapers in $dest"

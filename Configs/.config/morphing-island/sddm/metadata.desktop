@@ -1,0 +1,10 @@
+[SddmGreeterTheme]
+Name=Morphing Island
+Description=Login screen of the Morphing Island: the clock pill grows into the same card as the lock screen.
+Type=sddm-theme
+Version=1.0
+MainScript=Main.qml
+ConfigFile=theme.conf
+Theme-Id=morphing-island
+Theme-API=2.0
+QtVersion=6

@@ -1,0 +1,46 @@
+# Matugen: the Material You palette of the current wallpaper, and the files that
+# are written from it.
+#
+# The shell runs this (theme/Palettes.qml in the island) on every wallpaper
+# change: it reads the palette as JSON for itself, and matugen writes the
+# templates below at the same time, so the island and the programs can never
+# drift apart on the same wallpaper.
+#
+# HyDE colours the same programs from its own extraction of the wallpaper
+# (wallbash, `enableWallDcol` in its state). These templates are written after
+# HyDE's and only where a program can be made to read a second file last.
+
+[config]
+# The island reloads itself; nothing here should go reloading other programs.
+reload_apps = false
+
+[templates.hyprland]
+input_path = "~/.config/matugen/templates/hyprland.lua"
+output_path = "~/.config/hypr/wallpaper.lua"
+# Hyprland rereads its whole config, which is where the file above is turned
+# into border colours. Nothing else here needs it, so the hook is on this one.
+post_hook = "hyprctl reload >/dev/null 2>&1 || true"
+
+# GTK3 and GTK4 get the same file, each imported from the gtk.css beside it.
+# Separate outputs rather than one shared path because the two toolkits read
+# different directories and nothing guarantees both exist.
+# The post_hooks put the @import in place when it is not there yet, so a machine
+# that has only just pulled the repo gets it without a step by hand. GTK3 has no
+# gtk.css of its own here, so it is created; GTK4's is the Nordic theme, 6000
+# lines of it, and only gains one line at the end -- where a later
+# @define-color wins over the theme's own.
+[templates.gtk3]
+input_path = "~/.config/matugen/templates/gtk.css"
+output_path = "~/.config/gtk-3.0/wallpaper.css"
+post_hook = "grep -qs wallpaper.css ~/.config/gtk-3.0/gtk.css || printf '@import url(\"wallpaper.css\");\n' >> ~/.config/gtk-3.0/gtk.css"
+
+[templates.gtk4]
+input_path = "~/.config/matugen/templates/gtk.css"
+output_path = "~/.config/gtk-4.0/wallpaper.css"
+post_hook = "grep -qs wallpaper.css ~/.config/gtk-4.0/gtk.css || printf '\n@import url(\"wallpaper.css\");\n' >> ~/.config/gtk-4.0/gtk.css"
+
+[templates.kitty]
+input_path = "~/.config/matugen/templates/kitty.conf"
+output_path = "~/.config/kitty/wallpaper.conf"
+# kitty rereads its config on SIGUSR1, so open windows recolour without a restart.
+post_hook = "pkill -USR1 -x kitty || true"

@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Checks and unit tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends shellcheck lua-check qt6-declarative-dev-tools imagemagick
+          python -m pip install ruff==0.16.8 numpy pillow
+          npm install --global markdownlint-cli@0.49.1
+      - name: Repository checks and unit tests
+        run: bash tools/check.sh
+      - name: shellcheck
+        run: shellcheck -S warning install.sh tools/*.sh Configs/.local/bin/island Configs/.local/bin/wallpaper-library
+      - name: ruff (bugs only)
+        run: |
+          mapfile -t files < <(git ls-files 'tools/*.py' 'Configs/.config/morphing-island/scripts/*.py' 'Configs/.config/quickshell/scripts/*.py')
+          ruff check --isolated --select F,E9,B,PLE "${files[@]}" Configs/.local/bin/wallpaper-palette Configs/.local/bin/wallbash-matugen
+      - name: luacheck
+        run: luacheck --no-color Configs/.config/hypr/hyprland.lua Configs/.config/hypr/island.lua Configs/.config/hypr/lua
+      - name: markdownlint
+        run: markdownlint README.md CONTRIBUTING.md SECURITY.md CODE_OF_CONDUCT.md KEYBINDINGS.md LITE.md docs
+
+  workflows:
+    name: Lint workflows
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: actionlint
+        run: |
+          go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+          "$(go env GOPATH)/bin/actionlint"
+
+  secrets:
+    name: Secret scan (whole history)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: gitleaks
+        run: |
+          go install github.com/zricethezav/gitleaks/v8@v8.30.1
+          "$(go env GOPATH)/bin/gitleaks" detect --source . --no-banner --redact
+
+  qml:
+    name: qmllint on Arch (types and bindings)
+    runs-on: ubuntu-24.04
+    # Not yet seen passing: the maintainer has only run the parse-level QML test (tools/tests/test_qml_syntax.py).
+    # Drop continue-on-error once this job has been green.
+    continue-on-error: true
+    container: archlinux:latest
+    steps:
+      - name: Install
+        run: pacman -Syu --noconfirm --needed git qt6-declarative quickshell python
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Mark the checkout safe for git
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: qmllint
+        # On failure, also list the warnings that are new since the baseline was last written.
+        run: bash tools/qml-lint.sh || { bash tools/qml-lint.sh --since || true; exit 1; }

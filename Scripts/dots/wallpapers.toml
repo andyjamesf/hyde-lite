@@ -1,0 +1,12 @@
+# A small starter set of generated wallpapers (see Wallpapers/SOURCES.md). Copied into
+# ~/Pictures/Wallpapers only when missing, so the user's own files and deletions are never undone.
+# `wallpaper-library` adds links to the wallpapers of installed themes to the same folder.
+[wallpapers]
+description = "Starter wallpapers (7 generated pixel-art cityscapes)"
+
+[[wallpapers.files]]
+action = "preserve"
+source_root = "Wallpapers"
+target_root = "${HOME}/Pictures/Wallpapers"
+paths = "."
+ignored_paths = ["SOURCES.md"]

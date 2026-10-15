@@ -1,0 +1,143 @@
+#!/usr/bin/env python3
+"""Writes HyDE's wallbash palette from matugen's.
+
+HyDE colours kitty, rofi, waybar, Kvantum, kdeglobals, GTK, discord, spotify,
+chrome and cava from one file: ~/.cache/hyde/wall.dcol, which its own extraction
+of the wallpaper produces. The island uses matugen instead, which derives a
+tonal system from the image rather than picking colours out of it, and the two
+disagree -- on this machine wallbash read the wallpaper as light while matugen
+read it as dark.
+
+Rather than write a matugen template for each of those programs, this rewrites
+the one file they all already read. Everything HyDE colours then follows the
+island, with no per-program work.
+
+    wallbash-matugen            write it and rebuild HyDE's templates
+    wallbash-matugen --dry      print the palette and change nothing
+
+The matugen JSON is the one the island already caches on every wallpaper change
+(theme/Palettes.qml), so this costs no extra run of matugen.
+"""
+import json
+import os
+import pathlib
+import subprocess
+import sys
+
+HOME = pathlib.Path.home()
+CACHE = pathlib.Path(os.environ.get("XDG_CACHE_HOME", HOME / ".cache"))
+STATE = pathlib.Path(os.environ.get("XDG_STATE_HOME", HOME / ".local/state"))
+MATUGEN = CACHE / "morphing-island" / "matugen.json"
+DCOL_LINK = CACHE / "hyde" / "wall.dcol"
+PREFS = STATE / "morphing-island" / "prefs.json"
+
+# 1 is the lightest step of a ramp and 9 the darkest, whichever mode is in use:
+# HyDE's templates assume that order and pick from both ends.
+RAMP_TONES = [95, 90, 80, 70, 60, 50, 40, 30, 20]
+# pry1 is the window background and pry4 the furthest from it. These are roles
+# rather than tones because they are the same four the island draws itself with:
+# taken as tones the background came out a shade beside it instead of on it.
+PRY_ROLES = ["background", "surface_container", "surface_container_high", "surface_container_highest"]
+TXT_ROLES = ["on_background", "on_surface", "on_surface", "on_surface_variant"]
+# The four accent ramps, in the order HyDE numbers them.
+RAMP_FAMILIES = ["primary", "secondary", "tertiary", "neutral_variant"]
+
+
+def die(msg):
+    sys.stderr.write(f"wallbash-matugen: {msg}\n")
+    raise SystemExit(1)
+
+
+def role(colors, name, mode):
+    """A Material You role in the mode asked for."""
+    entry = colors.get(name) or die(f"matugen gave no {name} colour")
+    return (entry.get(mode) or entry["default"])["color"]
+
+
+def tone(palettes, family, t):
+    """The colour of `family` at tone `t`, or the nearest tone that exists."""
+    fam = palettes.get(family) or die(f"matugen gave no {family} palette")
+    if str(t) in fam:
+        return fam[str(t)]["color"]
+    nearest = min(fam, key=lambda k: abs(int(k) - t))
+    return fam[nearest]["color"]
+
+
+def mode_of(data):
+    """Dark or light: the island's setting when it has one, else the image's own."""
+    try:
+        with open(PREFS) as fh:
+            chosen = json.load(fh).get("theme.mode", "auto")
+        if chosen in ("dark", "light"):
+            return chosen
+    except Exception:
+        pass
+    return "dark" if data.get("is_dark_mode") else "light"
+
+
+def rgba(hex_colour):
+    h = hex_colour.lstrip("#")
+    r, g, b = (int(h[i:i + 2], 16) for i in (0, 2, 4))
+    # The \1 is HyDE's own placeholder for the alpha its templates fill in.
+    return f"rgba({r},{g},{b},\\1)"
+
+
+def build(data):
+    palettes = data.get("palettes") or die("matugen gave no tonal palettes")
+    colors = data.get("colors") or die("matugen gave no colours")
+    mode = mode_of(data)
+    out = [f'dcol_mode="{mode}"']
+
+    def put(key, colour):
+        out.append(f'dcol_{key}="{colour.lstrip("#").upper()}"')
+        out.append(f'dcol_{key}_rgba="{rgba(colour)}"')
+
+    for i, (bg, fg) in enumerate(zip(PRY_ROLES, TXT_ROLES, strict=True), start=1):
+        put(f"pry{i}", role(colors, bg, mode))
+        put(f"txt{i}", role(colors, fg, mode))
+    for n, family in enumerate(RAMP_FAMILIES, start=1):
+        for m, t in enumerate(RAMP_TONES, start=1):
+            put(f"{n}xa{m}", tone(palettes, family, t))
+    return mode, "\n".join(out) + "\n"
+
+
+def main():
+    dry = len(sys.argv) > 1 and sys.argv[1] in ("--dry", "-n")
+    if not MATUGEN.is_file():
+        die(f"no matugen palette at {MATUGEN}; is the island running?")
+    with open(MATUGEN) as fh:
+        data = json.load(fh)
+    mode, text = build(data)
+
+    if dry:
+        print(f"# mode {mode}, {len(text.splitlines())} lines, would replace {DCOL_LINK}")
+        print(text, end="")
+        return 0
+
+    # wall.dcol is a symlink into HyDE's per-wallpaper cache. Writing through it
+    # keeps HyDE's own bookkeeping intact: the file is generated once per
+    # wallpaper and never regenerated, so what is written here survives.
+    target = DCOL_LINK.resolve()
+    if not target.parent.is_dir():
+        die(f"{target.parent} does not exist; HyDE has not run yet")
+
+    # Idempotent on purpose. Rebuilding HyDE's templates rewrites files the shell
+    # watches, which can bring it round to running this again; doing nothing when
+    # there is nothing to change is what stops that going in circles.
+    if target.is_file() and target.read_text() == text:
+        print(f"wallbash-matugen: {target.name} already matches the island")
+        return 0
+    tmp = target.with_suffix(".tmp")
+    tmp.write_text(text)
+    tmp.replace(target)
+
+    # Rebuild everything HyDE generates from it.
+    lib = HOME / ".local/lib/hyde/theme.switch.sh"
+    if lib.is_file():
+        subprocess.run(["bash", str(lib)], check=False, capture_output=True)
+    print(f"wallbash-matugen: wrote {mode} palette to {target.name} and rebuilt HyDE's templates")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

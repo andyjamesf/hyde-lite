@@ -1,0 +1,2 @@
+${XDG_CACHE_HOME:-$HOME/.cache}/hyde/wallbash/matugen.stamp|(command -v wallpaper-palette >/dev/null && wallpaper-palette apply --after-hyde) >/dev/null 2>&1
+<wallbash_pry1>

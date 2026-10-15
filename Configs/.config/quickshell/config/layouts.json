@@ -1,0 +1,247 @@
+{
+    "islands": {
+        "label": "Islands",
+        "description": "Floating groups with everything: HyDE menu, active window, AI usage",
+        "style": "islands",
+        "height": 23,
+        "margin": 4,
+        "left": [
+            [
+                "hyde"
+            ],
+            [
+                "workspaces"
+            ],
+            [
+                "activeWindow"
+            ]
+        ],
+        "center": [
+            [
+                "clock"
+            ]
+        ],
+        "right": [
+            [
+                "media"
+            ],
+            [
+                "aiUsage"
+            ],
+            [
+                "tray"
+            ],
+            [
+                "audio",
+                "mic",
+                "brightness",
+                "network",
+                "bluetooth",
+                "battery"
+            ],
+            [
+                "idle",
+                "notifications",
+                "controlCenter",
+                "power"
+            ]
+        ]
+    },
+    "minimal": {
+        "label": "Minimal",
+        "description": "Just the essentials: workspaces, clock and status",
+        "style": "islands",
+        "height": 21,
+        "margin": 4,
+        "left": [
+            [
+                "workspaces"
+            ]
+        ],
+        "center": [
+            [
+                "clock"
+            ]
+        ],
+        "right": [
+            [
+                "tray"
+            ],
+            [
+                "audio",
+                "network",
+                "battery"
+            ],
+            [
+                "controlCenter",
+                "power"
+            ]
+        ]
+    },
+    "compact": {
+        "label": "Compact",
+        "description": "One continuous thin strip from edge to edge",
+        "style": "continuous",
+        "height": 19,
+        "left": [
+            [
+                "hyde",
+                "workspaces",
+                "activeWindow"
+            ]
+        ],
+        "center": [
+            [
+                "clock"
+            ]
+        ],
+        "right": [
+            [
+                "media",
+                "tray",
+                "audio",
+                "mic",
+                "brightness",
+                "network",
+                "bluetooth",
+                "battery",
+                "notifications",
+                "controlCenter",
+                "power"
+            ]
+        ]
+    },
+    "floating": {
+        "label": "Floating",
+        "description": "A single island in the center, dock style",
+        "style": "islands",
+        "height": 23,
+        "margin": 6,
+        "left": [],
+        "center": [
+            [
+                "workspaces",
+                "clock",
+                "audio",
+                "network",
+                "battery",
+                "notifications",
+                "controlCenter",
+                "power"
+            ]
+        ],
+        "right": []
+    },
+    "productivity": {
+        "label": "Productivity",
+        "description": "CPU, memory, temperature and AI tools usage",
+        "style": "islands",
+        "height": 23,
+        "margin": 4,
+        "left": [
+            [
+                "workspaces"
+            ],
+            [
+                "activeWindow"
+            ]
+        ],
+        "center": [
+            [
+                "clock"
+            ]
+        ],
+        "right": [
+            [
+                "stats"
+            ],
+            [
+                "aiUsage"
+            ],
+            [
+                "tray"
+            ],
+            [
+                "audio",
+                "network",
+                "battery"
+            ],
+            [
+                "idle",
+                "controlCenter",
+                "power"
+            ]
+        ]
+    },
+    "media": {
+        "label": "Media",
+        "description": "Music in the center with a visualizer",
+        "style": "islands",
+        "height": 23,
+        "margin": 4,
+        "left": [
+            [
+                "workspaces"
+            ],
+            [
+                "clock"
+            ]
+        ],
+        "center": [
+            [
+                "media"
+            ]
+        ],
+        "right": [
+            [
+                "tray"
+            ],
+            [
+                "audio",
+                "network",
+                "battery"
+            ],
+            [
+                "notifications",
+                "controlCenter",
+                "power"
+            ]
+        ]
+    },
+    "bottom": {
+        "label": "Bottom",
+        "description": "Minimal, at the bottom of the screen",
+        "style": "islands",
+        "position": "bottom",
+        "height": 23,
+        "margin": 4,
+        "left": [
+            [
+                "hyde"
+            ],
+            [
+                "workspaces"
+            ]
+        ],
+        "center": [
+            [
+                "clock"
+            ]
+        ],
+        "right": [
+            [
+                "tray"
+            ],
+            [
+                "audio",
+                "network",
+                "battery"
+            ],
+            [
+                "notifications",
+                "controlCenter",
+                "power"
+            ]
+        ]
+    }
+}

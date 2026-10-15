@@ -1,0 +1,37 @@
+# One colour pipeline: matugen is the only source of colour. wallpaper-palette picks the scheme
+# (10 matugen schemes) and mode (auto/dark/light) for the current wallpaper, writes `theme.mode` and
+# HyDE's `enableWallDcol` together so the two cannot disagree, recolours both shells, and has HyDE's
+# wallbash templates rebuilt in the background (wallbash-matugen, via the matugen.dcol hook).
+# wallpaper-library links every wallpaper into one folder and steps through it.
+# matugen.dcol / quickshell.dcol are installed by hyde.toml (hyde/wallbash).
+[colour]
+description = "matugen colour pipeline (scheme + mode per wallpaper, one place for both shells)"
+
+[[colour.dependency]]
+pacman = [
+    "imagemagick", # magick: palette swatches
+    "jq",          # JSON handling in the scripts
+    "python",      # wallpaper-palette, wallbash-matugen
+    "matugen",     # Material You colour generation (extra repository)
+]
+
+[[colour.files]]
+action = "sync"
+source_root = "Configs/.local/bin"
+target_root = "${HOME}/.local/bin"
+paths = ["wallpaper-palette", "wallpaper-library", "wallbash-matugen"]
+post_command = "chmod +x ${HOME}/.local/bin/wallpaper-palette ${HOME}/.local/bin/wallpaper-library ${HOME}/.local/bin/wallbash-matugen"
+
+# matugen's config and the templates it writes (Hyprland borders, GTK, kitty).
+[[colour.files]]
+action = "sync"
+source_root = "Configs/.config"
+target_root = "${XDG_CONFIG_HOME}"
+paths = ["matugen"]
+
+# Stops Arial and Verdana capturing Private Use Area icon glyphs.
+[[colour.files]]
+action = "sync"
+source_root = "Configs/.config"
+target_root = "${XDG_CONFIG_HOME}"
+paths = ["fontconfig/conf.d/75-nerd-font-pua.conf"]

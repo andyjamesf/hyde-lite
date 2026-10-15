@@ -1,0 +1,24 @@
+# qmllint counts per shell and category, as of the last update.
+# tools/qml-lint.sh fails when a count grows past its number here.
+# Lower a number whenever you fix something. Never raise one to make the check pass, with one exception:
+# an increase the owner has decided to accept, recorded below as a '#!' line with its reason
+# (tools/tests/test_qml_baseline.py checks the record). Rewriting the baseline keeps those lines.
+#
+# Format of a record: #! accepted DATE SHELL CATEGORY FROM->TO FILE[:LINE]: why it is inherent; how it could go
+#! accepted 2026-10-15 quickshell import 33->34 Configs/.config/quickshell/services/BarWidgets.qml: a new singleton file; qmllint reports every singleton file as "not declared as singleton in qmldir"; it would go if BarWidgets were merged into BarLayout.qml (measured in CI run 38745431293 with --since 351dfb1f)
+#! accepted 2026-10-15 quickshell uncreatable-type 7->8 Configs/.config/quickshell/modules/barbuilder/BarEditor.qml:15: the bar editor is a PanelWindow like every other window of the shell, and qmllint reports each one as "not creatable"; inherent to having the window (measured in CI run 38745431293)
+#! accepted 2026-10-15 quickshell unqualified 115->116 Configs/.config/quickshell/shell.qml:123: the bar editor's LazyLoader reads its own modelData inside the component, the pattern the other Loaders use and the baseline already counts; renaming the reads was tried (PR 54) and changed nothing (measured in CI run 38745431293)
+quickshell 34 import
+quickshell 8 incompatible-type
+quickshell 188 missing-property
+quickshell 2 property-override
+quickshell 8 uncreatable-type
+quickshell 116 unqualified
+quickshell 6 unresolved-type
+morphing-island 68 import
+morphing-island 4 incompatible-type
+morphing-island 1 key
+morphing-island 257 missing-property
+morphing-island 2 uncreatable-type
+morphing-island 270 unqualified
+morphing-island 3 unresolved-type

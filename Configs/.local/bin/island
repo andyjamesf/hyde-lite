@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+# Switches between HyDE's Quickshell shell (~/.config/quickshell) and the Morphing Island
+# (~/.config/morphing-island). Only one can be active: both want to be the notification
+# server, and the island is also the polkit agent.
+#
+#   island on | off | toggle | status
+#   island ipc <function> [args]   e.g. island ipc open launcher
+#   island run                     run the island, starting it again if it crashes (used at login
+#                                  and by `island on`; a crash while locked locks again at once)
+#   island lock [lock|unlock]      the island's lock screen for either shell (hypridle, Super+L). With the
+#                                  bar shell it starts the lock alone (lock.qml, fade entry, no pill)
+#   island login install | uninstall | test | sync-once
+#                                  the login screen (SDDM) in the island's style; install asks for sudo;
+#                                  sync-once updates its colours and wallpaper once (bar shell, at login)
+set -euo pipefail
+
+cfg="$HOME/.config/morphing-island"
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/morphing-island"
+active="$state_dir/active"
+desk="${XDG_SESSION_DESKTOP:-Hyprland}"
+qsbar="hyde-${desk}-qsbar.service"
+unit="morphing-island.service"
+
+is_on() { [[ -e "$active" ]]; }
+
+# HyDE's Waybar: both shells replace it, but HyDE still starts it whenever `waybar.py` updates its
+# config and finds it not running (its installer does that as a last step). Stopped on every switch.
+stop_waybar() {
+    systemctl --user stop "hyde-${desk}-bar.service" "hyde-${desk}-bar.scope" 2>/dev/null || true
+    pkill -u "$USER" -x waybar 2>/dev/null || true
+}
+
+# nm-applet and blueman-applet: their password and pairing windows are the island's job while it
+# runs (scripts/agents.py), so they only run with the HyDE shell. Same units HyDE starts at login.
+applet_units=("hyde-${desk}-network-manager-applet.service" "hyde-${desk}-bluetooth-applet.service" 'app-nm\x2dapplet@autostart.service' "app-blueman@autostart.service")
+applets_off() { systemctl --user stop "${applet_units[@]}" 2>/dev/null || true; }
+applets_on() {
+    systemctl --user reset-failed "${applet_units[@]:0:2}" 2>/dev/null || true
+    command -v nm-applet >/dev/null && ! pgrep -u "$USER" -x nm-applet >/dev/null &&
+        hyde-shell app -u "hyde-${desk}-network-manager-applet.service" -t service -- nm-applet --indicator
+    command -v blueman-applet >/dev/null && ! pgrep -u "$USER" -f '[b]lueman-applet' >/dev/null &&
+        hyde-shell app -u "hyde-${desk}-bluetooth-applet.service" -t service -- blueman-applet
+    true
+}
+
+polkit_units() { systemctl --user list-units --plain --no-legend 'app-*-polkitkdeauth.sh@*.service' | awk '{print $1}'; }
+
+on() {
+    stop_waybar
+    mkdir -p "$state_dir"
+    touch "$active"
+    systemctl --user stop "$qsbar" 2>/dev/null || true
+    # HyDE's polkit agent goes away: the island registers itself as the agent.
+    for u in $(polkit_units); do systemctl --user stop "$u" || true; done
+    applets_off
+    systemctl --user reset-failed "$unit" 2>/dev/null || true
+    hyde-shell app -u "$unit" -t service -- "$HOME/.local/bin/island" run
+    hyprctl eval 'MorphingIsland.set(true)' >/dev/null
+    echo "Morphing Island active."
+}
+
+off() {
+    stop_waybar
+    rm -f "$active"
+    systemctl --user stop "$unit" 2>/dev/null || true
+    hyprctl eval 'MorphingIsland.set(false)' >/dev/null
+    systemctl --user reset-failed "$qsbar" 2>/dev/null || true
+    hyde-shell app -u "$qsbar" -t service -- qs
+    [[ -n "$(polkit_units)" ]] || hyde-shell app -t service -- polkitkdeauth.sh
+    applets_on
+    echo "HyDE shell active."
+}
+
+case "${1:-status}" in
+    on) is_on && systemctl --user is-active -q "$unit" && { stop_waybar; echo "Already active."; exit 0; }; on ;;
+    off) off ;;
+    toggle) if is_on; then off; else on; fi ;;
+    status) if is_on; then echo "island"; else echo "hyde"; fi ;;
+    ipc) shift; exec qs -p "$cfg" ipc call island "$@" ;;
+    # Keeps the island up: a crash (any exit but a normal one or a stop) starts it again after a
+    # second, at most 5 times a minute.
+    run)
+        starts=()
+        while :; do
+            qs -p "$cfg" && exit 0
+            code=$?
+            [[ $code -eq 143 || $code -eq 130 ]] && exit "$code"
+            now=$(date +%s)
+            mapfile -t starts < <(for t in "${starts[@]}"; do ((now - t < 60)) && echo "$t"; done)
+            starts+=("$now")
+            ((${#starts[@]} > 5)) && { echo "island: crashed too often, giving up" >&2; exit "$code"; }
+            echo "island: exited with $code, starting it again" >&2
+            sleep 1
+        done
+        ;;
+    lock)
+        fn=${2:-lock}
+        if is_on; then exec qs -p "$cfg" ipc call lock "$fn"; fi
+        # Bar shell: the lock runs as its own small process and quits once the screen is unlocked.
+        lockcfg="$cfg/lock.qml"
+        qs -p "$lockcfg" ipc call lock "$fn" 2>/dev/null && exit 0
+        [[ $fn == lock ]] || exit 1
+        ISLAND_LOCK_ENTRY=fade qs -p "$lockcfg" -d || exit 1
+        for _ in $(seq 50); do
+            qs -p "$lockcfg" ipc call lock lock 2>/dev/null && exit 0
+            sleep 0.1
+        done
+        exit 1
+        ;;
+    login)
+        if [[ ${2:-} == sync-once ]]; then
+            ISLAND_LOCK_ENTRY=fade exec qs -p "$cfg/sync.qml"
+        fi
+        shift; exec python3 "$cfg/scripts/sddm.py" "${1:-test}" ;;
+    *) sed -n '2,13p' "$0"; exit 1 ;;
+esac

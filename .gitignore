@@ -1,0 +1,39 @@
+# Generated package lists (written by the installer)
+Scripts/pkg_black.lst
+Scripts/pkg_user.lst
+
+# Shell history and completion dumps
+.zsh_history*
+.zcompdump*
+
+# uwsm generates these
+Configs/.config/uwsm/*
+
+# Python and build output
+__pycache__/
+*.pyc
+build/
+
+# Local agent worktrees, never part of the tree
+.claude/
+
+# Local scratch files
+*ignore_me*
+*ignore-me*
+*IGNORE_ME*
+
+# Credentials and keys: none belongs in this repository (the Google Calendar client and token live in
+# ~/.local/share/quickshell/google/, outside it). tools/scan_publish.py and the hygiene test check the same names.
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.kdbx
+id_rsa*
+id_ed25519*
+client_secret*.json
+token.json
+google/client.json

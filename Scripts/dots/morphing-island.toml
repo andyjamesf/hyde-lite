@@ -1,0 +1,43 @@
+# Morphing Island: the second shell, one floating pill that expands. It is independent of the
+# HyDE-style Quickshell shell (quickshell.toml); only one of the two runs at a time. Same runtime
+# and fonts as that shell, so the packages come from there.
+# `island on|off|toggle` (~/.local/bin/island) switches; hypr/island.lua routes the shell keys and
+# starts the active shell at login (loaded from hyprland.lua).
+[morphing-island]
+description = "Morphing Island Quickshell shell (single expanding pill)"
+
+# The shell's code: kept in sync with this repository (updates overwrite it).
+[[morphing-island.files]]
+action = "sync"
+source_root = "Configs/.config/morphing-island"
+target_root = "${XDG_CONFIG_HOME}/morphing-island"
+paths = ["shell.qml", "README.md", "components", "core", "icons", "scripts", "sddm", "services", "theme"]
+
+# The user's settings: only copied when missing, never overwritten.
+[[morphing-island.files]]
+action = "preserve"
+source_root = "Configs/.config/morphing-island"
+target_root = "${XDG_CONFIG_HOME}/morphing-island"
+paths = ["config"]
+
+# Plugins: the user may add their own next to the shipped one.
+[[morphing-island.files]]
+action = "preserve"
+source_root = "Configs/.local/share/morphing-island"
+target_root = "${XDG_DATA_HOME}/morphing-island"
+paths = ["plugins"]
+
+# The switch script.
+[[morphing-island.files]]
+action = "sync"
+source_root = "Configs/.local/bin"
+target_root = "${HOME}/.local/bin"
+paths = ["island"]
+post_command = "chmod +x ${HOME}/.local/bin/island"
+
+# Shell key routing and the island's window animations.
+[[morphing-island.files]]
+action = "sync"
+source_root = "Configs/.config/hypr"
+target_root = "${XDG_CONFIG_HOME}/hypr/"
+paths = ["island.lua", "lua/animations"]
