@@ -246,12 +246,19 @@ check_fonts() {
     # to ~/.local/share/fonts is there for the session but not for the login screen, and the icons
     # under the password field come up blank. Your own session cannot show that.
     if id -u sddm >/dev/null 2>&1; then
-        sddm_families=$(sudo -n -u sddm env HOME=/var/lib/sddm fc-list : family 2>/dev/null)
-        if grep -qiE -- '(^|,)JetBrainsMono Nerd Font(,|$)' <<<"$sddm_families"; then
-            echo "font ok: JetBrainsMono Nerd Font (login screen)"
+        # A sudo that is declined (-n, no cached authorisation) prints nothing, which is not the
+        # same answer as "the font is not there": reported as unchecked, never as a failure, so a
+        # good install is not rejected over a question that could not be asked.
+        if sddm_families=$(sudo -n -u sddm env HOME=/var/lib/sddm fc-list : family 2>/dev/null) &&
+            [[ -n $sddm_families ]]; then
+            if grep -qiE -- '(^|,)JetBrainsMono Nerd Font(,|$)' <<<"$sddm_families"; then
+                echo "font ok: JetBrainsMono Nerd Font (login screen)"
+            else
+                echo "[err] font missing for the login screen: JetBrainsMono Nerd Font"
+                missing=1
+            fi
         else
-            echo "[err] font missing for the login screen: JetBrainsMono Nerd Font"
-            missing=1
+            echo "[warn] could not read fontconfig as the sddm user; login screen font NOT CHECKED"
         fi
     fi
     return "$missing"
