@@ -16,7 +16,9 @@ a shell installed on top (waybar, rofi, dunst, swaync and wlogout are not instal
 | `Scripts/dots/deps.toml` | no `wlogout` (an AUR package, so it was built from source on install) |
 | `Scripts/pkg_core.lst` | same four packages out of the legacy list that `install_pkg.sh` reads |
 | `Scripts/themepatcher.lst` | one theme (Nordic Blue, 3 MB) instead of twelve. HyDE falls back to the first theme of the list when `HYDE_THEME` is missing (`globalcontrol.sh`), so any one will do |
-| `Scripts/pkg_core.lst` (addition) | `ttf-jetbrains-mono-nerd`: the island's icon font (and the login screen's, which copies it) used to come only from an archive download that lite does not run, so the icons showed as boxes on a clean install |
+| `Scripts/dots/quickshell.toml` | `ttf-jetbrains-mono-nerd` added: the shells' icon font used to come only from an archive download (`Scripts/dots/archives.toml`, group `font-jetbrains-mono`) that the lite path does not run, so the icons showed as boxes on a clean install. A system package and not a copy under `~/.local/share/fonts`, because the login screen (SDDM) runs as its own user and cannot read your home. `Scripts/pkg_core.lst` lists it too, from an earlier attempt, but that line is dead code: `install_pkg.sh` is its only reader and nothing in the repository calls it (the mention in `Scripts/dots/deps.toml` is a comment) |
+| `install.sh` (repository root) | `check_fonts` reads `fc-list` into a variable once instead of piping it into `grep -q`. The script runs with `set -uo pipefail`, and `grep -q` exits at its first match, which leaves `fc-list` killed by SIGPIPE and the pipeline's status at 141: the check measured where a font sat in the list, not whether it existed, so the Fonts step failed (installer exit 1) on every clean install that had otherwise worked. It now also checks the icon font as the `sddm` user, which your own session cannot show you |
+| `Configs/.config/morphing-island/scripts/sddm.py` | `install()` copies the two fonts into the theme itself (new `bundle_fonts()`, shared with `sync()`) and writes a minimal `theme.conf.user` when there is none. It used to leave that to an IPC call into the running island, which on a clean install does not exist and failed silently, so the theme fell back to font family names and the very first login screen came up with no icons (SDDM's user cannot read `~/.local/share/fonts`). It fixed itself after the first login |
 | `Scripts/install.sh` | the six `cat <<"EOF"` ASCII banners became `banner <<"EOF"`, and a `banner` function skips them when `HYDE_LITE` is set (the lite installer prints its own header and step titles). Run alone, the script prints them as before. One word per banner, so a porting conflict is one line |
 | `Configs/.local/lib/hyde/color.set.sh` | GNU `parallel` replaced by `xargs -P` when rendering the wallbash templates |
 | `Configs/.local/share/wallbash/` | no `always/dunst.dcol`, `scripts/dunst.sh`, `scripts/swaync.sh`, `theme/swaync.dcol`: they render into configs of apps lite does not install, and `tests/python/check_wallbash_targets.py` fails on them |
@@ -61,10 +63,26 @@ What did NOT help, measured and dropped: skipping the 32 templates that a shell 
 icons, waybar, rofi, dunst, swaync, wayle) saves about 70 ms. The templates are cheap; starting
 `parallel` and a process per template was the cost. Cutting templates is not a speed-up.
 
+A clean install from nothing, run with `tools/vm-test.sh` on the Arch cloud image in QEMU (8 GiB, 6 vCPUs,
+2026-10-16, this tree, `./install.sh --island --shell zsh`):
+
+- installer exit code 0, 3m9s wall clock. Steps: Packages 93 s, Configs and themes 78 s, Login screen and
+  shell 5 s, Services 0 s, Island shell and login screen 0 s, Fonts 0 s
+- 14 post-install checks passed, 0 failed. They are written in `tools/vm-test.sh`, separately from the
+  installer's own report, so a step that prints a tick is not what proves it
+- the same tree before the three fixes above ended every run with the Fonts step at exit 1, and the first
+  login screen with no icons under the password field
+
 ## Not tested
 
-- A clean install on a barebones Arch. `deez deps --check` and the shell scripts were exercised on a
-  machine that already had HyDE, not from nothing. Use a VM (`Scripts/hydevm`) before trusting it.
+- A clean install on a *barebones* Arch. What ran is the Arch cloud image in a VM (see Measured), which
+  comes with a user, networking and systemd already set up. A hand-partitioned install, and real hardware,
+  are still untested.
+- That the icons under the password field are on the first login screen. The evidence is `fc-list` run as
+  the `sddm` user and the bundled `fonts/Icons.ttf`, not a screen: nobody has confirmed it by looking.
+- The installer's final `chsh`. `tools/vm-test.sh` gives the installer `/dev/null` on stdin so nothing can
+  block on a password prompt, and the installer skips that block when stdin is not a terminal
+  (`[[ -t 0 ]]`), so the login shell stayed `/bin/bash` in the VM.
 - The 14 byte-identical targets are the ones whose path is a plain file; templates that only run a
   command (the volume icons, the VS Code theme, Spotify, Discord) were not compared.
 
@@ -107,3 +125,8 @@ and move the base in this file and in `CONTRIBUTING.md` to the upstream commit y
 ## Testing
 
 The installer and the timings are checked on a clean Arch system (a VM, or a cloud session that can reach the Arch mirrors).
+
+`tools/vm-test.sh` does that run on the owner's machine and collects the logs: it boots the Arch cloud image
+with cloud-init, sends either a git ref or the local working tree, runs `./install.sh`, then runs its own
+checks. `--gui` opens a window, `--boot` brings the installed disk back up to look at the login screen.
+Nothing about it needs root, and the base image is cached, never written to.
