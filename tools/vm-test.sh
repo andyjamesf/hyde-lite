@@ -29,6 +29,8 @@ set -uo pipefail
 # --- defaults -------------------------------------------------------------------------------------
 REPO_DEFAULT="https://github.com/andyjamesf/hyde-lite.git"
 repo=$REPO_DEFAULT ref=main local_tree=0 fresh=0 gui=0 shell_only=0 keep=0 boot_only=0
+# --args is passed to ./install.sh as words, not as one argument, so it is written into the remote
+# command unquoted on purpose: "--island --shell zsh" has to arrive as three arguments.
 install_args="--island --shell zsh"
 mem=8G cpus=6 disk=40G port=2222 install_timeout=60
 IMAGE_URL="https://geo.mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg.qcow2"
@@ -128,7 +130,9 @@ chpasswd:
   list: |
     arch:arch
     root:arch
-ssh_pwauth: true
+# Key only over ssh. The passwords above stay for the VM window (the login screen is the point of
+# --gui), but the forwarded port is not a way in, not even for another account on this host.
+ssh_pwauth: false
 growpart:
   mode: auto
   devices: ['/']
@@ -234,10 +238,18 @@ if ((local_tree)); then
     info "sent $(ssh_vm 'find ~/hyde-lite -type f | wc -l') files"
 else
     say "Cloning $repo ($ref)"
+    # Quoted for the remote shell: these come from the command line of whoever runs this, so they
+    # are not hostile, but a branch name with a space or a quote in it should fail, not run.
     ssh_vm "sudo pacman -Sy --needed --noconfirm git >/dev/null 2>&1; rm -rf ~/hyde-lite &&
-        git clone --depth 1 --branch '$ref' '$repo' ~/hyde-lite" || die "could not clone the repository"
+        git clone --depth 1 --branch $(printf %q "$ref") $(printf %q "$repo") ~/hyde-lite" ||
+        die "could not clone the repository"
     info "cloned $(ssh_vm 'git -C ~/hyde-lite rev-parse --short HEAD') ($(ssh_vm 'find ~/hyde-lite -type f | wc -l') files)"
 fi
+
+# A reused disk (--keep, --boot) can still hold the theme's fonts/ from an earlier install, and the
+# "login screen theme bundles fonts" check below only looks for the file: cleared here so a ✓ can
+# only have come from this run.
+ssh_vm 'sudo rm -rf /usr/share/sddm/themes/morphing-island/fonts' >/dev/null 2>&1
 
 # --- run the installer ----------------------------------------------------------------------------
 # Run under "script" so stdout is a pty and the installer's own output path is the real one, but give
@@ -306,6 +318,7 @@ checks=(
     # The one that matters for the first login screen: SDDM runs as its own user and cannot read
     # the installing user's home, so a font deployed only to ~/.local/share/fonts is not there.
     "login screen icon font|sudo -n -u sddm env HOME=/var/lib/sddm fc-list : family | grep -qiE -- '(^|,)JetBrainsMono Nerd Font(,|\$)'"
+    # The theme's fonts/ is deleted before the installer runs, so this file can only be this run's.
     "login screen theme bundles fonts|test -f /usr/share/sddm/themes/morphing-island/fonts/Icons.ttf"
 )
 pass=0 fail=0

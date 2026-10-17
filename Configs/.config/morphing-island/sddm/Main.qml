@@ -9,7 +9,9 @@ import "components"
 // suspend / restart / power off. Everything but the background follows the monitor's scale.
 //
 // Colours, fonts, sizes and the wallpaper come from theme.conf.user, written by the island
-// (scripts/sddm.py sync) so this screen always matches it; theme.conf holds the defaults.
+// (scripts/sddm.py sync) so this screen always matches it; theme.conf holds the defaults. Straight
+// after a clean install that file holds only the bundled font paths (sddm.py install writes those,
+// as no island is running yet) and the first sync adds the rest.
 // Keys: Enter logs in, Esc clears, Up/Down change the user, Tab opens the sessions.
 Rectangle {
     id: root

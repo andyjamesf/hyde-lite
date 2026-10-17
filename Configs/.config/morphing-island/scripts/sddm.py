@@ -109,16 +109,44 @@ def bundle_fonts(target):
     """
     conf = {}
     font = next((f for f in FONT_CANDIDATES if os.path.isfile(f)), None)
-    if font:
-        os.makedirs(os.path.join(target, "fonts"), exist_ok=True)
-        copy_if_changed(font, os.path.join(target, "fonts", "Inter.ttf"))
-        conf["fontFile"] = "fonts/Inter.ttf"
     icon_font = find_icon_font()
-    if icon_font:
+    if font or icon_font:
         os.makedirs(os.path.join(target, "fonts"), exist_ok=True)
-        copy_if_changed(icon_font, os.path.join(target, "fonts", "Icons.ttf"))
-        conf["iconFontFile"] = "fonts/Icons.ttf"
+    # The destination is what decides, not copy_if_changed()'s result: that is False both when the
+    # copy failed and when the file was already identical, which is the common case on a re-sync.
+    for src, name, key in ((font, "Inter.ttf", "fontFile"), (icon_font, "Icons.ttf", "iconFontFile")):
+        if not src:
+            continue
+        dst = os.path.join(target, "fonts", name)
+        copy_if_changed(src, dst)
+        if os.path.isfile(dst):
+            conf[key] = "fonts/" + name
     return conf
+
+
+def ensure_font_keys(user_conf, font_conf):
+    """Adds the bundled font keys to theme.conf.user, keeping every key already in it.
+
+    A sync writes the whole file; this only fills in what is missing, so installing over a machine
+    whose island has already synced does not drop its colours, and a theme.conf.user written by an
+    older version (or by a sync that found no fonts) still gets the font paths.
+    """
+    if not font_conf:
+        return
+    try:
+        with open(user_conf, encoding="utf-8") as f:
+            lines = f.read().splitlines()
+    except OSError:
+        lines = ["[General]", "# Written by sddm.py install; a sync adds the island's own settings."]
+    have = {ln.split("=", 1)[0].strip() for ln in lines if "=" in ln}
+    missing = [f"{k}={json.dumps(v)}" for k, v in sorted(font_conf.items()) if k not in have]
+    if not missing:
+        return
+    at = next((i for i, ln in enumerate(lines) if ln.strip() == "[General]"), -1) + 1
+    while at < len(lines) and lines[at].lstrip().startswith("#"):
+        at += 1
+    lines[at:at] = missing
+    write_if_changed(user_conf, ("\n".join(lines) + "\n").encode())
 
 
 def sync(values, target):
@@ -176,12 +204,7 @@ def install():
     # running yet, so that IPC call is a no-op, and the theme fell back to its font family names.
     # SDDM's user cannot see ~/.local/share/fonts, so the very first login screen came up with no
     # icons and only fixed itself after the first login.
-    font_conf = bundle_fonts(THEME_DIR)
-    user_conf = os.path.join(THEME_DIR, "theme.conf.user")
-    if font_conf and not os.path.exists(user_conf):
-        lines = ["[General]", "# Written by sddm.py install; a running island replaces this on its next sync."]
-        lines += [f"{k}={json.dumps(v)}" for k, v in sorted(font_conf.items())]
-        write_if_changed(user_conf, ("\n".join(lines) + "\n").encode())
+    ensure_font_keys(os.path.join(THEME_DIR, "theme.conf.user"), bundle_fonts(THEME_DIR))
     # Colours and wallpaper come from the running island, when there is one.
     subprocess.run(["qs", "-p", os.path.dirname(HERE), "ipc", "call", "island", "sddmSync"], capture_output=True)
     print("Done: the next login uses it. Preview: sddm.py test")
