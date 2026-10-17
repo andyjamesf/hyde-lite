@@ -8,6 +8,11 @@ description = "Quickshell desktop shell for HyDE (bar, notifications, launcher, 
 pacman = [
     "quickshell",            # the shell runtime (QML)
     "inter-font",            # UI font
+    # Icon font, as a system package on purpose: the login screen (SDDM) runs as its own user and
+    # cannot read ~/.local/share/fonts, so a copy that only lives there leaves the first login
+    # screen with no icons. Scripts/pkg_core.lst also lists it, but nothing in the lite install
+    # path reads that file.
+    "ttf-jetbrains-mono-nerd",
     "upower",                # battery (Quickshell.Services.UPower)
     "power-profiles-daemon", # power profiles (Quickshell.Services.UPower PowerProfiles)
     "wl-clipboard",          # wl-copy for the clipboard launcher
