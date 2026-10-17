@@ -72,14 +72,15 @@ A clean install from nothing, run with `tools/vm-test.sh` on the Arch cloud imag
   installer's own report, so a step that prints a tick is not what proves it
 - the same tree before the three fixes above ended every run with the Fonts step at exit 1, and the first
   login screen with no icons under the password field
+- the owner logged into that VM and confirmed on screen (2026-10-17) that the icons under the password
+  field are drawn on the first login screen, which is what the three fixes were for. Before them, the same
+  first login screen had none
 
 ## Not tested
 
 - A clean install on a *barebones* Arch. What ran is the Arch cloud image in a VM (see Measured), which
   comes with a user, networking and systemd already set up. A hand-partitioned install, and real hardware,
   are still untested.
-- That the icons under the password field are on the first login screen. The evidence is `fc-list` run as
-  the `sddm` user and the bundled `fonts/Icons.ttf`, not a screen: nobody has confirmed it by looking.
 - The installer's final `chsh`. `tools/vm-test.sh` gives the installer `/dev/null` on stdin so nothing can
   block on a password prompt, and the installer skips that block when stdin is not a terminal
   (`[[ -t 0 ]]`), so the login shell stayed `/bin/bash` in the VM.
