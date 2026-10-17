@@ -227,15 +227,33 @@ fi
 # The shells draw their icons and text with three fonts; without them icons show as empty boxes. The packages
 # bring them, this step checks that fontconfig really sees them, so a missing one is reported, not found later.
 check_fonts() {
-    local missing=0 f
+    local missing=0 f families sddm_families
+    # fc-list is read into a variable once and the tests run against that, not through a pipe. This
+    # script runs with pipefail, and "grep -q" exits at the first match, which leaves fc-list killed
+    # by SIGPIPE and the pipeline's status at 141 even though the font was found. A font matching
+    # early in the list was reported missing and only one matching on the last line passed, so every
+    # clean install ended with the fonts marked missing and the installer exiting 1.
+    families=$(fc-list : family)
     for f in "JetBrainsMono Nerd Font" "Inter" "Material Symbols Rounded"; do
-        if fc-list : family | grep -qiE -- "(^|,)$f(,|$)"; then
+        if grep -qiE -- "(^|,)$f(,|$)" <<<"$families"; then
             echo "font ok: $f"
         else
             echo "[err] font missing: $f"
             missing=1
         fi
     done
+    # Checked separately as SDDM's own user, which cannot read your home: an icon font deployed only
+    # to ~/.local/share/fonts is there for the session but not for the login screen, and the icons
+    # under the password field come up blank. Your own session cannot show that.
+    if id -u sddm >/dev/null 2>&1; then
+        sddm_families=$(sudo -n -u sddm env HOME=/var/lib/sddm fc-list : family 2>/dev/null)
+        if grep -qiE -- '(^|,)JetBrainsMono Nerd Font(,|$)' <<<"$sddm_families"; then
+            echo "font ok: JetBrainsMono Nerd Font (login screen)"
+        else
+            echo "[err] font missing for the login screen: JetBrainsMono Nerd Font"
+            missing=1
+        fi
+    fi
     return "$missing"
 }
 if ((!dry)); then
