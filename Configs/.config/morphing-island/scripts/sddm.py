@@ -100,6 +100,27 @@ def image_copy(src, dst):
     return ok
 
 
+def bundle_fonts(target):
+    """Copies the UI and icon fonts into the theme and returns the keys that point at them.
+
+    SDDM runs as its own user and cannot read your home, so a font that only lives in
+    ~/.local/share/fonts is invisible to the login screen. Returns {} when neither is found, which
+    leaves the theme on its font family names.
+    """
+    conf = {}
+    font = next((f for f in FONT_CANDIDATES if os.path.isfile(f)), None)
+    if font:
+        os.makedirs(os.path.join(target, "fonts"), exist_ok=True)
+        copy_if_changed(font, os.path.join(target, "fonts", "Inter.ttf"))
+        conf["fontFile"] = "fonts/Inter.ttf"
+    icon_font = find_icon_font()
+    if icon_font:
+        os.makedirs(os.path.join(target, "fonts"), exist_ok=True)
+        copy_if_changed(icon_font, os.path.join(target, "fonts", "Icons.ttf"))
+        conf["iconFontFile"] = "fonts/Icons.ttf"
+    return conf
+
+
 def sync(values, target):
     if not os.path.isdir(target) or not os.access(target, os.W_OK):
         out({"ok": False, "reason": f"{target} is not installed (run: sddm.py install)"})
@@ -117,16 +138,7 @@ def sync(values, target):
         os.makedirs(os.path.join(target, "faces"), exist_ok=True)
         copy_if_changed(face, os.path.join(target, "faces", getpass.getuser() + ".png"))
 
-    font = next((f for f in FONT_CANDIDATES if os.path.isfile(f)), None)
-    if font:
-        os.makedirs(os.path.join(target, "fonts"), exist_ok=True)
-        copy_if_changed(font, os.path.join(target, "fonts", "Inter.ttf"))
-        conf["fontFile"] = "fonts/Inter.ttf"
-    icon_font = find_icon_font()
-    if icon_font:
-        os.makedirs(os.path.join(target, "fonts"), exist_ok=True)
-        copy_if_changed(icon_font, os.path.join(target, "fonts", "Icons.ttf"))
-        conf["iconFontFile"] = "fonts/Icons.ttf"
+    conf.update(bundle_fonts(target))
 
     # SDDM draws at 1×: the theme scales the island by the desktop's scale (focused monitor).
     try:
@@ -160,7 +172,17 @@ def install():
     p = subprocess.run(["sudo", "tee", CONF], input=conf.encode(), stdout=subprocess.DEVNULL)
     if p.returncode != 0:
         sys.exit("Could not write " + CONF)
-    # Colours and wallpaper come from the running island.
+    # The fonts are copied here and not left to the sync below: on a fresh install no island is
+    # running yet, so that IPC call is a no-op, and the theme fell back to its font family names.
+    # SDDM's user cannot see ~/.local/share/fonts, so the very first login screen came up with no
+    # icons and only fixed itself after the first login.
+    font_conf = bundle_fonts(THEME_DIR)
+    user_conf = os.path.join(THEME_DIR, "theme.conf.user")
+    if font_conf and not os.path.exists(user_conf):
+        lines = ["[General]", "# Written by sddm.py install; a running island replaces this on its next sync."]
+        lines += [f"{k}={json.dumps(v)}" for k, v in sorted(font_conf.items())]
+        write_if_changed(user_conf, ("\n".join(lines) + "\n").encode())
+    # Colours and wallpaper come from the running island, when there is one.
     subprocess.run(["qs", "-p", os.path.dirname(HERE), "ipc", "call", "island", "sddmSync"], capture_output=True)
     print("Done: the next login uses it. Preview: sddm.py test")
 
