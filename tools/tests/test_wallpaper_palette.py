@@ -74,6 +74,11 @@ class PaletteTest(unittest.TestCase):
         f = self.log / name
         return len(f.read_text().splitlines()) if f.exists() else 0
 
+    def palette_runs(self):
+        """matugen calls that work out a palette (the second call of an apply renders the templates)."""
+        f = self.log / "matugen"
+        return [line for line in f.read_text().splitlines() if " image " in line] if f.exists() else []
+
     def write_flag(self, value):
         self.staterc.parent.mkdir(parents=True, exist_ok=True)
         self.staterc.write_text(f'hydeTheme="x"\nenableWallDcol="{value}"\nother=1\n')
@@ -106,25 +111,32 @@ class PaletteTest(unittest.TestCase):
 
     def test_second_apply_with_same_inputs_does_nothing(self):
         self.run_script("apply")
-        self.assertEqual(self.calls("matugen"), 1)
+        self.assertEqual(len(self.palette_runs()), 1)
         self.run_script("apply")
-        self.assertEqual(self.calls("matugen"), 1)
+        self.assertEqual(len(self.palette_runs()), 1)
         self.run_script("apply", "--force")
-        self.assertEqual(self.calls("matugen"), 2)
+        self.assertEqual(len(self.palette_runs()), 2)
 
     def test_changed_input_regenerates(self):
         self.run_script("apply")
         self.run_script("mode", "light")
-        self.assertEqual(self.calls("matugen"), 2)
+        self.assertEqual(len(self.palette_runs()), 2)
         self.run_script("next")
-        self.assertEqual(self.calls("matugen"), 3)
+        self.assertEqual(len(self.palette_runs()), 3)
 
     def test_auto_asks_matugen_for_smart_and_modes_pass_through(self):
         self.run_script("apply")
         self.run_script("mode", "light")
-        lines = (self.log / "matugen").read_text().splitlines()
+        lines = self.palette_runs()
         self.assertIn("-m smart", lines[0])
         self.assertIn("-m light", lines[1])
+        self.assertIn("--dry-run", lines[0])  # the templates come from the neutralised palette instead
+
+    def test_templates_are_rendered_from_the_cached_palette(self):
+        self.run_script("apply")
+        render = [x for x in (self.log / "matugen").read_text().splitlines() if " json " in x]
+        self.assertEqual(len(render), 1)
+        self.assertTrue(render[0].endswith("matugen.json"))
 
     def test_preview_caches_per_wallpaper_not_per_mode(self):
         self.run_script("mode", "dark")

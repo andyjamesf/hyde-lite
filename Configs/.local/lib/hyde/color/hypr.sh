@@ -26,6 +26,9 @@ eval "$(hyq "$HYDE_THEME_DIR/hypr.theme" \
 
 # This is for older themes that do not define the above variables
 [[ -z ${__GTK_THEME} ]] && __GTK_THEME=$(get_hyprConf "GTK_THEME")
+__GTK_THEME=Wallbash-Gtk # hyde-lite: ui.lua, and so gsettings, get the matugen-driven theme (see theme.switch.sh)
+__ICON_THEME=Matugen-Icons
+__COLOR_SCHEME=prefer-${dcol_mode:-dark} # the mode matugen chose, so apps that follow the system (Electron, libadwaita, Zed) flip with the rest
 [[ -z ${__COLOR_SCHEME} ]] && __COLOR_SCHEME=$(get_hyprConf "COLOR_SCHEME")
 [[ -z ${__ICON_THEME} ]] && __ICON_THEME=$(get_hyprConf "ICON_THEME")
 [[ -z ${__CURSOR_THEME} ]] && __CURSOR_THEME=$(get_hyprConf "CURSOR_THEME")
