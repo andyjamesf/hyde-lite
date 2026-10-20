@@ -496,10 +496,6 @@ EOF
 			print_log -err "[theme] " -crit "ERROR" "Theme colour state was not generated"
 			theme_failed=1
 		fi
-		if ! "$HOME/.local/lib/hyde/waybar.py" --update; then
-			print_log -err "[theme] " -crit "ERROR" "Waybar configuration was not updated"
-			theme_failed=1
-		fi
 		echo "[install] reload :: Hyprland"
 	fi
 

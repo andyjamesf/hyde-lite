@@ -13,6 +13,11 @@ git grep -l -i -E 'rofi|waybar|wlogout|swaync|dunst' -- Configs/.local Scripts |
 searched for the scripts they might call by name. A file marked "no reference" is unused as far as the text
 of this repository shows.
 
+> **Status 2026-10-20.** Group A was deleted in #14. Of group B, B1 (the five rofi scripts, their `dispatcher.lua`
+> entries and nine rofi binds) and `waybar.py` with `pyutils/wrapper/rofi.py` (its only importer, once `Scripts/install.sh`
+> stopped calling it) were deleted in the PR that follows this document. What is left of B2 is
+> `luautils/selector/rofi.lua`, required by `common.lua` and `shaders.lua`.
+
 ## A. No reference anywhere (safe to delete, each is a delete/modify conflict when porting upstream)
 
 | Path | Size | Note |

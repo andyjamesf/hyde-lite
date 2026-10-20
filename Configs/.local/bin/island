@@ -23,13 +23,6 @@ unit="morphing-island.service"
 
 is_on() { [[ -e "$active" ]]; }
 
-# HyDE's Waybar: both shells replace it, but HyDE still starts it whenever `waybar.py` updates its
-# config and finds it not running (its installer does that as a last step). Stopped on every switch.
-stop_waybar() {
-    systemctl --user stop "hyde-${desk}-bar.service" "hyde-${desk}-bar.scope" 2>/dev/null || true
-    pkill -u "$USER" -x waybar 2>/dev/null || true
-}
-
 # nm-applet and blueman-applet: their password and pairing windows are the island's job while it
 # runs (scripts/agents.py), so they only run with the HyDE shell. Same units HyDE starts at login.
 applet_units=("hyde-${desk}-network-manager-applet.service" "hyde-${desk}-bluetooth-applet.service" 'app-nm\x2dapplet@autostart.service' "app-blueman@autostart.service")
@@ -46,7 +39,6 @@ applets_on() {
 polkit_units() { systemctl --user list-units --plain --no-legend 'app-*-polkitkdeauth.sh@*.service' | awk '{print $1}'; }
 
 on() {
-    stop_waybar
     mkdir -p "$state_dir"
     touch "$active"
     systemctl --user stop "$qsbar" 2>/dev/null || true
@@ -60,7 +52,6 @@ on() {
 }
 
 off() {
-    stop_waybar
     rm -f "$active"
     systemctl --user stop "$unit" 2>/dev/null || true
     hyprctl eval 'MorphingIsland.set(false)' >/dev/null
@@ -72,7 +63,7 @@ off() {
 }
 
 case "${1:-status}" in
-    on) is_on && systemctl --user is-active -q "$unit" && { stop_waybar; echo "Already active."; exit 0; }; on ;;
+    on) is_on && systemctl --user is-active -q "$unit" && { echo "Already active."; exit 0; }; on ;;
     off) off ;;
     toggle) if is_on; then off; else on; fi ;;
     status) if is_on; then echo "island"; else echo "hyde"; fi ;;

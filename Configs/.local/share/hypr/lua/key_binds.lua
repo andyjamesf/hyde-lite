@@ -167,22 +167,14 @@ _F = {description = "[Launcher] control center"}
 hl.bind(MOD .. " + ALT + C", hl.dsp.exec_cmd("qs ipc call controlcenter toggle"), _F)
 _F = {description = "[Utilities] toggle notification center"}
 hl.bind(MOD .. " + N", hl.dsp.exec_cmd("qs ipc call notifications toggle"), _F)
-_F = {description = "[Launcher|Rofi menus] window switcher"}
-hl.bind(MOD .. " + TAB", hl.dsp.exec_cmd(hyde.sh.menu.windows()), _F)
-_F = {description = "[Launcher|Rofi menus] file finder"}
-hl.bind(MOD .. " + SHIFT + E", hl.dsp.exec_cmd(hyde.sh.menu.files()), _F)
+-- hyde-lite: the rofi menu binds (TAB, SHIFT+E, comma, period, SHIFT+slash, SHIFT+G, SHIFT+W/R/T) are gone: rofi is not
+-- installed, and ~/.config/hypr/island.lua binds the same keys to both shells' pickers.
 _F = {description = "[Launcher] keybindings"}
 hl.bind(MOD .. " + slash", hl.dsp.exec_cmd("qs ipc call launcher keys"), _F)
-_F = {description = "[Launcher|Rofi menus] emoji picker"}
-hl.bind(MOD .. " + comma", hl.dsp.exec_cmd(hyde.sh.menu.emoji()), _F)
-_F = {description = "[Launcher|Rofi menus] glyph picker"}
-hl.bind(MOD .. " + period", hl.dsp.exec_cmd(hyde.sh.menu.glyph()), _F)
 _F = {description = "[Launcher] clipboard"}
 hl.bind(MOD .. " + V", hl.dsp.exec_cmd("qs ipc call launcher clipboard"), _F)
 _F = {description = "[Launcher] calculator"}
 hl.bind(MOD .. " + SHIFT + K", hl.dsp.exec_cmd("qs ipc call launcher calc"), _F)
-_F = {description = "[Launcher|Rofi menus] Web Search"}
-hl.bind(MOD .. " + SHIFT + slash", hl.dsp.exec_cmd(hyde.sh.menu.search()), _F)
 
 -- $hc=Hardware Controls
 -- $d=[$hc|Audio]
@@ -222,8 +214,6 @@ _F = {description = "[Utilities] toggle keyboard layout", locked = true}
 hl.bind(MOD .. " + K", hl.dsp.exec_cmd(hyde.sh.kb.switch()), _F)
 _F = {description = "[Utilities] game mode", locked = true}
 hl.bind(MOD .. " + ALT + G", hl.dsp.exec_cmd(hyde.sh.gamemode()), _F) -- TODO
-_F = {description = "[Utilities] game launcher"}
-hl.bind(MOD .. " + SHIFT + G", hl.dsp.exec_cmd("hyde-shell gamelauncher"), _F)
 
 _F = {description = "[Utilities|Screen capture] color picker", locked = true}
 hl.bind(MOD .. " + SHIFT + P", hl.dsp.exec_cmd("hyprpicker -an"), _F)
@@ -247,12 +237,6 @@ hl.bind(MOD .. "+ ALT + Up", hl.dsp.exec_cmd("qs ipc call bar next"), _F)
 _F = {description = "[Theming and Wallpaper] previous bar layout"}
 hl.bind(MOD .. "+ ALT + Down", hl.dsp.exec_cmd("qs ipc call bar prev"), _F)
 
-_F = {description = "[Theming and Wallpaper] select a global wallpaper"}
-hl.bind(MOD .. "+ SHIFT + W", hl.dsp.exec_cmd(hyde.sh.menu.wallpapers()), _F)
-_F = {description = "[Theming and Wallpaper] wallbash mode selector"}
-hl.bind(MOD .. "+ SHIFT + R", hl.dsp.exec_cmd(hyde.sh.menu.wallbash()), _F)
-_F = {description = "[Theming and Wallpaper] select a theme"}
-hl.bind(MOD .. "+ SHIFT + T", hl.dsp.exec_cmd(hyde.sh.menu.themes()), _F)
 _F = {description = "[Theming and Wallpaper] select animations"}
 hl.bind(MOD .. "+ SHIFT + Y", hl.dsp.exec_cmd("hyde-shell animations --select"), _F)
 _F = {description = "[Theming and Wallpaper] select Hyprlock layout"}
