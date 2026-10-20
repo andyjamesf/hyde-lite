@@ -1,0 +1,76 @@
+#!/usr/bin/env python3
+"""Writes the icon theme "Matugen-Icons": Papirus-Dark with its folders in the wallpaper's colour.
+
+    matugen-icons            write it, unless it already has these colours
+    matugen-icons --force    write it anyway
+
+Papirus draws a folder in two blues (#5294e2 and its shade #4877b1) and ships the other colours as
+copies with another pair. This copies the blue folder icons of every size, swaps the pair for tones 60
+and 50 (and 20 for the emblem on it) of matugen's secondary palette (the cache the island already writes, theme/Palettes.qml) and
+leaves everything else to Papirus-Dark, which the theme inherits. Nothing is downloaded and the
+system theme is not touched; the result is ~/.local/share/icons/Matugen-Icons.
+"""
+import json
+import os
+import pathlib
+import re
+import shutil
+import sys
+
+HOME = pathlib.Path.home()
+CACHE = pathlib.Path(os.environ.get("XDG_CACHE_HOME", HOME / ".cache"))
+DATA = pathlib.Path(os.environ.get("XDG_DATA_HOME", HOME / ".local/share"))
+MATUGEN = CACHE / "morphing-island" / "matugen.json"
+SRC = pathlib.Path("/usr/share/icons/Papirus")
+OUT = DATA / "icons" / "Matugen-Icons"
+FAMILY, BASE_TONE, SHADE_TONE, DARK_TONE = "secondary", "60", "50", "20"
+PAPIRUS_BASE, PAPIRUS_SHADE, PAPIRUS_DARK = "#5294e2", "#4877b1", "#1d344f"  # folder, its shade, the emblem on it
+SIZES = ["16x16", "22x22", "24x24", "32x32", "48x48", "64x64"]
+
+
+def main():
+    force = "--force" in sys.argv[1:]
+    if not SRC.is_dir():
+        sys.exit("matugen-icons: papirus-icon-theme is not installed")
+    try:
+        primary = json.loads(MATUGEN.read_text())["palettes"][FAMILY]
+        base, shade, dark = (primary[t]["color"] for t in (BASE_TONE, SHADE_TONE, DARK_TONE))
+    except (OSError, KeyError, ValueError):
+        sys.exit(f"matugen-icons: no palette at {MATUGEN}")
+    stamp = OUT / ".stamp"
+    key = f"{base}{shade}{dark}"
+    if not force and stamp.is_file() and stamp.read_text() == key:
+        return
+    swap = re.compile("|".join(map(re.escape, (PAPIRUS_BASE, PAPIRUS_SHADE, PAPIRUS_DARK))), re.I)
+    colours = {PAPIRUS_BASE: base, PAPIRUS_SHADE: shade, PAPIRUS_DARK: dark}
+    tmp = OUT.with_name(OUT.name + ".tmp")
+    shutil.rmtree(tmp, ignore_errors=True)
+    dirs = []
+    for size in SIZES:
+        places = SRC / size / "places"
+        if not places.is_dir():
+            continue
+        dest = tmp / size / "places"
+        dest.mkdir(parents=True)
+        for kind in ("folder", "user"):
+            # "-blue" itself and "-blue-<emblem>", not "-bluegrey", which is another colour
+            for f in (*places.glob(f"{kind}-blue.svg"), *places.glob(f"{kind}-blue-*.svg")):
+                # folder-blue.svg is "folder", folder-blue-documents.svg "folder-documents", user-blue-home.svg "user-home"
+                name = f.name.replace(f"{kind}-blue", kind, 1)
+                text = swap.sub(lambda m: colours[m.group(0).lower()], f.read_text())
+                (dest / name).write_text(text)
+        dirs.append(size)
+    px = lambda s: int(s.split("x")[0])
+    sections = "".join(
+        f"\n[{d}/places]\nContext=Places\nSize={px(d)}\nType=Fixed\n" for d in dirs)
+    (tmp / "index.theme").write_text(
+        "[Icon Theme]\nName=Matugen-Icons\nComment=Papirus-Dark with folders in the wallpaper colour\n"
+        "Inherits=Papirus-Dark,Papirus\nDirectories=" + ",".join(f"{d}/places" for d in dirs) + "\n" + sections)
+    (tmp / ".stamp").write_text(key)
+    shutil.rmtree(OUT, ignore_errors=True)
+    tmp.rename(OUT)
+    print(f"matugen-icons: folders {base} / {shade}")
+
+
+if __name__ == "__main__":
+    main()

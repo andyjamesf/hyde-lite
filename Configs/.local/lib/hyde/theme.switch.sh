@@ -125,6 +125,7 @@ fi
 # matugen supplies (wallbash-matugen), so GTK apps follow the wallpaper and the dark/light mode like
 # everything else; a theme's own static GTK theme would not. See LITE.md.
 GTK_THEME=Wallbash-Gtk
+ICON_THEME=Matugen-Icons # Papirus-Dark with folders in the wallpaper colour (bin/matugen-icons, run by wallbash-matugen)
 show_theme_status
 if ! dconf write /org/gnome/desktop/interface/icon-theme "'$ICON_THEME'"; then
     print_log -sec "theme" -warn "dconf" "failed to set icon theme"

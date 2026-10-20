@@ -201,6 +201,11 @@ class Main(Base):
         self.assertEqual(self.real.read_text(), "old")
         run.assert_not_called()
 
+    @staticmethod
+    def rebuilds(run):
+        """The calls that rebuild HyDE's templates (the icon theme refresh is another subprocess)."""
+        return [c for c in run.call_args_list if c.args[0][0] == "bash"]
+
     def test_writes_through_the_symlink_and_is_idempotent(self):
         code, out, _ = self.run_main()
         self.assertEqual(code, 0)
@@ -210,7 +215,7 @@ class Main(Base):
         before = self.real.stat().st_mtime_ns
         code, out, run = self.run_main()
         self.assertIn("already matches", out)
-        run.assert_not_called()  # nothing to rebuild, so no loop with the file watcher
+        self.assertEqual(self.rebuilds(run), [])  # nothing to rebuild, so no loop with the file watcher
         self.assertEqual(self.real.stat().st_mtime_ns, before)
 
     def test_rebuilds_templates_when_hyde_has_the_script(self):
@@ -218,8 +223,15 @@ class Main(Base):
         lib.parent.mkdir(parents=True)
         lib.write_text("#!/bin/sh\n")
         _, _, run = self.run_main()
-        run.assert_called_once()
-        self.assertEqual(run.call_args.args[0][0], "bash")
+        self.assertEqual(len(self.rebuilds(run)), 1)
+        self.assertEqual(self.rebuilds(run)[0].args[0][0], "bash")
+
+    def test_icon_theme_is_refreshed_before_the_rebuild(self):
+        lib = self.home / ".local/lib/hyde/theme.switch.sh"
+        lib.parent.mkdir(parents=True)
+        lib.write_text("#!/bin/sh\n")
+        _, _, run = self.run_main()
+        self.assertEqual([c.args[0][0] for c in run.call_args_list], ["matugen-icons", "bash"])
 
     def test_no_matugen_cache_exits(self):
         self.mod.MATUGEN.unlink()

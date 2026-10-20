@@ -110,6 +110,9 @@ def main():
     with open(MATUGEN) as fh:
         data = json.load(fh)
     mode, text = build(data)
+    if not dry:
+        # Before the rebuild below, which is what points the desktop at the icon theme.
+        subprocess.run(["matugen-icons"], check=False)
 
     if dry:
         print(f"# mode {mode}, {len(text.splitlines())} lines, would replace {DCOL_LINK}")
