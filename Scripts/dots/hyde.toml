@@ -106,7 +106,7 @@ paths = [
 action = "sync"
 source_root = "Configs/.local/bin"
 target_root = "${HOME}/.local/bin"
-paths = ["hyde-shell"]  # hydectl is installed by Scripts/install_hydectl.sh (a pinned release, see LITE.md)
+paths = ["hyde-shell", "hydectl"]
 
 [grimblast]
 version = "26.08.17"

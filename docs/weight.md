@@ -29,8 +29,8 @@ and `hyde-ipc` (2.7) were the biggest until 2026-10-20. Candidates for a further
 porting conflict (see `CONTRIBUTING.md`):
 
 - Done 2026-10-20: `hydectl` and `hyde-ipc` (prebuilt Rust binaries committed upstream, 15.5 MiB) are gone from the
-  tree. `Scripts/install_hydectl.sh` downloads HyDE-Project's release (3.6 MiB tarball) with a pinned SHA-256;
-  `hyde-ipc` was used by nothing. `tools/tests/test_install_hydectl.py` fails if an ELF file is tracked again.
+  tree. `Configs/.local/bin/hydectl` is now a 60-line script over `hyde-shell` with the subcommands the keys and
+  the shells use; `hyde-ipc` was used by nothing. `tools/tests/test_hydectl.py` fails if an ELF file is tracked again.
 - `Source/arcs/Sddm_Candy.tar.gz`: only used with `--interactive`.
 - The README images could be recompressed (`oxipng`), they are screenshots at 1920 px.
 

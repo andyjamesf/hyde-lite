@@ -29,11 +29,6 @@
     source_root = "Configs/.config/zsh/functions"
     target_root = "${XDG_CONFIG_HOME}/zsh/functions"
 
-[[zsh.files]]
-    action      = "sync"
-    paths       = "hydectl.zsh"
-    source_root = "Configs/.config/zsh/completions"
-    target_root = "${XDG_CONFIG_HOME}/zsh/completions"
 
 [[zsh.files]]
     action = "preserve"
