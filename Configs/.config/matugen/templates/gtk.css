@@ -6,7 +6,7 @@
  * spacing and widget rules and just changes palette.
  *
  * Both sets of names are given: the older theme_* ones that GTK3 and GTK4
- * themes read, and the window_*/view_*/accent_* ones libadwaita uses. An app
+ * themes read, and the window_, view_ and accent_ ones libadwaita uses. An app
  * reads whichever its toolkit knows and ignores the rest. */
 
 /* --- GTK3 and GTK4 theme names --- */

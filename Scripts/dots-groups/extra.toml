@@ -15,7 +15,7 @@
         "../dots/deps.toml",
         "../dots/electron.toml",
         "../dots/baloofilerc.toml",
-        "../dots/dolphin.toml",
+        "../dots/thunar.toml",
         "../dots/kitty.toml",
         "../dots/hyprlock.toml",
         "../dots/hypridle.toml",

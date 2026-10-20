@@ -1,0 +1,23 @@
+# The file manager is Thunar (GTK3): it takes its colours from gtk-3.0, which matugen already
+# writes (Configs/.config/matugen), so it matches the other GTK apps with nothing of its own to maintain.
+[thunar]
+    action      = "sync"
+    description = "Thunar file manager"
+    owner       = "hyde-lite"
+    version     = "0.1.0"
+
+[[thunar.dependency]]
+    dnf  = [ "Thunar" ]
+    pacman = [
+        "thunar",
+        "thunar-volman",        # removable media
+        "gvfs",                 # trash, network and mounted places
+        "tumbler",              # thumbnails
+        "ffmpegthumbnailer",    # video thumbnails
+    ]
+
+[[thunar.files]]
+    action      = "sync"
+    paths       = "applications.menu"
+    source_root = "Configs/.config/menus"
+    target_root = "${XDG_CONFIG_HOME}/menus"
