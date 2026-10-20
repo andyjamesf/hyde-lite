@@ -61,7 +61,7 @@ S|${HOME}/.config/hyde|wallbash|hyprland bash imagemagick
 #! S|${HOME}/.config/hypr|shaders|hyprland
 
 O|${HOME}/.local/share|hypr|hyprland
-O|${HOME}/.local/bin|hyde-shell hydectl|hyprland
+O|${HOME}/.local/bin|hyde-shell|hyprland
 O|${HOME}/.local/share|hyde|hyprland
 O|${HOME}/.local/lib|hyde|hyprland
 O|${HOME}/.local/share|wallbash|bash imagemagick

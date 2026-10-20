@@ -24,8 +24,7 @@ SECRET_FILE_NAMES = scan_publish.SECRET_FILE_NAMES
 MAX_BYTES = 4 * 1024 * 1024
 LARGE_ALLOWED = re.compile(
     r"^(Source/arcs/.*\.tar\.gz"  # upstream's theme and font archives
-    r"|docs/images/.*\.png|Wallpapers/.*\.png"
-    r"|Configs/\.local/bin/hydectl)$"  # upstream's prebuilt helper (13 MB ELF); see docs/weight.md
+    r"|docs/images/.*\.png|Wallpapers/.*\.png)$"
 )
 # upstream READMEs whose links are already broken upstream (they omit the .md extension)
 LINK_EXEMPT = {"Configs/.config/hyde/wallbash/README.md"}
