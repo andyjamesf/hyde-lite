@@ -41,3 +41,36 @@
 @define-color accent_color {{colors.primary.default.hex}};
 @define-color destructive_bg_color {{colors.error.default.hex}};
 @define-color destructive_fg_color {{colors.on_error.default.hex}};
+
+/* --- menus and popovers ---
+ * Wallbash-Gtk draws these with literal colours from its accent ramp (a teal #00504D body with a cyan
+ * #21BEB9 border on a teal wallpaper), which the named colours above do not reach, so they are set
+ * here once for any wallpaper: the neutral popover surface, a thin quiet border, and a neutral hover.
+ * The accent is left to the selection and to checked items. */
+menu, .menu, .context-menu {
+  background-color: {{colors.surface_container_high.default.hex}};
+  color: {{colors.on_surface.default.hex}};
+  border: 1px solid {{colors.outline_variant.default.hex}};
+}
+.csd menu, .csd .menu, .csd .context-menu { border: none; }
+menu menuitem, .menu menuitem, .context-menu menuitem { color: {{colors.on_surface.default.hex}}; }
+menu menuitem:hover, .menu menuitem:hover, .context-menu menuitem:hover {
+  background-color: {{colors.surface_container_highest.default.hex}};
+  color: {{colors.on_surface.default.hex}};
+}
+menu menuitem:disabled, .menu menuitem:disabled, .context-menu menuitem:disabled {
+  color: {{colors.outline.default.hex}};
+}
+menu .view:selected, .menu .view:selected, .context-menu .view:selected {
+  background-color: {{colors.primary_container.default.hex}};
+}
+menu > arrow, .menu > arrow, .context-menu > arrow {
+  background-color: {{colors.surface_container_high.default.hex}};
+  color: {{colors.on_surface_variant.default.hex}};
+}
+popover.background, .csd popover.background { border: 1px solid {{colors.outline_variant.default.hex}}; }
+popover.background list, popover.background .view:not(:selected), popover.background toolbar {
+  background-color: {{colors.surface_container_high.default.hex}};
+}
+.csd.popup decoration { border: 1px solid {{colors.outline_variant.default.hex}}; }
+window.background.chromium menu { border-color: {{colors.outline_variant.default.hex}}; }
