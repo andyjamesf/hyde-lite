@@ -121,6 +121,10 @@ if [[ -r $HYPRLAND_CONFIG ]]; then
     load_hypr_variables "$HYDE_THEME_DIR/hypr.theme"                               # ? loads the theme vars
     load_hypr_variables "${XDG_STATE_HOME:-$HOME/.local/state}/hyde/hyprland.conf" # ? loads the parsable user config vars, should override theme vars
 fi
+# hyde-lite: the GTK theme is Wallbash-Gtk whatever the HyDE theme asks for. It is built from the palette
+# matugen supplies (wallbash-matugen), so GTK apps follow the wallpaper and the dark/light mode like
+# everything else; a theme's own static GTK theme would not. See LITE.md.
+GTK_THEME=Wallbash-Gtk
 show_theme_status
 if ! dconf write /org/gnome/desktop/interface/icon-theme "'$ICON_THEME'"; then
     print_log -sec "theme" -warn "dconf" "failed to set icon theme"

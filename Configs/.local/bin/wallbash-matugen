@@ -31,8 +31,10 @@ MATUGEN = CACHE / "morphing-island" / "matugen.json"
 DCOL_LINK = CACHE / "hyde" / "wall.dcol"
 PREFS = STATE / "morphing-island" / "prefs.json"
 
-# 1 is the lightest step of a ramp and 9 the darkest, whichever mode is in use:
-# HyDE's templates assume that order and pick from both ends.
+# Step 1 of a ramp is the one next to the window background and step 9 the one next to the text:
+# HyDE's templates take their foreground from 4xa9 and their surfaces from 1xa1-1xa3. On a light
+# background that is the light-to-dark order below; on a dark one it runs the other way round, or
+# the GTK theme gets dark text on a dark window and Kvantum a light base under a dark window.
 RAMP_TONES = [95, 90, 80, 70, 60, 50, 40, 30, 20]
 # pry1 is the window background and pry4 the furthest from it. These are roles
 # rather than tones because they are the same four the island draws itself with:
@@ -96,7 +98,7 @@ def build(data):
         put(f"pry{i}", role(colors, bg, mode))
         put(f"txt{i}", role(colors, fg, mode))
     for n, family in enumerate(RAMP_FAMILIES, start=1):
-        for m, t in enumerate(RAMP_TONES, start=1):
+        for m, t in enumerate(RAMP_TONES if mode == "light" else reversed(RAMP_TONES), start=1):
             put(f"{n}xa{m}", tone(palettes, family, t))
     return mode, "\n".join(out) + "\n"
 

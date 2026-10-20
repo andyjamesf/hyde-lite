@@ -150,15 +150,19 @@ class Build(Base):
         self.assertEqual(mode, "light")
         self.assertEqual(kv["dcol_pry1"], "FAFAFA")
 
-    def test_ramp_runs_from_light_to_dark(self):
-        """Regression: step 1 is the lightest tone (95) and step 9 the darkest (20), in both modes."""
-        for mode in ("dark", "light"):
+    def test_ramp_starts_next_to_the_background(self):
+        """Step 1 is the tone beside the window background and step 9 the one beside the text, in both modes.
+
+        Measured on the 561 dcols HyDE had cached (2026-10-20): 4xa1 is nearer pry1 than 4xa9 is in 431 of
+        459 dark ones and in 99 of 101 light ones. So a light background runs tone 95 -> 20 and a dark one
+        20 -> 95; the other way round the GTK theme got dark text on a dark window."""
+        for mode, first, last in (("light", "5F", "14"), ("dark", "14", "5F")):
             self.set_prefs(json.dumps({"theme.mode": mode}))
             kv = self.parse(self.mod.build(make_data())[1])
             # make_data() encodes family number and tone in the colour: tone 95 is 0x5f, tone 20 is 0x14
             for n in (1, 2, 3, 4):
-                self.assertEqual(kv[f"dcol_{n}xa1"], f"{n:02X}5F00", (mode, n))
-                self.assertEqual(kv[f"dcol_{n}xa9"], f"{n:02X}1400", (mode, n))
+                self.assertEqual(kv[f"dcol_{n}xa1"], f"{n:02X}{first}00", (mode, n))
+                self.assertEqual(kv[f"dcol_{n}xa9"], f"{n:02X}{last}00", (mode, n))
 
     def test_rgba_matches_hex(self):
         kv = self.parse(self.mod.build(make_data())[1])
