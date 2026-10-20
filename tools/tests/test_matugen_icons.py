@@ -43,7 +43,7 @@ class MatugenIcons(unittest.TestCase):
         self.palette(("#aa0000", "#bb0000", "#cc0000"))
 
     def palette(self, colours):
-        pal = {"secondary": {t: {"color": c} for t, c in zip(("60", "50", "20"), colours)}}
+        pal = {"secondary": {t: {"color": c} for t, c in zip(("60", "50", "20"), colours, strict=True)}}
         self.mod.MATUGEN.parent.mkdir(parents=True, exist_ok=True)
         self.mod.MATUGEN.write_text(json.dumps({"palettes": pal}))
 
