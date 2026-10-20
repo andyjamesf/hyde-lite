@@ -19,17 +19,18 @@ What the 45 MiB are now (by top-level directory, tracked bytes; `git ls-files` s
 
 | Directory | MiB | What |
 |---|---|---|
-| `Configs` | 20.7 | `.local/bin/hydectl` (12.8) and `hyde-ipc` (2.7), prebuilt binaries from upstream; HyDE's library and data; the two shells 1.5 |
+| `Configs` | 20.7 | (before 2026-10-20: `.local/bin/hydectl` 12.8 and `hyde-ipc` 2.7, prebuilt binaries from upstream, now removed, see below); HyDE's library and data; the two shells 1.5 |
 | `docs` | 15.6 | the README screenshots, the logo and the banner (`docs/images`) |
 | `Source` | 8.1 | `arcs` 7.6: the SDDM themes (`Sddm_Candy` 6.0), the wallbash GTK and icon themes, a Spotify theme; `misc` 0.4 |
 | `Wallpapers` | 0.2 | 7 generated pixel-art wallpapers |
 
-The biggest single files are `hydectl` (12.8 MiB), `Sddm_Candy.tar.gz` (6.0), `hyde-ipc` (2.7) and the README
-screenshots (about 2 each). Candidates for a further diet, none done because each is upstream's and would be a
+The biggest single files are `Sddm_Candy.tar.gz` (6.0) and the README screenshots (about 2 each); `hydectl` (12.8)
+and `hyde-ipc` (2.7) were the biggest until 2026-10-20. Candidates for a further diet, none done because each is upstream's and would be a
 porting conflict (see `CONTRIBUTING.md`):
 
-- `Configs/.local/bin/hydectl` and `hyde-ipc`: prebuilt Rust binaries committed upstream. A public repository
-  that ships binaries should say where their source is (HyDE-Project) or build them in the installer instead.
+- Done 2026-10-20: `hydectl` and `hyde-ipc` (prebuilt Rust binaries committed upstream, 15.5 MiB) are gone from the
+  tree. `Scripts/install_hydectl.sh` downloads HyDE-Project's release (3.6 MiB tarball) with a pinned SHA-256;
+  `hyde-ipc` was used by nothing. `tools/tests/test_install_hydectl.py` fails if an ELF file is tracked again.
 - `Source/arcs/Sddm_Candy.tar.gz`: only used with `--interactive`.
 - The README images could be recompressed (`oxipng`), they are screenshots at 1920 px.
 
