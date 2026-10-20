@@ -41,7 +41,7 @@ def main():
     key = f"{base}{shade}{dark}"
     if not force and stamp.is_file() and stamp.read_text() == key:
         return
-    swap = re.compile("|".join(map(re.escape, (PAPIRUS_BASE, PAPIRUS_SHADE, PAPIRUS_DARK))), re.I)
+    swap = re.compile("|".join(map(re.escape, (PAPIRUS_BASE, PAPIRUS_SHADE, PAPIRUS_DARK))), re.IGNORECASE)
     colours = {PAPIRUS_BASE: base, PAPIRUS_SHADE: shade, PAPIRUS_DARK: dark}
     tmp = OUT.with_name(OUT.name + ".tmp")
     shutil.rmtree(tmp, ignore_errors=True)
