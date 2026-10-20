@@ -10,6 +10,13 @@ source_root = "Configs/.config"
 target_root = "${XDG_CONFIG_HOME}"
 paths = ["hyde/wallbash"]
 
+# User Wallbash templates, including the Kitty ANSI palette override.
+[[hyde.files]]
+action = "preserve"
+source_root = "Configs/.config"
+target_root = "${XDG_CONFIG_HOME}"
+paths = ["wallbash"]
+
 #? dconf profile for isolated HyDE settings
 [[hyde.files]]
 action = "preserve"

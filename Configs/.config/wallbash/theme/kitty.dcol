@@ -1,0 +1,38 @@
+${confDir}/kitty/theme.conf|${WALLBASH_SCRIPTS}/kitty.sh
+# Keep the terminal chrome tied to the current wallpaper. Material You and
+# Wallbash are good at choosing a background and foreground, but their ramps
+# are not an ANSI palette: using them for color0-color15 can make shell output
+# nearly indistinguishable (for example, a dark red or dark green on a dark
+# background). Keep the standard terminal hues vivid and predictable so
+# Powerlevel10k, ls, git and other ANSI-color programs remain readable.
+foreground              #<wallbash_txt1>
+background              #<wallbash_pry1>
+selection_foreground    #<wallbash_pry1>
+selection_background    #<wallbash_txt1>
+cursor                  #<wallbash_pry4>
+cursor_text_color       #<wallbash_txt4>
+
+active_tab_foreground     #<wallbash_pry1>
+active_tab_background    #<wallbash_pry3>
+inactive_tab_foreground  #<wallbash_pry3>
+inactive_tab_background  #<wallbash_pry1>
+
+# ANSI normal colors
+color0  #1d2021
+color1  #cc6666
+color2  #b5bd68
+color3  #c9a96a
+color4  #81a2be
+color5  #b294bb
+color6  #8abeb7
+color7  #c5c8c6
+
+# ANSI bright colors
+color8  #666666
+color9  #d54e53
+color10 #b9ca4a
+color11 #d4b97a
+color12 #7aa6da
+color13 #c397d8
+color14 #70c0b1
+color15 #eaeaea
