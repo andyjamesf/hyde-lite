@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# hydectl: the few HyDE commands the keys and the shells use, as one small script over hyde-shell.
+# Replaces upstream's prebuilt Rust binary of the same name (12.8 MiB, source not in this repository);
+# every subcommand below is a line or two around the script that already does the work.
+#
+#   hydectl theme next|prev        switch to the next or previous theme     (theme.switch.sh -n|-p)
+#   hydectl theme set NAME         switch to a theme                        (theme.switch.sh -s NAME)
+#   hydectl theme import           import a theme from HyDE's gallery       (theme.import.py)
+#   hydectl wallpaper next|prev    step the wallpaper of the current theme  (wallpaper.sh -n|-p --global)
+#   hydectl wallpaper set FILE     set a wallpaper                          (wallpaper.sh -s FILE --global)
+#   hydectl reload                 reload Hyprland's configuration
+#   hydectl version
+set -uo pipefail
+
+version=1.0.0
+shell=${HYDECTL_SHELL:-hyde-shell}
+
+usage() {
+    sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'
+}
+
+need() { # need NAME VALUE: a missing argument is an error, not a silent no-op
+    [[ -n ${2:-} ]] || { echo "hydectl: $1 needs an argument" >&2; exit 2; }
+}
+
+case "${1:-}" in
+theme)
+    case "${2:-}" in
+    next) exec "$shell" theme.switch.sh -n ;;
+    prev) exec "$shell" theme.switch.sh -p ;;
+    set) need "theme set" "${3:-}"; exec "$shell" theme.switch.sh -s "$3" ;;
+    import) exec "$shell" theme.import ;;
+    *) echo "hydectl: theme next|prev|set NAME|import" >&2; exit 2 ;;
+    esac
+    ;;
+wallpaper)
+    case "${2:-}" in
+    next) exec "$shell" wallpaper.sh -n --global ;;
+    prev) exec "$shell" wallpaper.sh -p --global ;;
+    set) need "wallpaper set" "${3:-}"; exec "$shell" wallpaper.sh -s "$3" --global ;;
+    *) echo "hydectl: wallpaper next|prev|set FILE" >&2; exit 2 ;;
+    esac
+    ;;
+reload) exec hyprctl reload ;;
+version | --version) echo "hydectl $version" ;;
+-h | --help | help | "") usage ;;
+*)
+    echo "hydectl: unknown command '$1'" >&2
+    usage >&2
+    exit 2
+    ;;
+esac

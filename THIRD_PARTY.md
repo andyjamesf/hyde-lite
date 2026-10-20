@@ -52,7 +52,7 @@ from here. They are the first thing to check before a wider release.
 | `Source/arcs/Spotify_Sleek.tar.gz` | Spotify (spicetify) theme | Used by a wallbash script. No licence file inside |
 | `Configs/.config/fastfetch/logo/hyprland.icon` | The Hyprland logo for fastfetch | The only logo kept; its origin is not stated in the file |
 | Misc images | `Source/misc/nightTab_backdrop.jpg`, `Source/misc/tittu.face.icon` | Origin unknown |
-| hydectl | downloaded by `Scripts/install_hydectl.sh` from `github.com/HyDE-Project/hydectl` (release v26.0.0, GPL-3.0 per its `LICENSE`), checked against a SHA-256 pinned in the script | HyDE's command-line tool. The prebuilt `hydectl` and `hyde-ipc` that upstream commits (13 MiB and 2.8 MiB, source not in this repository) were removed on 2026-10-20; `hyde-ipc` was used by nothing (only a version line in `hyde-shell`) |
+| hydectl | `Configs/.local/bin/hydectl`, written here (a 60-line shell script over `hyde-shell`) | replaces upstream's prebuilt Go binary of the same name (12.8 MiB, source not in this repository) and its `hyde-ipc` (2.8 MiB, called by nothing), both removed on 2026-10-20; it covers the subcommands the keys and the shells use (`theme next|prev|set|import`, `wallpaper next|prev|set`, `reload`, `version`) |
 | Icons | `Configs/.config/wlogout/icons/*.png`, `Configs/.config/Kvantum/wallbash/wallbash.svg` | Origin unknown |
 
 ## Installed at install time, not shipped here
