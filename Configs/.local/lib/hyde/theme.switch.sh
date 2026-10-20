@@ -280,3 +280,12 @@ if ! wallbash_state_is_complete; then
     print_log -sec "theme" -crit "error" "colour state is still incomplete for $HYDE_THEME"
     exit 1
 fi
+# hyde-lite: GTK apps reload a theme when its name changes, not when its files do, so an open Thunar
+# kept the old mode's colours. Name another theme for a moment and then ours again, once everything
+# above has been written. Same for the icon theme (the folder colours).
+if command -v dconf >/dev/null 2>&1; then
+    for key in gtk-theme:"$GTK_THEME" icon-theme:"$ICON_THEME"; do
+        dconf write "/org/gnome/desktop/interface/${key%%:*}" "'Adwaita'"
+        dconf write "/org/gnome/desktop/interface/${key%%:*}" "'${key#*:}'"
+    done
+fi
