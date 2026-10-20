@@ -234,6 +234,7 @@ class Main(Base):
         self.assertIn("wrote dark palette", out)
         before = self.real.stat().st_mtime_ns
         code, out, run = self.run_main()
+        self.assertEqual(code, 0)
         self.assertIn("nothing to do", out)
         self.assertEqual(self.rebuilds(run), [])  # nothing to rebuild, so no loop with the file watcher
         self.assertEqual(self.real.stat().st_mtime_ns, before)
@@ -284,8 +285,49 @@ class Main(Base):
         self.assertEqual(len(last.splitlines()), 1, "the log must not grow")
 
     def test_unknown_option_exits(self):
-        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as caught:
             self.run_main("--rebuild-everything")
+        self.assertNotEqual(caught.exception.code, 0, "an invalid option must not look like success")
+
+    def test_a_renderer_that_cannot_run_is_a_failure_not_a_quiet_no_op(self):
+        """color.set.sh installed but no wallpaper, and no theme.switch.sh to fall back to: the
+        machine has templates, so nothing was rendered and the palette must not be stamped."""
+        self.script("color.set.sh")
+        self.mod.WALL.unlink()
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            code, _, run = self.run_main()
+        self.assertEqual(code, 1)
+        self.assertIn("rebuild failed", err.getvalue())
+        self.assertEqual(self.rebuilds(run), [])
+        self.assertFalse(self.mod.STAMP.exists())
+
+    def test_a_palette_that_moved_during_the_rebuild_is_not_stamped(self):
+        """Another run can replace wall.dcol while the templates are rendering. Stamping then would
+        record a palette the templates do not hold, and the next run would skip the rebuild."""
+        colour_set = self.script("color.set.sh")
+
+        def meddle(cmd, **kwargs):
+            if cmd[0] == "bash" and cmd[1] == str(colour_set):
+                self.real.write_text("someone else's palette\n")
+            return mock.Mock(returncode=0, stdout="")
+
+        out = io.StringIO()
+        with mock.patch("sys.argv", ["wallbash-matugen"]), contextlib.redirect_stdout(out), \
+                mock.patch.object(self.mod.subprocess, "run", side_effect=meddle), \
+                mock.patch.object(self.mod.shutil, "which", return_value=None):
+            code = self.mod.main()
+        self.assertEqual(code, 0)
+        self.assertIn("left unstamped", out.getvalue())
+        self.assertFalse(self.mod.STAMP.exists())
+
+    def test_an_early_failure_still_reaches_the_log(self):
+        """The caller runs this detached with both streams on /dev/null, so a message on stderr
+        alone reaches nobody."""
+        self.mod.MATUGEN.unlink()
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            self.run_main()
+        self.assertIn("no matugen palette", self.mod.LOG.read_text())
 
     def test_rebuilds_with_color_set_given_the_wallpaper(self):
         colour_set = self.script("color.set.sh")

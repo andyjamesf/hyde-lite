@@ -91,7 +91,9 @@ def write_stamp(value):
 
 
 def die(msg):
-    sys.stderr.write(f"wallbash-matugen: {msg}\n")
+    # Through note(), so a run that fails this early still leaves a reason in the log: the caller
+    # runs this detached with both streams on /dev/null.
+    note(msg, error=True)
     raise SystemExit(1)
 
 
@@ -201,8 +203,17 @@ def main():
         note(f"{did}, but the rebuild failed ({how}): HyDE's templates are incomplete and the "
              "desktop is in two colours at once", error=True)
         return 1
-    write_stamp(stamp)
-    note(f"{did} and rebuilt HyDE's templates ({how})")
+    # Another run can replace the palette while the templates are rendering -- the flock that
+    # serialises this lives in wallpaper-palette's caller, and taking it here as well would
+    # deadlock, because flock(1) holds it in the parent for the whole of this process. Checking
+    # afterwards costs nothing and is enough: if the palette moved, the templates were rendered
+    # from something else, so leave it unstamped and let the next run rebuild.
+    if target.is_file() and target.read_text() == text:
+        write_stamp(stamp)
+        note(f"{did} and rebuilt HyDE's templates ({how})")
+    else:
+        note(f"{did} and rebuilt HyDE's templates ({how}), but the palette changed while they were "
+             "rendering, so it is left unstamped for the next run")
     return 0
 
 
@@ -221,12 +232,15 @@ def rebuild():
     wall = WALL.resolve()
     colour_set, switch = lib / "color.set.sh", lib / "theme.switch.sh"
     tried = False
-    if colour_set.is_file() and wall.is_file():
+    if colour_set.is_file():
+        # Installed, so this machine has templates: not being able to run it is a failure, not a
+        # machine with nothing to render.
         tried = True
-        done = subprocess.run(["bash", str(colour_set), str(wall)], check=False, capture_output=True)
-        if done.returncode == 0:
-            reload_gtk()
-            return "color.set.sh", True
+        if wall.is_file():
+            done = subprocess.run(["bash", str(colour_set), str(wall)], check=False, capture_output=True)
+            if done.returncode == 0:
+                reload_gtk()
+                return "color.set.sh", True
     if switch.is_file():
         done = subprocess.run(["bash", str(switch)], check=False, capture_output=True)
         return "theme.switch.sh", done.returncode == 0
