@@ -14,10 +14,21 @@ island, with no per-program work.
 
     wallbash-matugen            write it and rebuild HyDE's templates
     wallbash-matugen --dry      print the palette and change nothing
+    wallbash-matugen --force    rebuild even when nothing has changed
 
 The matugen JSON is the one the island already caches on every wallpaper change
 (theme/Palettes.qml), so this costs no extra run of matugen.
+
+What says the work is done is `wallbash.stamp`, a hash of the palette HyDE's
+templates were last rebuilt from -- not whether wall.dcol holds the right bytes.
+Those are different questions: wall.dcol resolves to a per-wallpaper file HyDE
+generates once and never regenerates, so a wallpaper that has been used before
+already has its palette on disk while the templates still hold the colours of
+whichever wallpaper was rendered last. Comparing the file was enough to stop
+this going in circles, and not enough to keep the desktop in one colour.
 """
+import datetime
+import hashlib
 import json
 import os
 import pathlib
@@ -32,6 +43,8 @@ MATUGEN = CACHE / "morphing-island" / "matugen.json"
 DCOL_LINK = CACHE / "hyde" / "wall.dcol"
 WALL = CACHE / "hyde" / "wall.set"
 PREFS = STATE / "morphing-island" / "prefs.json"
+STAMP = CACHE / "morphing-island" / "wallbash.stamp"
+LOG = CACHE / "morphing-island" / "wallbash.log"
 
 # Step 1 of a ramp is the one next to the window background and step 9 the one next to the text:
 # HyDE's templates take their foreground from 4xa9 and their surfaces from 1xa1-1xa3. On a light
@@ -45,6 +58,36 @@ PRY_ROLES = ["background", "surface_container", "surface_container_high", "surfa
 TXT_ROLES = ["on_background", "on_surface", "on_surface", "on_surface_variant"]
 # The four accent ramps, in the order HyDE numbers them.
 RAMP_FAMILIES = ["primary", "secondary", "tertiary", "neutral_variant"]
+
+
+def note(msg, error=False):
+    """Says what happened, on a stream and in a file.
+
+    This normally runs detached with both streams on /dev/null (wallpaper-palette's rebuild_hyde),
+    so a message on stderr reaches nobody. The log holds the last run only, so it cannot grow, and
+    `cat ~/.cache/morphing-island/wallbash.log` answers "did the colours get rebuilt, and if not
+    why"."""
+    try:
+        LOG.parent.mkdir(parents=True, exist_ok=True)
+        LOG.write_text(f"{datetime.datetime.now().isoformat(timespec='seconds')} {msg}\n")
+    except OSError:
+        pass
+    (sys.stderr if error else sys.stdout).write(f"wallbash-matugen: {msg}\n")
+
+
+def read_stamp():
+    try:
+        return STAMP.read_text().strip()
+    except OSError:
+        return ""
+
+
+def write_stamp(value):
+    try:
+        STAMP.parent.mkdir(parents=True, exist_ok=True)
+        STAMP.write_text(value + "\n")
+    except OSError:
+        pass
 
 
 def die(msg):
@@ -106,7 +149,12 @@ def build(data):
 
 
 def main():
-    dry = len(sys.argv) > 1 and sys.argv[1] in ("--dry", "-n")
+    args = sys.argv[1:]
+    dry = any(a in ("--dry", "-n") for a in args)
+    force = any(a in ("--force", "-f") for a in args)
+    unknown = [a for a in args if a not in ("--dry", "-n", "--force", "-f")]
+    if unknown:
+        die(f"unknown option {unknown[0]}; try --dry or --force")
     if not MATUGEN.is_file():
         die(f"no matugen palette at {MATUGEN}; is the island running?")
     with open(MATUGEN) as fh:
@@ -128,19 +176,33 @@ def main():
     if not target.parent.is_dir():
         die(f"{target.parent} does not exist; HyDE has not run yet")
 
-    # Idempotent on purpose. Rebuilding HyDE's templates rewrites files the shell
-    # watches, which can bring it round to running this again; doing nothing when
-    # there is nothing to change is what stops that going in circles.
-    if target.is_file() and target.read_text() == text:
-        print(f"wallbash-matugen: {target.name} already matches the island")
+    # Idempotent on purpose: rebuilding rewrites files the shell watches, which can bring it
+    # round to asking for this again, so a run with nothing to do has to be a run that does
+    # nothing. The stamp decides that, because the palette file alone cannot (see the docstring).
+    stamp = hashlib.sha256(text.encode()).hexdigest()
+    written = target.is_file() and target.read_text() == text
+    rendered = read_stamp() == stamp
+
+    if written and rendered and not force:
+        note(f"{target.name} is written and HyDE's templates already match it; nothing to do")
         return 0
-    tmp = target.with_suffix(".tmp")
-    tmp.write_text(text)
-    tmp.replace(target)
+
+    if written:
+        did = f"{target.name} already held the {mode} palette"
+    else:
+        tmp = target.with_suffix(".tmp")
+        tmp.write_text(text)
+        tmp.replace(target)
+        did = f"wrote {mode} palette to {target.name}"
 
     # Rebuild everything HyDE generates from it.
-    how = rebuild()
-    print(f"wallbash-matugen: wrote {mode} palette to {target.name} and rebuilt HyDE's templates ({how})")
+    how, ok = rebuild()
+    if not ok:
+        note(f"{did}, but the rebuild failed ({how}): HyDE's templates are incomplete and the "
+             "desktop is in two colours at once", error=True)
+        return 1
+    write_stamp(stamp)
+    note(f"{did} and rebuilt HyDE's templates ({how})")
     return 0
 
 
@@ -150,19 +212,28 @@ def rebuild():
     color.set.sh is the part of a theme switch that renders the templates. theme.switch.sh also re-applies the
     wallpaper, the GTK/icon/cursor settings and the Hyprland theme state, none of which a colour change touches:
     measured here, color.set.sh takes 1.16 s against 2.1-2.2 s and writes byte-identical files (23 of them
-    compared). theme.switch.sh stays as the fallback for a HyDE without color.set.sh or one where it fails."""
+    compared). theme.switch.sh stays as the fallback for a HyDE without color.set.sh or one where it fails.
+
+    Returns (what ran, whether it worked). The second half is not decoration: a rebuild that fails
+    leaves the desktop in two colours at once, and the caller has to know so that it does not
+    record the palette as rendered."""
     lib = HOME / ".local/lib/hyde"
     wall = WALL.resolve()
     colour_set, switch = lib / "color.set.sh", lib / "theme.switch.sh"
+    tried = False
     if colour_set.is_file() and wall.is_file():
+        tried = True
         done = subprocess.run(["bash", str(colour_set), str(wall)], check=False, capture_output=True)
         if done.returncode == 0:
             reload_gtk()
-            return "color.set.sh"
+            return "color.set.sh", True
     if switch.is_file():
-        subprocess.run(["bash", str(switch)], check=False, capture_output=True)
-        return "theme.switch.sh"
-    return "nothing to run"
+        done = subprocess.run(["bash", str(switch)], check=False, capture_output=True)
+        return "theme.switch.sh", done.returncode == 0
+    if tried:
+        return "color.set.sh", False
+    # Not a HyDE machine: there are no templates, so there is nothing that could be stale.
+    return "nothing to run", True
 
 
 def reload_gtk():

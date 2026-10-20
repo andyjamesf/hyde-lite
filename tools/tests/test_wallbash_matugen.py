@@ -226,6 +226,7 @@ class Main(Base):
         return [c for c in run.call_args_list if c.args[0][0] == "bash"]
 
     def test_writes_through_the_symlink_and_is_idempotent(self):
+        self.script("color.set.sh")
         code, out, _ = self.run_main()
         self.assertEqual(code, 0)
         self.assertTrue(self.mod.DCOL_LINK.is_symlink())
@@ -233,9 +234,58 @@ class Main(Base):
         self.assertIn("wrote dark palette", out)
         before = self.real.stat().st_mtime_ns
         code, out, run = self.run_main()
-        self.assertIn("already matches", out)
+        self.assertIn("nothing to do", out)
         self.assertEqual(self.rebuilds(run), [])  # nothing to rebuild, so no loop with the file watcher
         self.assertEqual(self.real.stat().st_mtime_ns, before)
+
+    def test_a_palette_already_on_disk_still_rebuilds_the_templates(self):
+        """The regression this stamp exists for. wall.dcol resolves to a per-wallpaper file HyDE
+        generates once and never regenerates, so a wallpaper that has been used before already has
+        its palette on disk while the templates still hold the colours of whichever wallpaper was
+        rendered last. Comparing the file alone made that a no-op."""
+        self.script("color.set.sh")
+        _, text = self.mod.build(make_data())
+        self.real.write_text(text)  # cached from an earlier use of this wallpaper
+        self.assertFalse(self.mod.STAMP.exists())
+        code, out, run = self.run_main()
+        self.assertEqual(code, 0)
+        self.assertIn("already held the dark palette", out)
+        self.assertEqual(len(self.rebuilds(run)), 1)
+        self.assertTrue(self.mod.STAMP.exists())
+
+    def test_force_rebuilds_when_there_is_nothing_to_change(self):
+        self.script("color.set.sh")
+        self.run_main()
+        code, out, run = self.run_main("--force")
+        self.assertEqual(code, 0)
+        self.assertEqual(len(self.rebuilds(run)), 1)
+
+    def test_a_failed_rebuild_is_reported_and_not_stamped(self):
+        self.script("color.set.sh")
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            code, out, run = self.run_main(returncodes={"color.set.sh": 1})
+        self.assertEqual(code, 1)
+        self.assertIn("rebuild failed", err.getvalue())
+        self.assertEqual(out, "")
+        self.assertFalse(self.mod.STAMP.exists(), "a failed rebuild must not latch as done")
+        # and the next run tries again rather than reporting success
+        code, _, run = self.run_main()
+        self.assertEqual(code, 0)
+        self.assertEqual(len(self.rebuilds(run)), 1)
+
+    def test_the_log_holds_the_last_outcome_only(self):
+        self.script("color.set.sh")
+        self.run_main()
+        self.assertIn("rebuilt HyDE's templates", self.mod.LOG.read_text())
+        self.run_main()
+        last = self.mod.LOG.read_text()
+        self.assertIn("nothing to do", last)
+        self.assertEqual(len(last.splitlines()), 1, "the log must not grow")
+
+    def test_unknown_option_exits(self):
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            self.run_main("--rebuild-everything")
 
     def test_rebuilds_with_color_set_given_the_wallpaper(self):
         colour_set = self.script("color.set.sh")
