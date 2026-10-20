@@ -186,13 +186,32 @@ class Main(Base):
         real.write_text("old")
         self.real = real
         self.mod.DCOL_LINK.symlink_to(real)
+        self.wall = self.home / "wall.png"
+        self.wall.write_bytes(b"x")
+        self.mod.WALL.symlink_to(self.wall)
+        self.lib = self.home / ".local/lib/hyde"
 
-    def run_main(self, *argv):
+    def run_main(self, *argv, returncodes=None, dconf=None):
+        """Runs main() with subprocess.run mocked. `returncodes` maps a script name to its exit status (default 0);
+        `dconf` is the value `dconf read` prints, or None for a machine without dconf."""
         out = io.StringIO()
+
+        def fake(cmd, **kwargs):
+            result = mock.Mock(returncode=(returncodes or {}).get(pathlib.Path(cmd[1]).name if cmd[0] == "bash" else "", 0))
+            result.stdout = (dconf or "") + "\n" if cmd[:2] == ["dconf", "read"] else ""
+            return result
+
         with mock.patch("sys.argv", ["wallbash-matugen", *argv]), contextlib.redirect_stdout(out), \
-                mock.patch.object(self.mod.subprocess, "run") as run:
+                mock.patch.object(self.mod.subprocess, "run", side_effect=fake) as run, \
+                mock.patch.object(self.mod.shutil, "which", return_value="/usr/bin/dconf" if dconf is not None else None):
             code = self.mod.main()
         return code, out.getvalue(), run
+
+    def script(self, name):
+        path = self.lib / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("#!/bin/sh\n")
+        return path
 
     def test_dry_run_changes_nothing(self):
         code, out, run = self.run_main("--dry")
@@ -218,20 +237,44 @@ class Main(Base):
         self.assertEqual(self.rebuilds(run), [])  # nothing to rebuild, so no loop with the file watcher
         self.assertEqual(self.real.stat().st_mtime_ns, before)
 
-    def test_rebuilds_templates_when_hyde_has_the_script(self):
-        lib = self.home / ".local/lib/hyde/theme.switch.sh"
-        lib.parent.mkdir(parents=True)
-        lib.write_text("#!/bin/sh\n")
-        _, _, run = self.run_main()
-        self.assertEqual(len(self.rebuilds(run)), 1)
-        self.assertEqual(self.rebuilds(run)[0].args[0][0], "bash")
+    def test_rebuilds_with_color_set_given_the_wallpaper(self):
+        colour_set = self.script("color.set.sh")
+        self.script("theme.switch.sh")
+        _, out, run = self.run_main()
+        calls = self.rebuilds(run)
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0].args[0], ["bash", str(colour_set), str(self.wall)])
+        self.assertIn("color.set.sh", out)
+
+    def test_falls_back_to_theme_switch_without_color_set(self):
+        switch = self.script("theme.switch.sh")
+        _, out, run = self.run_main()
+        self.assertEqual([c.args[0] for c in self.rebuilds(run)], [["bash", str(switch)]])
+        self.assertIn("theme.switch.sh", out)
+
+    def test_falls_back_to_theme_switch_when_color_set_fails(self):
+        self.script("color.set.sh")
+        switch = self.script("theme.switch.sh")
+        _, _, run = self.run_main(returncodes={"color.set.sh": 1})
+        self.assertEqual([c.args[0][1] for c in self.rebuilds(run)], [str(self.lib / "color.set.sh"), str(switch)])
 
     def test_icon_theme_is_refreshed_before_the_rebuild(self):
-        lib = self.home / ".local/lib/hyde/theme.switch.sh"
-        lib.parent.mkdir(parents=True)
-        lib.write_text("#!/bin/sh\n")
+        self.script("color.set.sh")
         _, _, run = self.run_main()
-        self.assertEqual([c.args[0][0] for c in run.call_args_list], ["matugen-icons", "bash"])
+        self.assertEqual([c.args[0][0] for c in run.call_args_list][:2], ["matugen-icons", "bash"])
+
+    def test_open_gtk_apps_are_told_to_reload_after_a_color_set_rebuild(self):
+        self.script("color.set.sh")
+        _, _, run = self.run_main(dconf="'Wallbash-Gtk'")
+        dconf = [c.args[0] for c in run.call_args_list if c.args[0][0] == "dconf"]
+        gtk = "/org/gnome/desktop/interface/gtk-theme"
+        self.assertIn(["dconf", "write", gtk, "'Adwaita'"], dconf)
+        self.assertEqual(dconf[dconf.index(["dconf", "write", gtk, "'Adwaita'"]) + 1], ["dconf", "write", gtk, "'Wallbash-Gtk'"])
+
+    def test_no_dconf_no_reload(self):
+        self.script("color.set.sh")
+        _, _, run = self.run_main(dconf=None)
+        self.assertEqual([c for c in run.call_args_list if c.args[0][0] == "dconf"], [])
 
     def test_no_matugen_cache_exits(self):
         self.mod.MATUGEN.unlink()
