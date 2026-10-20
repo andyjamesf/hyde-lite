@@ -186,8 +186,6 @@ else
     run_step "Packages" "$upstream" -d -i "${nv[@]}"
 fi
 run_step "Configs and themes" "$upstream" -r "${nv[@]}"
-# hydectl comes from HyDE's GitHub release with a pinned checksum, not from a binary in this repository.
-((dry)) || run_step "hydectl" "$root/Scripts/install_hydectl.sh"
 # Login screen theme, default file manager and shell setup: the upstream installer only runs this script
 # after a combined install and restore, which would also run its pre-install script (Chaotic AUR, boot
 # loader and pacman.conf changes) and is not wanted here.
