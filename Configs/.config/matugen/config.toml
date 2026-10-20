@@ -44,3 +44,11 @@ input_path = "~/.config/matugen/templates/kitty.conf"
 output_path = "~/.config/kitty/wallpaper.conf"
 # kitty rereads its config on SIGUSR1, so open windows recolour without a restart.
 post_hook = "pkill -USR1 -x kitty || true"
+
+# Zed: both a dark and a light theme in one file, so Zed's "system" mode picks the one that matches
+# the mode matugen chose. Zed watches ~/.config/zed/themes and reloads a changed theme file at once.
+# Its settings name the themes ("theme": {"mode": "system", "dark": "Matugen Dark", "light":
+# "Matugen Light"}); matugen does not touch settings.json.
+[templates.zed]
+input_path = "~/.config/matugen/templates/zed.json"
+output_path = "~/.config/zed/themes/matugen.json"
