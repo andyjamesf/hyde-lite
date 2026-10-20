@@ -85,6 +85,41 @@ IDS = [s[0] for s in SCHEMES]
 DEFAULT = "scheme-tonal-spot"
 MODES = ("auto", "dark", "light")
 
+# Surfaces are plain greys, not the image's tint: soft Obsidian-like greys in dark mode and light greys in
+# light mode, so the file manager, terminal, GTK, Qt and both shells share one neutral base and only the
+# accents come from the wallpaper. CIELAB lightness per Material surface role; the window is `background`
+# and a view (list, editor) the lighter `surface_container_low`.
+GREY_L = {
+    "dark": {"surface_container_lowest": 15, "surface_dim": 16, "background": 18, "surface": 18,
+             "surface_container_low": 21, "surface_container": 23, "surface_container_high": 26,
+             "surface_container_highest": 29, "surface_bright": 30, "surface_variant": 29},
+    "light": {"surface_container_lowest": 97, "surface_dim": 87, "background": 90, "surface": 90,
+              "surface_container_low": 93, "surface_container": 91, "surface_container_high": 88,
+              "surface_container_highest": 85, "surface_bright": 96, "surface_variant": 85},
+}
+
+
+def grey(lightness):
+    """#rrggbb for the sRGB grey with CIELAB lightness L*."""
+    y = ((lightness + 16) / 116) ** 3 if lightness > 8 else lightness / 903.3
+    c = 12.92 * y if y <= 0.0031308 else 1.055 * y ** (1 / 2.4) - 0.055
+    v = round(c * 255)
+    return f"#{v:02x}{v:02x}{v:02x}"
+
+
+def neutralise(data):
+    """Replaces matugen's tinted surface roles with greys, in place; accents and text are untouched."""
+    colors = data.get("colors", {})
+    chosen = data.get("mode") or ("dark" if data.get("is_dark_mode") else "light")
+    for polarity, roles in GREY_L.items():
+        for name, lightness in roles.items():
+            if name in colors and polarity in colors[name]:
+                colors[name][polarity]["color"] = grey(lightness)
+    for entry in colors.values():
+        if chosen in entry and "default" in entry:
+            entry["default"] = dict(entry[chosen])
+    return data
+
 
 def die(msg, code=1):
     sys.stderr.write(f"wallpaper-palette: {msg}\n")
@@ -160,7 +195,9 @@ def _apply(force, hyde_busy):
     except OSError:
         pass
     # "auto" is matugen's own light/dark decision for the image.
-    cmd = ["matugen", "--json", "hex", "--prefer", "saturation",
+    # --dry-run: matugen only works out the palette here. The templates are rendered below from the
+    # palette after neutralise(), so every file it writes has the same grey surfaces as the shells.
+    cmd = ["matugen", "--json", "hex", "--dry-run", "--prefer", "saturation",
            "-t", scheme, "-m", "smart" if mode == "auto" else mode,
            "image", str(wall)]
     try:
@@ -171,8 +208,12 @@ def _apply(force, hyde_busy):
         die(done.stderr.strip() or "matugen failed")
     # Written through a temporary file so the island never reads half a JSON.
     tmp = OUT.with_suffix(".json.tmp")
-    tmp.write_text(done.stdout)
+    tmp.write_text(json.dumps(neutralise(json.loads(done.stdout))))
     tmp.replace(OUT)
+    rendered = subprocess.run(["matugen", "--quiet", "-t", scheme, "json", str(OUT)],
+                              capture_output=True, text=True)
+    if rendered.returncode != 0:
+        sys.stderr.write(f"wallpaper-palette: matugen could not write its templates: {rendered.stderr.strip()}\n")
     STAMP.write_text(key)
     rebuild_hyde(3 if hyde_busy else 0)
     return scheme, mode
@@ -210,7 +251,7 @@ def swatch(scheme, wall, folder):
     done = subprocess.run(cmd, capture_output=True, text=True)
     if done.returncode != 0:
         return
-    data = json.loads(done.stdout)
+    data = neutralise(json.loads(done.stdout))
     (folder / "natural").write_text("dark" if data.get("is_dark_mode") else "light")
     for polarity in ("dark", "light"):
         tiles = [role(data["colors"], n, polarity == "dark")

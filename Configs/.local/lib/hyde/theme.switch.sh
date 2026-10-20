@@ -121,6 +121,11 @@ if [[ -r $HYPRLAND_CONFIG ]]; then
     load_hypr_variables "$HYDE_THEME_DIR/hypr.theme"                               # ? loads the theme vars
     load_hypr_variables "${XDG_STATE_HOME:-$HOME/.local/state}/hyde/hyprland.conf" # ? loads the parsable user config vars, should override theme vars
 fi
+# hyde-lite: the GTK theme is Wallbash-Gtk whatever the HyDE theme asks for. It is built from the palette
+# matugen supplies (wallbash-matugen), so GTK apps follow the wallpaper and the dark/light mode like
+# everything else; a theme's own static GTK theme would not. See LITE.md.
+GTK_THEME=Wallbash-Gtk
+ICON_THEME=Matugen-Icons # Papirus-Dark with folders in the wallpaper colour (bin/matugen-icons, run by wallbash-matugen)
 show_theme_status
 if ! dconf write /org/gnome/desktop/interface/icon-theme "'$ICON_THEME'"; then
     print_log -sec "theme" -warn "dconf" "failed to set icon theme"
@@ -274,4 +279,13 @@ fi
 if ! wallbash_state_is_complete; then
     print_log -sec "theme" -crit "error" "colour state is still incomplete for $HYDE_THEME"
     exit 1
+fi
+# hyde-lite: GTK apps reload a theme when its name changes, not when its files do, so an open Thunar
+# kept the old mode's colours. Name another theme for a moment and then ours again, once everything
+# above has been written. Same for the icon theme (the folder colours).
+if command -v dconf >/dev/null 2>&1; then
+    for key in gtk-theme:"$GTK_THEME" icon-theme:"$ICON_THEME"; do
+        dconf write "/org/gnome/desktop/interface/${key%%:*}" "'Adwaita'"
+        dconf write "/org/gnome/desktop/interface/${key%%:*}" "'${key#*:}'"
+    done
 fi
