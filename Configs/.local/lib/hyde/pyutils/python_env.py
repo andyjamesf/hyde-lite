@@ -232,8 +232,9 @@ def create_venv() -> None:
     """Creates and syncs the virtual environment. Skips if a valid one already exists."""
     venv_path = get_venv_path()
     if os.path.exists(venv_path):
+        # Nothing to say about an environment that is fine: install.sh runs `create` every time (so does
+        # `hyde-lite update`), and each run showed this as a notification.
         if is_venv_valid(venv_path):
-            notify.send("HyDE UV", "ℹ️ Virtual environment already exists and is valid")
             return
         notify.send("HyDE UV", "⚠️ Broken venv detected, recreating…")
         destroy_venv(venv_path)
