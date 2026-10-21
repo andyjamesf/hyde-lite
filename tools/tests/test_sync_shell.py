@@ -74,7 +74,7 @@ class Sync(unittest.TestCase):
         self.fake_repo()
         rc, out, _ = self.run_main("--target", str(self.dst), "--apply", "--backup-dir", str(self.tmp / "bk"))
         self.assertEqual(rc, 0)
-        self.assertIn("1 added, 1 overwritten", out)
+        self.assertIn("1 added, 1 overwritten, 0 settings moved", out)
         self.assertIn("to undo: cp -a", out)
         rc, out, _ = self.run_main("--target", str(self.dst), "--apply", "--backup-dir", str(self.tmp / "bk2"))
         self.assertIn("already up to date", out)
@@ -103,7 +103,7 @@ class Sync(unittest.TestCase):
         rc, out, _ = self.run_main("--target", str(self.dst), "--apply", "--quiet", "--backup-dir", str(self.tmp / "bk"))
         self.assertEqual(rc, 0)
         self.assertEqual(len(out.strip().splitlines()), 1, out)
-        self.assertIn("updated (1 added, 1 overwritten)", out)
+        self.assertIn("updated (1 added, 1 overwritten, 0 settings moved)", out)
         rc, out, _ = self.run_main("--target", str(self.dst), "--apply", "--quiet", "--backup-dir", str(self.tmp / "bk2"))
         self.assertEqual(out.strip(), "quickshell: already up to date")
 
@@ -138,6 +138,56 @@ class Sync(unittest.TestCase):
         rc, out, _ = self.run_main("--target", str(self.dst), "--diff")
         self.assertIn("-old a", out)
         self.assertIn("+new a", out)
+
+
+class Settings(unittest.TestCase):
+    """bar/config/*.json belong to the user: never overwritten, and moved from config/ where they used to be."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(lambda: __import__("shutil").rmtree(self.tmp, ignore_errors=True))
+        self.src, self.dst = self.tmp / "src", self.tmp / "dst"
+        write(self.src / "bar/config/config.json", "shipped config\n")
+        write(self.src / "bar/config/layouts.json", "shipped layouts\n")
+        write(self.src / "bar/Shell.qml", "new shell\n")
+        write(self.dst / "bar/Shell.qml", "old shell\n")
+
+    def test_a_customised_file_at_the_old_place_is_moved_not_replaced(self):
+        write(self.dst / "config/config.json", "mine\n")
+        sync.apply(self.src, self.dst, self.tmp / "bk")
+        self.assertEqual((self.dst / "bar/config/config.json").read_text(), "mine\n")
+        self.assertEqual((self.dst / "config/config.json").read_text(), "mine\n")      # the old copy stays
+        self.assertEqual((self.dst / "bar/config/layouts.json").read_text(), "shipped layouts\n")  # nothing to move
+        self.assertEqual((self.dst / "bar/Shell.qml").read_text(), "new shell\n")       # code is still overwritten
+
+    def test_a_settings_file_that_exists_is_never_overwritten(self):
+        write(self.dst / "bar/config/config.json", "edited\n")
+        write(self.dst / "config/config.json", "stale old one\n")
+        new, changed, same, _ = sync.plan(self.src, self.dst, sync.legacy_settings(self.dst))
+        self.assertNotIn(Path("bar/config/config.json"), changed)
+        sync.apply(self.src, self.dst, self.tmp / "bk")
+        self.assertEqual((self.dst / "bar/config/config.json").read_text(), "edited\n")
+
+    def test_the_plan_counts_a_move_as_neither_new_nor_changed(self):
+        write(self.dst / "config/layouts.json", "mine\n")
+        moves = sync.legacy_settings(self.dst)
+        self.assertEqual([(o.name, n.parent.name) for o, n in moves], [("layouts.json", "config")])
+        new, changed, same, _ = sync.plan(self.src, self.dst, moves)
+        self.assertNotIn(Path("bar/config/layouts.json"), new + changed)
+        self.assertIn(Path("bar/config/layouts.json"), same)
+        self.assertIn(Path("bar/config/config.json"), new)
+
+    def test_a_dry_run_reports_the_move_and_writes_nothing(self):
+        write(self.dst / "config/config.json", "mine\n")
+        out, err = io.StringIO(), io.StringIO()
+        sync.REPO = self.tmp / "repo"
+        (sync.REPO / "Configs/.config").mkdir(parents=True)
+        os.symlink(self.src, sync.REPO / "Configs/.config/quickshell")
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            rc = sync.main(["--target", str(self.dst)])
+        self.assertEqual(rc, 0, err.getvalue())
+        self.assertIn("config/config.json -> bar/config/config.json", out.getvalue())
+        self.assertFalse((self.dst / "bar/config/config.json").exists())
 
 
 if __name__ == "__main__":

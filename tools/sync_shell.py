@@ -10,7 +10,10 @@
 The source is Configs/.config/quickshell (shell.qml, island/, bar/). The default target is where ~/.config/quickshell
 really points, so a link into a dotfiles repository is followed and the files change there.
 
-It only ever adds and overwrites: a file that exists in the target but not here is left alone. Before the first
+It only ever adds and overwrites: a file that exists in the target but not here is left alone. The two JSON settings
+files of the bar (bar/config/config.json, bar/config/layouts.json) are the user's: they are added when missing and never
+overwritten. Before the two shells were one configuration they lived in config/; a copy there is moved (copied, the old
+one stays) to bar/config/ first, so a customised file is not replaced by the shipped one. Before the first
 write the whole target is copied to a backup folder (default ~/.local/state/hyde-lite/backups/), and its path
 and the command to put it back are printed. Settings (prefs.json, layouts.json) live outside these folders and are
 not touched.
@@ -27,6 +30,9 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 NAME = "quickshell"
 SKIP_DIRS = {"__pycache__"}
+# Settings, not code: added when missing, never overwritten. Old location (before bar/ existed) -> new one.
+SETTINGS = {Path("bar/config/config.json"): Path("config/config.json"),
+            Path("bar/config/layouts.json"): Path("config/layouts.json")}
 
 
 def files(root):
@@ -41,13 +47,24 @@ def files(root):
     return out
 
 
-def plan(src, dst):
-    """(new, changed, same, only_in_target), each a sorted list of relative paths."""
+def legacy_settings(dst):
+    """(old, new) absolute paths of settings files that still sit where they were before bar/ existed."""
+    return [(dst / old, dst / new) for new, old in SETTINGS.items() if (dst / old).is_file() and not (dst / new).exists()]
+
+
+def plan(src, dst, moves=()):
+    """(new, changed, same, only_in_target), each a sorted list of relative paths. `moves` are the pairs from
+    legacy_settings(): their new path is about to be filled from the old one, so it is neither new nor changed."""
     new, changed, same = [], [], []
+    moving = {n.relative_to(dst) for _, n in moves}
     for rel in files(src):
         other = dst / rel
-        if not other.exists():
+        if rel in moving:
+            same.append(rel)
+        elif not other.exists():
             new.append(rel)
+        elif rel in SETTINGS:
+            same.append(rel)
         elif filecmp.cmp(src / rel, other, shallow=False):
             same.append(rel)
         else:
@@ -58,10 +75,14 @@ def plan(src, dst):
 
 
 def apply(src, dst, backup):
-    """Copy dst to backup, then add and overwrite files from src. Returns (new, changed)."""
-    new, changed, _, _ = plan(src, dst)
+    """Copy dst to backup, move legacy settings, then add and overwrite files from src. Returns (new, changed)."""
+    moves = legacy_settings(dst)
+    new, changed, _, _ = plan(src, dst, moves)
     backup.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(dst, backup, symlinks=True)
+    for old, newpath in moves:
+        newpath.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(old, newpath)
     for rel in new + changed:
         target = dst / rel
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -108,13 +129,16 @@ def main(argv=None):
         print(f"sync_shell: the target is this repository's own copy ({dst}); nothing to do", file=sys.stderr)
         return 2
 
-    new, changed, same, extra = plan(src, dst)
+    moves = legacy_settings(dst)
+    new, changed, same, extra = plan(src, dst, moves)
     if not args.quiet:
         print(f"from {src}\n  to {dst}" + (f"  (via {given})" if given != dst else ""))
         print(f"{len(new)} new, {len(changed)} changed, {len(same)} identical, {len(extra)} only in the target (left alone)")
         for label, lst in (("new", new), ("changed", changed), ("only in the target", extra)):
             for rel in lst:
                 print(f"  {label:>18}: {rel}")
+        for old, newpath in moves:
+            print(f"  {'settings moved':>18}: {old.relative_to(dst)} -> {newpath.relative_to(dst)}")
     if args.diff:
         import difflib
         for rel in changed:
@@ -127,7 +151,7 @@ def main(argv=None):
             return 0
         print("dry run: nothing written. Add --apply to copy the new and changed files (a backup is made first).")
         return 0
-    if not new and not changed:
+    if not new and not changed and not moves:
         print(f"{name}: already up to date" if args.quiet else "already up to date")
         return 0
     stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -135,9 +159,9 @@ def main(argv=None):
     apply(src, dst, backup)
     pruned = prune_backups(backup.parent, name, args.keep) if args.keep is not None else []
     if args.quiet:
-        print(f"{name}: updated ({len(new)} added, {len(changed)} overwritten); backup {backup}")
+        print(f"{name}: updated ({len(new)} added, {len(changed)} overwritten, {len(moves)} settings moved); backup {backup}")
         return 0
-    print(f"done: {len(new)} added, {len(changed)} overwritten.\nbackup of the old folder: {backup}")
+    print(f"done: {len(new)} added, {len(changed)} overwritten, {len(moves)} settings moved.\nbackup of the old folder: {backup}")
     if pruned:
         print(f"removed {len(pruned)} older backup(s), keeping the newest {args.keep}")
     print(f"to undo: cp -a {backup}/. {dst}/   (files that were added stay; remove them by hand if you want)")
