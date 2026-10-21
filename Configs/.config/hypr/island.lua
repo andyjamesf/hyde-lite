@@ -1,4 +1,5 @@
--- Shell switching: the HyDE-style Quickshell shell or the Morphing Island, one at a time.
+-- UI switching: the HyDE-style bar or the Morphing Island, the two UIs of one Quickshell configuration,
+-- one at a time.
 --
 -- Loaded last from hyprland.lua, inside pcall: a mistake here must cost the island's keys, not the
 -- whole Hyprland session. `island on|off|toggle` (~/.local/bin/island) chooses the shell and writes
@@ -9,16 +10,16 @@
 -- removal of HyDE's F10-F12 and numpad workspace binds.
 --
 -- Writing keys: "$mod + SHIFT + T"; $mod is HyDE's main modifier (SUPER). Key names are xkb names.
---   island   arguments for `qs -p ~/.config/morphing-island ipc call island ...`
---            (see ~/.config/morphing-island/README.md, "IPC"). nil = the key does nothing there.
---   hyde     a shell command for the HyDE Quickshell shell (`qs ipc call ...`). nil = nothing.
+--   island   arguments for `qs ipc call island ...`
+--            (see ~/.config/quickshell/island/README.md, "IPC"). nil = the key does nothing there.
+--   hyde     a shell command for the bar UI (`qs ipc call ...`). nil = nothing.
 --   desc     "[Category] what it does": the category groups it in the keybindings list.
 
 MorphingIsland = {}
 
 local home = os.getenv("HOME")
 local state = (os.getenv("XDG_STATE_HOME") or (home .. "/.local/state")) .. "/morphing-island/active"
-local ipc = "qs -p " .. home .. "/.config/morphing-island ipc call island "
+local ipc = "qs ipc call island "
 local mod = hyde.config.modifiers.main
 
 -- True while the Morphing Island is the active shell.
@@ -76,7 +77,7 @@ local shell = {
 	{ keys = "$mod + SHIFT + W", island = "open wallpaper", hyde = "qs ipc call launcher pick wallpapers", desc = "[Theming and Wallpaper] select a global wallpaper" },
 
 	-- HyDE's rofi menus, ported to both shells: launcher pickers (`pick <name>`; the island's are in
-	-- ~/.config/morphing-island/services/Pickers.qml, the HyDE shell's in ~/.config/quickshell/pickers/).
+	-- ~/.config/quickshell/island/services/Pickers.qml, the bar's in ~/.config/quickshell/bar/pickers/).
 	{ keys = "$mod + TAB", island = "pick windows", hyde = "qs ipc call launcher pick windows", desc = "[Launcher|Pickers] window switcher" },
 	{ keys = "$mod + SHIFT + E", island = "pick files", hyde = "qs ipc call launcher pick files", desc = "[Launcher|Pickers] file finder" },
 	{ keys = "$mod + period", island = "pick glyph", hyde = "qs ipc call launcher pick glyph", desc = "[Launcher|Pickers] glyph picker" },
@@ -159,7 +160,7 @@ if MorphingIsland.active() then
 	-- `island run` starts it again if it crashes (and it locks again if the screen was locked).
 	hyde.config.start.bar = "hyde-shell app -u morphing-island.service -t service -- " .. home .. "/.local/bin/island run"
 	hyde.config.start.auth_dialogue = ""
-	-- The island also answers Wi-Fi passwords and Bluetooth pairing (scripts/agents.py).
+	-- The island also answers Wi-Fi passwords and Bluetooth pairing (island/scripts/agents.py).
 	hyde.config.start.applet_network_manager = ""
 	hyde.config.start.applet_bluetooth = ""
 end

@@ -57,13 +57,13 @@ class Sync(unittest.TestCase):
         return rc, out.getvalue(), err.getvalue()
 
     def fake_repo(self):
-        repo = self.tmp / "repo/Configs/.config/morphing-island"
+        repo = self.tmp / "repo/Configs/.config/quickshell"
         repo.parent.mkdir(parents=True)
         os.symlink(self.src, repo)
 
     def test_dry_run_writes_nothing(self):
         self.fake_repo()
-        rc, out, _ = self.run_main("island", "--target", str(self.dst), "--backup-dir", str(self.tmp / "bk"))
+        rc, out, _ = self.run_main("--target", str(self.dst), "--backup-dir", str(self.tmp / "bk"))
         self.assertEqual(rc, 0)
         self.assertIn("1 new, 1 changed", out)
         self.assertEqual((self.dst / "a.qml").read_text(), "old a\n")
@@ -72,11 +72,11 @@ class Sync(unittest.TestCase):
 
     def test_apply_then_apply_again_is_a_noop(self):
         self.fake_repo()
-        rc, out, _ = self.run_main("island", "--target", str(self.dst), "--apply", "--backup-dir", str(self.tmp / "bk"))
+        rc, out, _ = self.run_main("--target", str(self.dst), "--apply", "--backup-dir", str(self.tmp / "bk"))
         self.assertEqual(rc, 0)
         self.assertIn("1 added, 1 overwritten", out)
         self.assertIn("to undo: cp -a", out)
-        rc, out, _ = self.run_main("island", "--target", str(self.dst), "--apply", "--backup-dir", str(self.tmp / "bk2"))
+        rc, out, _ = self.run_main("--target", str(self.dst), "--apply", "--backup-dir", str(self.tmp / "bk2"))
         self.assertIn("already up to date", out)
         self.assertFalse((self.tmp / "bk2").exists())
 
@@ -84,7 +84,7 @@ class Sync(unittest.TestCase):
         self.fake_repo()
         link = self.tmp / "link"
         os.symlink(self.dst, link)
-        rc, out, _ = self.run_main("island", "--target", str(link), "--apply", "--backup-dir", str(self.tmp / "bk"))
+        rc, out, _ = self.run_main("--target", str(link), "--apply", "--backup-dir", str(self.tmp / "bk"))
         self.assertEqual(rc, 0)
         self.assertTrue(link.is_symlink())                       # the link itself is untouched
         self.assertEqual((self.dst / "a.qml").read_text(), "new a\n")
@@ -92,50 +92,50 @@ class Sync(unittest.TestCase):
 
     def test_refuses_its_own_copy_and_a_missing_target(self):
         self.fake_repo()
-        rc, _, err = self.run_main("island", "--target", str(self.src))
+        rc, _, err = self.run_main("--target", str(self.src))
         self.assertEqual(rc, 2)
         self.assertIn("own copy", err)
-        rc, _, err = self.run_main("island", "--target", str(self.tmp / "nope"))
+        rc, _, err = self.run_main("--target", str(self.tmp / "nope"))
         self.assertEqual(rc, 2)
 
     def test_quiet_prints_one_line(self):
         self.fake_repo()
-        rc, out, _ = self.run_main("island", "--target", str(self.dst), "--apply", "--quiet", "--backup-dir", str(self.tmp / "bk"))
+        rc, out, _ = self.run_main("--target", str(self.dst), "--apply", "--quiet", "--backup-dir", str(self.tmp / "bk"))
         self.assertEqual(rc, 0)
         self.assertEqual(len(out.strip().splitlines()), 1, out)
         self.assertIn("updated (1 added, 1 overwritten)", out)
-        rc, out, _ = self.run_main("island", "--target", str(self.dst), "--apply", "--quiet", "--backup-dir", str(self.tmp / "bk2"))
-        self.assertEqual(out.strip(), "morphing-island: already up to date")
+        rc, out, _ = self.run_main("--target", str(self.dst), "--apply", "--quiet", "--backup-dir", str(self.tmp / "bk2"))
+        self.assertEqual(out.strip(), "quickshell: already up to date")
 
     def test_prune_keeps_the_newest_and_leaves_other_things(self):
         d = self.tmp / "backups"
         for i in range(1, 8):
-            (d / f"morphing-island-2020010{i}-000000").mkdir(parents=True)
-        (d / "quickshell-20200101-000000").mkdir()
-        (d / "morphing-island-notes").mkdir()
-        (d / "morphing-island-20200108-000000").write_text("a file with a matching name")
-        gone = sync.prune_backups(d, "morphing-island", 3)
-        self.assertEqual([p.name for p in gone], [f"morphing-island-2020010{i}-000000" for i in (1, 2, 3, 4)])
+            (d / f"quickshell-2020010{i}-000000").mkdir(parents=True)
+        (d / "morphing-island-20200101-000000").mkdir()              # a backup from before the two shells merged
+        (d / "quickshell-notes").mkdir()
+        (d / "quickshell-20200108-000000").write_text("a file with a matching name")
+        gone = sync.prune_backups(d, "quickshell", 3)
+        self.assertEqual([p.name for p in gone], [f"quickshell-2020010{i}-000000" for i in (1, 2, 3, 4)])
         left = sorted(p.name for p in d.iterdir())
-        self.assertIn("quickshell-20200101-000000", left)
-        self.assertIn("morphing-island-notes", left)
-        self.assertIn("morphing-island-20200108-000000", left)       # a file is not a backup folder
-        self.assertEqual(sync.prune_backups(d, "morphing-island", 10), [])
+        self.assertIn("morphing-island-20200101-000000", left)
+        self.assertIn("quickshell-notes", left)
+        self.assertIn("quickshell-20200108-000000", left)            # a file is not a backup folder
+        self.assertEqual(sync.prune_backups(d, "quickshell", 10), [])
 
     def test_apply_with_keep_prunes_after_the_backup(self):
         self.fake_repo()
         bk = self.tmp / "backups"
         for i in range(1, 4):
-            (bk / f"morphing-island-2020010{i}-000000").mkdir(parents=True)
-        rc, out, _ = self.run_main("island", "--target", str(self.dst), "--apply", "--keep", "2",
-                                   "--backup-dir", str(bk / "morphing-island-20300101-000000"))
+            (bk / f"quickshell-2020010{i}-000000").mkdir(parents=True)
+        rc, out, _ = self.run_main("--target", str(self.dst), "--apply", "--keep", "2",
+                                   "--backup-dir", str(bk / "quickshell-20300101-000000"))
         self.assertEqual(rc, 0)
-        self.assertEqual(sorted(p.name for p in bk.iterdir()), ["morphing-island-20200103-000000", "morphing-island-20300101-000000"])
+        self.assertEqual(sorted(p.name for p in bk.iterdir()), ["quickshell-20200103-000000", "quickshell-20300101-000000"])
         self.assertIn("removed 2 older backup", out)
 
     def test_diff_shows_changed_files(self):
         self.fake_repo()
-        rc, out, _ = self.run_main("island", "--target", str(self.dst), "--diff")
+        rc, out, _ = self.run_main("--target", str(self.dst), "--diff")
         self.assertIn("-old a", out)
         self.assertIn("+new a", out)
 

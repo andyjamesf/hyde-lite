@@ -1,24 +1,11 @@
-# Morphing Island: the second shell, one floating pill that expands. It is independent of the
-# HyDE-style Quickshell shell (quickshell.toml); only one of the two runs at a time. Same runtime
-# and fonts as that shell, so the packages come from there.
+# Morphing Island: the second UI of the Quickshell configuration, one floating pill that expands. Its
+# code (Configs/.config/quickshell/island) is deployed with the rest of the configuration by
+# quickshell.toml, which also supplies the runtime and fonts; this file has what only the island
+# needs: plugins, the `island` switch script and the Hyprland key routing.
 # `island on|off|toggle` (~/.local/bin/island) switches; hypr/island.lua routes the shell keys and
 # starts the active shell at login (loaded from hyprland.lua).
 [morphing-island]
-description = "Morphing Island Quickshell shell (single expanding pill)"
-
-# The shell's code: kept in sync with this repository (updates overwrite it).
-[[morphing-island.files]]
-action = "sync"
-source_root = "Configs/.config/morphing-island"
-target_root = "${XDG_CONFIG_HOME}/morphing-island"
-paths = ["shell.qml", "README.md", "components", "core", "icons", "scripts", "sddm", "services", "theme"]
-
-# The user's settings: only copied when missing, never overwritten.
-[[morphing-island.files]]
-action = "preserve"
-source_root = "Configs/.config/morphing-island"
-target_root = "${XDG_CONFIG_HOME}/morphing-island"
-paths = ["config"]
+description = "Morphing Island: plugins, switch script and key routing"
 
 # Plugins: the user may add their own next to the shipped one.
 [[morphing-island.files]]

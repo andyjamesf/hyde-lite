@@ -1,21 +1,23 @@
 #!/usr/bin/env bash
-# qmllint for the two Quickshell shells (Configs/.config/quickshell and Configs/.config/morphing-island).
+# qmllint for the Quickshell configuration (Configs/.config/quickshell): the island UI (island/) and the
+# bar UI (bar/), counted separately. shell.qml, lock.qml and sync.qml at the root count with the island.
 #
-# qmllint does not know what `import qs.services` means: Quickshell maps `qs.<dir>` onto the shell's
-# own subdirectories at runtime and supplies the module metadata itself. Without that metadata every
-# singleton is an unknown name and almost every property read is reported as an unqualified access,
-# which buries everything real. So this builds a throwaway import tree per shell: one directory per
-# qs.<path> module (nested directories become qs.modules.bar and so on), symlinks to the real .qml
+# qmllint does not know what `import qs.island.services` means: Quickshell maps `qs.<dir>` onto the
+# configuration's own subdirectories at runtime and supplies the module metadata itself. Without that
+# metadata every singleton is an unknown name and almost every property read is reported as an unqualified
+# access, which buries everything real. So this builds a throwaway import tree: one directory per
+# qs.<path> module (nested directories become qs.bar.modules.bar and so on), symlinks to the real .qml
 # files, and a generated qmldir declaring each type, with the `pragma Singleton` ones marked.
 #
-#   tools/qml-lint.sh              both shells, counts compared against tools/qml-lint.baseline
+#   tools/qml-lint.sh              both UIs, counts compared against tools/qml-lint.baseline
 #   tools/qml-lint.sh FILE...      only those files, only the categories that must stay at zero
 #   tools/qml-lint.sh --baseline   rewrite the baseline from the current trees
 #   tools/qml-lint.sh --raw        every warning of both shells, one per line, paths relative to the repo
 #   tools/qml-lint.sh --since [REV]  warnings that exist now and did not at REV (default: the commit that
 #                                  last changed the baseline); line numbers are ignored when matching
 #
-# QML_LINT_REPO=DIR lints another checkout (--since uses it for the old tree).
+# QML_LINT_REPO=DIR lints another checkout (--since uses it for the old tree). The old tree must have this
+# layout too, so --since cannot reach back past the commit that merged the two shells under one root.
 #
 # sddm/ is left out: that theme runs inside SDDM's own QML environment, so its imports do not resolve.
 # Needs the `quickshell` package (its qmltypes): without it every `required` and `import` finding is an
@@ -23,7 +25,8 @@
 set -uo pipefail
 
 REPO=${QML_LINT_REPO:-$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-toplevel)} || exit 2
-SHELLS=(quickshell morphing-island)
+SHELLS=(bar island)
+CONFIG=$REPO/Configs/.config/quickshell
 BASELINE=$REPO/tools/qml-lint.baseline
 ZERO_CATEGORIES="unused-imports id-shadows-member required"
 
@@ -50,9 +53,9 @@ QS_TYPES=${QS_TYPES:-/usr/lib/qt6/qml/Quickshell}
 TREE=$(mktemp -d) || exit 2
 trap 'rm -rf -- "$TREE"' EXIT
 
-# make_tree SHELL -> $TREE/SHELL/qs/... import tree; prints nothing
+# make_tree -> $TREE/qs/... import tree for the whole root; prints nothing
 make_tree() {
-    python3 -I - "$REPO/Configs/.config/$1" "$TREE/$1" <<'PY'
+    python3 -I - "$CONFIG" "$TREE" <<'PY'
 import pathlib, sys
 src, out = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
 for d in sorted(p for p in src.rglob("*") if p.is_dir() and "sddm" not in p.relative_to(src).parts):
@@ -71,14 +74,17 @@ for d in sorted(p for p in src.rglob("*") if p.is_dir() and "sddm" not in p.rela
     (od / "qmldir").write_text("\n".join(lines) + "\n")
 PY
 }
-for s in "${SHELLS[@]}"; do make_tree "$s"; done
+make_tree
 
-shell_of() {  # file -> shell name
-    case $1 in */Configs/.config/quickshell/*) echo quickshell ;; */Configs/.config/morphing-island/*) echo morphing-island ;; *) echo "" ;; esac
+shell_of() {  # file -> bar | island | "" (outside the configuration)
+    case $1 in
+        */Configs/.config/quickshell/bar/*) echo bar ;;
+        */Configs/.config/quickshell/*.qml | */Configs/.config/quickshell/island/*) echo island ;;
+        *) echo "" ;;
+    esac
 }
-run_lint() {  # SHELL files... -> warning lines on stdout
-    local s=$1; shift
-    local args=(-I "$TREE/$s"); [ -n "$QT_QML" ] && args=(-I "$QT_QML" "${args[@]}")
+run_lint() {  # files... -> warning lines on stdout
+    local args=(-I "$TREE"); [ -n "$QT_QML" ] && args=(-I "$QT_QML" "${args[@]}")
     # One file per call: a crash in qmllint (6.4 segfaults on some files) then costs one file, not the run.
     local f out rc
     for f in "$@"; do
@@ -88,9 +94,14 @@ run_lint() {  # SHELL files... -> warning lines on stdout
     done
     return 0
 }
-shell_files() { find "$REPO/Configs/.config/$1" -name '*.qml' -not -path '*/sddm/*' | sort; }
+shell_files() {  # bar | island -> its .qml files
+    case $1 in
+        bar) find "$CONFIG/bar" -name '*.qml' | sort ;;
+        island) { find "$CONFIG/island" -name '*.qml' -not -path '*/sddm/*'; find "$CONFIG" -maxdepth 1 -name '*.qml'; } | sort ;;
+    esac
+}
 counts() { grep -oE '\[[a-z-]+\]$' | tr -d '[]' | sort | uniq -c | awk '{print $1, $2}'; }
-lint_shell() { mapfile -t f < <(shell_files "$1"); run_lint "$1" "${f[@]}" | counts | sed "s/^/$1 /"; }
+lint_shell() { mapfile -t f < <(shell_files "$1"); run_lint "${f[@]}" | counts | sed "s/^/$1 /"; }
 
 # One warning per line, repo-relative path, "file.qml:LINE:COL:" kept (raw) or reduced to "file.qml:" (norm).
 # Every occurrence of the repo path goes: some messages carry a second one ("component in /path/File.qml"), and
@@ -98,7 +109,7 @@ lint_shell() { mapfile -t f < <(shell_files "$1"); run_lint "$1" "${f[@]}" | cou
 raw_all() {
     local s f
     for s in "${SHELLS[@]}"; do
-        mapfile -t f < <(shell_files "$s"); run_lint "$s" "${f[@]}"
+        mapfile -t f < <(shell_files "$s"); run_lint "${f[@]}"
     done | grep -E '\[[a-z-]+\]$' | sed "s#$REPO/##g"
 }
 norm() { sed -E 's/\.qml:[0-9]+:[0-9]+:/.qml:/' | sort; }
@@ -143,7 +154,7 @@ if [ "$#" -gt 0 ]; then
         sel=()
         for f in "$@"; do f=$(realpath -- "$f"); [ "$(shell_of "$f")" = "$s" ] && sel+=("$f"); done
         [ "${#sel[@]}" -gt 0 ] || continue
-        out=$(run_lint "$s" "${sel[@]}")
+        out=$(run_lint "${sel[@]}")
         for cat in $ZERO_CATEGORIES; do
             if grep -qE "\[$cat\]$" <<<"$out"; then
                 echo "qml-lint: [$cat] must stay at zero:" >&2

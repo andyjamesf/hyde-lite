@@ -2,7 +2,7 @@
 
 PLAN 4.1, decision D2: **every island feature is kept**; nothing is dropped. This table is the base for the
 weight audit (PLAN 6.1) and for 4.2 (making each feature switchable). It was produced by assigning every
-`.qml`, `.py`, `.js` and `.sh` file under `Configs/.config/morphing-island/` to one feature and counting
+`.qml`, `.py`, `.js` and `.sh` file under `Configs/.config/quickshell/island/` to one feature and counting
 lines, so the sizes are measured, but the grouping is a judgement: a file shared by several features sits
 with the one that owns it (the shared core is listed last).
 

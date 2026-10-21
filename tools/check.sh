@@ -39,7 +39,7 @@ step "toml / json / includes"
 python3 -I tools/check_data.py "$root" || fail=1
 
 step "bar layouts"
-python3 -I Configs/.config/quickshell/scripts/validate_layouts.py || fail=1
+python3 -I Configs/.config/quickshell/bar/scripts/validate_layouts.py || fail=1
 
 # Display-free unit tests of our own scripts (the upstream suite lives in the tests submodule).
 step "unit tests"

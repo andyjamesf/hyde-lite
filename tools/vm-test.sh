@@ -306,7 +306,7 @@ checks=(
     "matugen binary|command -v matugen"
     "hyprland.lua|test -f ~/.config/hypr/hyprland.lua"
     "hyde config|test -f ~/.config/hyde/config.toml || test -f ~/.config/hyde/hyde.conf"
-    "island shell|test -d ~/.config/morphing-island || test -d ~/.config/quickshell"
+    "quickshell configuration|test -f ~/.config/quickshell/shell.qml && test -d ~/.config/quickshell/island && test -d ~/.config/quickshell/bar"
     "wallpapers|test -n \"\$(ls ~/.config/hyde/wallpapers 2>/dev/null || ls ~/Pictures/Wallpapers 2>/dev/null)\""
     "theme state|test -f ~/.cache/hyde/wall.dcol"
     "sddm service|systemctl is-enabled sddm"

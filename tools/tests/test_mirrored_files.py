@@ -1,5 +1,5 @@
-"""Files that exist in both shells because each shell is deployed on its own (~/.config/quickshell and
-~/.config/morphing-island) must not drift apart: a fix in one is a fix in the other. Run:
+"""Files that exist in both UIs (quickshell/bar and quickshell/island) until they are moved to a shared folder
+must not drift apart: a fix in one is a fix in the other. Run:
 
     python3 -I tools/tests/test_mirrored_files.py
 
@@ -11,7 +11,7 @@ import pathlib
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[2] / "Configs/.config"
-BAR, ISLAND = ROOT / "quickshell", ROOT / "morphing-island"
+BAR, ISLAND = ROOT / "quickshell/bar", ROOT / "quickshell/island"
 MIRRORED_SERVICES = ["PamText.qml"]
 
 

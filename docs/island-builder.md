@@ -70,21 +70,21 @@ slide under it and fade, like the built-in pills. Up to four exist (`PillsConfig
 
 ## Keeping an installed copy in step
 
-If the island you run is a copy (for example `~/.config/morphing-island` is a link into your dotfiles) and not this
+If the configuration you run is a copy (for example `~/.config/quickshell` is a link into your dotfiles) and not this
 checkout, turn on the pull hook once:
 
 ```sh
 bash tools/install_hooks.sh
 ```
 
-After that, a `git pull` that changes `Configs/.config/morphing-island` runs `tools/sync_shell.py` by itself: it copies
+After that, a `git pull` that changes `Configs/.config/quickshell` runs `tools/sync_shell.py` by itself: it copies
 the whole installed folder to `~/.local/state/hyde-lite/backups/` first (the newest five are kept), then adds and
 overwrites the new and changed files. It never deletes anything, never touches `prefs.json` or your wallpapers (they
 live outside that folder), and a failure only prints a message: the pull itself is never affected. A pull with
-`pull.rebase` is covered too. The bar shell is updated the same way when `~/.config/quickshell` exists.
+`pull.rebase` is covered too.
 
 - Restart the island afterwards (`island off && island on`); whether Quickshell also reloads by itself when the files
   change has not been checked.
 - If the installed folder is inside a git repository (dotfiles), it will show the changes: commit them there.
 - Skip it once with `HYDE_LITE_NO_SYNC=1 git pull`; turn it off with `bash tools/install_hooks.sh --off`.
-- To see what it would do without a pull: `python3 tools/sync_shell.py island` (a dry run).
+- To see what it would do without a pull: `python3 tools/sync_shell.py` (a dry run).

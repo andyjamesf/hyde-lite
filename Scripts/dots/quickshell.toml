@@ -1,6 +1,7 @@
-# Quickshell shell: bar, notification server, OSD, launcher (apps/clipboard/calculator),
-# control center, power menu and lockscreen. Replaces waybar, dunst, wlogout (and rofi) in this
-# lite fork; hyprlock (lockscreen fallback) is still installed by its own dot.
+# Quickshell configuration: bar, notification server, OSD, launcher (apps/clipboard/calculator),
+# control center, power menu and lockscreen, as the HyDE-style bar (bar/) or the Morphing Island
+# (island/). Replaces waybar, dunst, wlogout (and rofi) in this lite fork; hyprlock (lockscreen
+# fallback) is still installed by its own dot.
 [quickshell]
 description = "Quickshell desktop shell for HyDE (bar, notifications, launcher, control center, lockscreen)"
 
@@ -26,16 +27,24 @@ paru = [
     "ttf-material-symbols-variable-git", # icon font (variable: fill/weight are animated)
 ]
 
-# The shell's code: kept in sync with HyDE (updates overwrite it).
+# The configuration's code: kept in sync with this repository (updates overwrite it). shell.qml picks
+# the UI to run, island/ is the Morphing Island and bar/ the HyDE-style bar; the settings folders of
+# both are the next entry.
 [[quickshell.files]]
 action = "sync"
 source_root = "Configs/.config/quickshell"
 target_root = "${XDG_CONFIG_HOME}/quickshell"
-paths = ["shell.qml", "README.md", "components", "services", "modules", "pickers", "scripts"]
+paths = [
+    "shell.qml", "lock.qml", "sync.qml", "README.md",
+    "bar/Shell.qml", "bar/README.md", "bar/components", "bar/modules", "bar/pickers", "bar/scripts", "bar/services",
+    "island/Shell.qml", "island/README.md", "island/components", "island/core", "island/icons", "island/scripts",
+    "island/sddm", "island/services", "island/theme",
+]
 
-# The user's settings (config.json, layouts.json): only copied when missing, never overwritten.
+# The user's settings (bar/config/config.json, bar/config/layouts.json, island/config/*.qml): only copied
+# when missing, never overwritten.
 [[quickshell.files]]
 action = "preserve"
 source_root = "Configs/.config/quickshell"
 target_root = "${XDG_CONFIG_HOME}/quickshell"
-paths = ["config"]
+paths = ["bar/config", "island/config"]

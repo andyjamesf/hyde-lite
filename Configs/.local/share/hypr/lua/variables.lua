@@ -53,7 +53,7 @@ hc.start.clipboard_persist =
     "hyde-shell app -u " .. unt .. "-clipboard-persist.service -t " .. svc .. " wl-clip-persist --clipboard regular"
 hc.start.wallpaper =
     "hyde-shell app -u " .. unt .. "-wallpaper.service -t " .. svc .. " -- wallpaper.sh --start --global"
--- The Quickshell shell (~/.config/quickshell) is the bar, notification server, launcher, OSD,
+-- The Quickshell configuration (~/.config/quickshell) is the bar, notification server, launcher, OSD,
 -- control center, power menu and lockscreen, so no separate notification daemon is started.
 hc.start.bar = "hyde-shell app -u " .. unt .. "-qsbar.service -t " .. svc .. " -- qs"
 hc.start.notifications = ""

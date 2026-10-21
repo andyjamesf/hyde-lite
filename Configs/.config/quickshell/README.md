@@ -1,35 +1,31 @@
-# Quickshell shell for HyDE
+# Quickshell configuration
 
-The desktop shell of the HyDE Quickshell Edition: bar, notifications, OSD, launcher (apps,
-clipboard, calculator, keybindings), control center, power menu and lock screen. It starts with
-`qs` (default config path `~/.config/quickshell`); HyDE launches it at login through
-`hyde.config.start.bar`.
+One configuration, started by `qs`, with two UIs. `shell.qml` loads one of them:
 
-The features, keybindings, configuration, IPC and how to go back to Waybar/dunst/hyprlock are
-documented in the repository's [`docs/`](../../../docs/) folder (the bar layouts in `docs/bar-builder.md`).
+| Folder | UI | Chosen when |
+|---|---|---|
+| `island/` | the Morphing Island: one pill that expands (`island/README.md`) | `~/.local/state/morphing-island/active` exists (`island on`) |
+| `bar/` | the HyDE-style bar with islands/pills and 7 layouts (`bar/README.md`) | it does not (`island off`, the default) |
 
-## Layout
+`island on|off|toggle` (`~/.local/bin/island`) writes or removes that file and starts the process again, so only the
+UI in use is compiled and instantiated. Singletons outlive a UI, which is why a switch restarts the process instead
+of swapping the Loader's source.
 
-| Path | Contents |
-|---|---|
-| `shell.qml` | entry point: per-screen windows and IPC targets |
-| `services/` | singletons with the logic (colors, audio, network, Bluetooth, notifications, launcher, keybindings, lock, rofi colors…) |
-| `components/` | reusable visual pieces (buttons, sliders, cards, popouts, menus, tooltips) |
-| `modules/` | bar, control center, notifications, OSD, launcher, power menu, lock screen |
-| `pickers/` | the launcher's pickers, HyDE's rofi menus ported to the shell: windows, files, web, emoji, glyphs, bookmarks, games, HyDE themes, wallpapers, wallbash, animations, lock screen, workflows, shaders, layouts (`qs ipc call launcher pick <name>`; settings in `config.json` → `pickers`) |
-| `config/config.json` | your settings (only what you change; defaults in `services/Config.qml`) |
-| `config/layouts.json` | bar layout presets (add your own) |
-| `scripts/ical_events.py` | iCal reader for the calendar (Google Calendar) |
+`lock.qml` and `sync.qml` are the island's lock screen and login-screen sync run on their own while the bar is the
+UI (`island lock`, `island login sync-once`); they live here so that `qs.island.*` resolves for them too.
 
-HyDE updates overwrite the code; `config/` is only copied when missing, so your settings are kept.
-Settings picked in the menus are stored in `~/.local/state/quickshell/`.
+## Modules
 
-## Development
+Each UI keeps its own folders (`services/`, `components/`, ...) and imports them as `qs.<ui>.<folder>`, for example
+`import qs.island.services` or `import qs.bar.modules.bar`. Quickshell finds a module by following the imports that
+start at `shell.qml`, so `shell.qml` imports both UI folders even though it loads only one: a file loaded by URL
+does not register the modules it imports.
 
-- `qs ipc call shell reload` reloads the shell (files are also watched). Do not reload while the
-  screen is locked if you are on an older version of `services/Lock.qml`.
-- `journalctl --user -u "hyde-*-qsbar.service"` shows the logs.
-- `qs ipc call bar menu <widget[:submenu]>`, `bar tooltip <widget>` and `bar popout <name>` open
-  menus, tooltips and popouts without a mouse, for testing.
-- Colors, spacing, type scale and shapes come from `services/Theme.qml`; please don't hardcode
-  sizes.
+Paths in the code are relative to the configuration root: `Quickshell.shellPath("island/scripts/sddm.py")`.
+
+## Checks
+
+```sh
+tools/qml-lint.sh      # qmllint counts per UI against tools/qml-lint.baseline
+tools/check.sh         # everything else, including the unit tests
+```

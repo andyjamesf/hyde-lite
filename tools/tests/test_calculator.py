@@ -8,7 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import qml_js  # noqa: E402
 
-SRC = (Path(__file__).resolve().parents[2] / "Configs/.config/morphing-island/services/Calculator.qml").read_text()
+SRC = (Path(__file__).resolve().parents[2] / "Configs/.config/quickshell/island/services/Calculator.qml").read_text()
 PRELUDE = "\n".join([
     f"const _functions = {qml_js.extract_property(SRC, '_functions')};",
     f"const _constants = {qml_js.extract_property(SRC, '_constants')};",

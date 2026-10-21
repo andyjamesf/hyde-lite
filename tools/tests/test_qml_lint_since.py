@@ -28,8 +28,8 @@ class QmlLintSince(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
         self.repo = self.tmp / "repo"
-        for shell in ("quickshell", "morphing-island"):
-            d = self.repo / "Configs" / ".config" / shell
+        for shell in ("bar", "island"):
+            d = self.repo / "Configs" / ".config" / "quickshell" / shell
             d.mkdir(parents=True)
             (d / "A.qml").write_text("Item {\n  // WARN old\n}\n")
         (self.repo / "tools").mkdir()
@@ -58,7 +58,7 @@ class QmlLintSince(unittest.TestCase):
         self.assertTrue(all(l.startswith("Warning: Configs/.config/") for l in lines), r.stdout)
 
     def test_since_reports_only_new_warnings_and_ignores_moved_lines(self):
-        a = self.repo / "Configs/.config/quickshell/A.qml"
+        a = self.repo / "Configs/.config/quickshell/bar/A.qml"
         # one line added above the old warning (moves it) plus one new warning
         a.write_text("// header\nItem {\n  // WARN old\n  // WARN brand new\n}\n")
         r = self.run_lint("--since", "HEAD")
@@ -71,21 +71,21 @@ class QmlLintSince(unittest.TestCase):
         self.assertNotIn("old", body[0])
 
     def test_since_counts_duplicates(self):
-        a = self.repo / "Configs/.config/quickshell/A.qml"
+        a = self.repo / "Configs/.config/quickshell/bar/A.qml"
         a.write_text("Item {\n  // WARN old\n  // WARN old\n  // WARN old\n}\n")  # one before, three now
         body = [l for l in self.run_lint("--since", "HEAD").stdout.splitlines()[1:] if l.strip()]
         self.assertEqual(len(body), 2, body)
 
     def test_rewriting_the_baseline_keeps_the_accepted_increase_records(self):
         base = self.repo / "tools" / "qml-lint.baseline"
-        note = "#! accepted 2026-10-15 quickshell import 0->1 Configs/.config/quickshell/A.qml: kept across rewrites, a long enough reason"
-        base.write_text(f"# old header\n{note}\nquickshell 9 unqualified\n")
+        note = "#! accepted 2026-10-15 bar import 0->1 Configs/.config/quickshell/bar/A.qml: kept across rewrites, a long enough reason"
+        base.write_text(f"# old header\n{note}\nbar 9 unqualified\n")
         r = self.run_lint("--baseline")
         self.assertEqual(r.returncode, 0, r.stderr)
         text = base.read_text()
         self.assertIn(note, text)
         self.assertNotIn("# old header", text)
-        self.assertIn("quickshell 1 unqualified", text)   # the fake lint reports one warning per shell
+        self.assertIn("bar 1 unqualified", text)   # the fake lint reports one warning per shell
 
     def test_since_without_changes_prints_nothing_new(self):
         r = self.run_lint("--since", "HEAD")
@@ -93,7 +93,7 @@ class QmlLintSince(unittest.TestCase):
         self.assertEqual(r.stdout.strip().splitlines()[1:], [], r.stdout)
 
     def test_since_default_revision_is_last_baseline_commit(self):
-        (self.repo / "Configs/.config/morphing-island/A.qml").write_text("Item {\n  // WARN old\n  // WARN later\n}\n")
+        (self.repo / "Configs/.config/quickshell/island/A.qml").write_text("Item {\n  // WARN old\n  // WARN later\n}\n")
         r = self.run_lint("--since")
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertIn("later", r.stdout)

@@ -7,7 +7,7 @@ import sys
 import tempfile
 import unittest
 
-TOOL = pathlib.Path(__file__).resolve().parents[2] / "Configs/.config/quickshell/scripts/validate_layouts.py"
+TOOL = pathlib.Path(__file__).resolve().parents[2] / "Configs/.config/quickshell/bar/scripts/validate_layouts.py"
 spec = importlib.util.spec_from_file_location("validate_layouts", TOOL)
 vl = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(vl)

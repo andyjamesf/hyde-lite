@@ -11,7 +11,7 @@ that worked.
 
 ```sh
 top -b -n1 | head -15                      # is `qs` the one at ~100 %?
-PID=$(pgrep -f 'qs -p .*morphing-island' | head -1)
+PID=$(pgrep -f 'qs -p .*/quickshell$' | head -1)   # the island; the bar UI runs as a plain `qs`
 ps -o pid,etime,time,rss,nlwp,args -p $PID # which shell, since when, how many threads (about 22 is normal)
 top -H -b -n1 -p $PID | head -14           # which thread: a render thread, or the main one
 ```
@@ -23,7 +23,7 @@ snapshot (threads sorted by CPU, children, open files, the most repeated log lin
 `~/qs-snap-*.txt`:
 
 ```sh
-nohup tools/qs-watch.sh ~/.config/morphing-island >/dev/null 2>&1 &
+nohup tools/qs-watch.sh >/dev/null 2>&1 &
 tail ~/qs-watch.log                        # one line per sample
 ```
 

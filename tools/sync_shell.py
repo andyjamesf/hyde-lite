@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Bring an installed shell up to date with this repository without running the installer.
+"""Bring the installed Quickshell configuration up to date with this repository without running the installer.
 
-    tools/sync_shell.py island                 show what would change (nothing is written)
-    tools/sync_shell.py island --diff          ... with the differences of the changed files
-    tools/sync_shell.py island --apply         back up the target, then copy new and changed files
-    tools/sync_shell.py bar --target DIR       another target (default: ~/.config/quickshell)
-    tools/sync_shell.py island --apply --quiet --keep 5    one summary line, and only the newest 5 backups stay
+    tools/sync_shell.py                 show what would change (nothing is written)
+    tools/sync_shell.py --diff          ... with the differences of the changed files
+    tools/sync_shell.py --apply         back up the target, then copy new and changed files
+    tools/sync_shell.py --target DIR    another target (default: ~/.config/quickshell)
+    tools/sync_shell.py --apply --quiet --keep 5    one summary line, and only the newest 5 backups stay
 
-`island` is Configs/.config/morphing-island, `bar` is Configs/.config/quickshell. The default target is where
-~/.config/<name> really points, so a link into a dotfiles repository is followed and the files change there.
+The source is Configs/.config/quickshell (shell.qml, island/, bar/). The default target is where ~/.config/quickshell
+really points, so a link into a dotfiles repository is followed and the files change there.
 
 It only ever adds and overwrites: a file that exists in the target but not here is left alone. Before the first
 write the whole target is copied to a backup folder (default ~/.local/state/hyde-lite/backups/), and its path
@@ -25,7 +25,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-SHELLS = {"island": "morphing-island", "bar": "quickshell"}
+NAME = "quickshell"
 SKIP_DIRS = {"__pycache__"}
 
 
@@ -80,24 +80,23 @@ def prune_backups(folder, name, keep):
     return doomed
 
 
-def default_target(name):
-    return Path(os.path.expanduser(f"~/.config/{name}"))
+def default_target():
+    return Path(os.path.expanduser(f"~/.config/{NAME}"))
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("shell", choices=sorted(SHELLS))
-    ap.add_argument("--target", help="folder to update (default: ~/.config/<shell>, links followed)")
+    ap.add_argument("--target", help=f"folder to update (default: ~/.config/{NAME}, links followed)")
     ap.add_argument("--apply", action="store_true", help="write the changes (after a backup)")
     ap.add_argument("--diff", action="store_true", help="show the differences of the changed files")
     ap.add_argument("--quiet", action="store_true", help="print one summary line instead of the file list")
-    ap.add_argument("--keep", type=int, metavar="N", help="after the backup, delete older backups of this shell beyond the newest N")
+    ap.add_argument("--keep", type=int, metavar="N", help="after the backup, delete older backups beyond the newest N")
     ap.add_argument("--backup-dir", help="where the backup goes (default under ~/.local/state/hyde-lite/backups)")
     args = ap.parse_args(argv)
 
-    name = SHELLS[args.shell]
+    name = NAME
     src = REPO / "Configs/.config" / name
-    given = Path(args.target) if args.target else default_target(name)
+    given = Path(args.target) if args.target else default_target()
     if not given.exists():
         print(f"sync_shell: {given} does not exist", file=sys.stderr)
         return 2

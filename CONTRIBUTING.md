@@ -22,7 +22,7 @@ applied to it as a patch, see [`LITE.md`](LITE.md), "Following upstream"), so:
 - put the reason in a comment next to the change;
 - add a row to `LITE.md` saying what changed and why.
 
-The two shells (`Configs/.config/morphing-island`, `Configs/.config/quickshell`), the colour pipeline and the
+The Quickshell configuration (`Configs/.config/quickshell`, with its two UIs), the colour pipeline and the
 installer wrapper are this project's own; change them freely.
 
 ## Running the checks
