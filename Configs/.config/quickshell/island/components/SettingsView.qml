@@ -25,7 +25,7 @@ FocusScope {
     readonly property real bodyWidth: implicitWidth - 2 * pad
 
     // Rows navigable by keyboard, in screen order.
-    readonly property var rows: [barRow, fontRow, themeRow, wallpaperRow, hoverRow, peaceRow, animationsRow, speedRow, clockRow, topRow, statusPillRow, nearClockRow, statusIconsRow, shortcutsRow, pillsRow, resetRow]
+    readonly property var rows: [barRow, fontRow, themeRow, wallpaperRow, hoverRow, peaceRow, animationsRow, speedRow, clockRow, topRow, statusPillRow, nearClockRow, statusIconsRow, shortcutsRow, pillsRow, updateRow, resetRow]
     property int current: 0
     // The ring only shows after using the keyboard.
     property bool keyNav: false
@@ -46,10 +46,12 @@ FocusScope {
     implicitHeight: Math.min(maxHeight, body.y + content.implicitHeight + pad)
 
     onOpenChanged: {
-        if (open)
+        if (open) {
             reset();
-        else
+            Updates.refreshHydeLite();
+        } else {
             Prefs.flush();
+        }
     }
     Component.onCompleted: if (open)
         reset()
@@ -480,6 +482,38 @@ FocusScope {
                 onEntered: root.current = 14
             }
 
+            SettingsSectionTitle {
+                text: "hyde-lite"
+            }
+
+            SettingsRow {
+                id: updateRow
+                width: parent.width
+                title: "Update hyde-lite"
+                subtitle: Updates.hydeLiteChecking ? "Checking…" : Updates.hydeLiteSummary
+                clickable: false
+                focused: root.keyNav && root.current === 15
+                onEntered: root.current = 15
+                onTriggered: Updates.updateHydeLite()
+
+                Row {
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 8
+
+                    CcTextButton {
+                        text: "Check"
+                        enabled: !Updates.hydeLiteChecking
+                        onClicked: Updates.refreshHydeLite()
+                    }
+
+                    CcTextButton {
+                        text: "Update"
+                        primary: Updates.hydeLiteState === "available" || Updates.hydeLiteState === "unfinished"
+                        onClicked: updateRow.triggered()
+                    }
+                }
+            }
+
             Item {
                 width: 1
                 height: 6
@@ -489,8 +523,8 @@ FocusScope {
                 id: resetRow
                 width: parent.width
                 clickable: false
-                focused: root.keyNav && root.current === 15
-                onEntered: root.current = 15
+                focused: root.keyNav && root.current === 16
+                onEntered: root.current = 16
                 onTriggered: root.resetDefaults()
 
                 CcTextButton {
