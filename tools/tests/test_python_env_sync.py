@@ -5,7 +5,10 @@ subprocess.run, run_uv and notify.send are replaced, so nothing is installed and
     python3 -I tools/tests/test_python_env_sync.py
 """
 import importlib.util
+import os
+import shutil
 import sys
+import tempfile
 import types
 import unittest
 from pathlib import Path
@@ -81,6 +84,44 @@ class Sync(unittest.TestCase):
             raise OSError("cannot run")
         self.env.subprocess.run = boom
         self.assertFalse(self.env.is_synced())
+
+
+class Create(unittest.TestCase):
+    """create_venv: a valid environment is not worth a notification; a broken one still is."""
+
+    def setUp(self):
+        self.env = load()
+        self.notes, self.uv_runs, self.destroyed = [], [], []
+        self.env.notify.send = lambda *a, **k: self.notes.append(a)
+        self.env.run_uv = lambda args, **k: self.uv_runs.append(args)
+        self.env.destroy_venv = lambda path: self.destroyed.append(path)
+        self.venv = Path(tempfile.mkdtemp()) / "python_env"
+        self.addCleanup(shutil.rmtree, self.venv.parent, ignore_errors=True)
+        self.env.get_venv_path = lambda: str(self.venv)
+
+    def make_valid_venv(self):
+        (self.venv / "bin").mkdir(parents=True)
+        python = self.venv / "bin/python"
+        python.write_text("#!/bin/sh\n")
+        os.chmod(python, 0o755)
+        (self.venv / "pyvenv.cfg").write_text(f"version = {sys.version_info.major}.{sys.version_info.minor}.0\n")
+
+    def test_a_valid_environment_is_left_alone_without_a_word(self):
+        self.make_valid_venv()
+        self.env.create_venv()
+        self.assertEqual((self.notes, self.uv_runs, self.destroyed), ([], [], []))
+
+    def test_a_broken_environment_is_announced_and_recreated(self):
+        (self.venv / "bin").mkdir(parents=True)                   # no python in it
+        self.env.create_venv()
+        self.assertEqual([n[1] for n in self.notes][0], "⚠️ Broken venv detected, recreating…")
+        self.assertEqual(self.destroyed, [str(self.venv)])
+        self.assertEqual(self.uv_runs, [["sync"]])
+
+    def test_no_environment_is_created_and_announced(self):
+        self.env.create_venv()
+        self.assertEqual(self.uv_runs, [["sync"]])
+        self.assertEqual([n[1] for n in self.notes], ["✅ Virtual environment ready"])
 
 
 if __name__ == "__main__":
