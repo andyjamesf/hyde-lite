@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+# The picture Hyprland draws as a background until a wallpaper daemon has started (and whenever none is
+# running) is one of three files its package ships, /usr/share/hypr/wall0.png .. wall2.png, and it looks
+# nowhere else (checked with strace). This points all three at your current wallpaper, so what you see in
+# those first moments is the wallpaper you chose.
+#
+#   sudo hypr-default-wallpaper install [IMAGE]   link the three files to IMAGE (default: HyDE's current
+#                                                 wallpaper, ~/.cache/hyde/wall.set, which HyDE re-points
+#                                                 on every change) and add a pacman hook that links them
+#                                                 again after each hyprland upgrade, which restores the
+#                                                 originals
+#   sudo hypr-default-wallpaper uninstall         put the originals back and remove the hook
+#   hypr-default-wallpaper status
+#
+# The originals are copied to /var/lib/hypr-default-wallpaper first. The hook is a plain `ln` command with
+# absolute paths, so root never runs a file in your home. A link whose target is missing makes Hyprland fall
+# back to a plain background, so install refuses one.
+# HDW_ROOT=DIR puts every path it writes under DIR and skips the root check (the tests use it).
+set -euo pipefail
+
+root=${HDW_ROOT:-}
+share=$root/usr/share/hypr
+hook=$root/etc/pacman.d/hooks/hypr-default-wallpaper.hook
+state=$root/var/lib/hypr-default-wallpaper
+walls=(wall0.png wall1.png wall2.png)
+
+die() { echo "hypr-default-wallpaper: $*" >&2; exit 1; }
+need_root() { [[ -n $root || $EUID -eq 0 ]] || die "run it with sudo: sudo hypr-default-wallpaper $1"; }
+# The one who ran sudo owns the wallpaper, not root.
+home_of() { getent passwd "${SUDO_USER:-$USER}" | cut -d: -f6; }
+
+case "${1:-status}" in
+install)
+    need_root install
+    image=${2:-$(home_of)/.cache/hyde/wall.set}
+    [[ $image == /* ]] || die "give an absolute path ($image)"
+    [[ -e $image ]] || die "$image does not exist: set a wallpaper first"
+    [[ $image != *[\'\"\ ]* ]] || die "no spaces or quotes in the path, the hook is a shell command ($image)"
+    [[ -d $share ]] || die "$share does not exist: is hyprland installed?"
+    mkdir -p "$state" "$(dirname "$hook")"
+    for w in "${walls[@]}"; do
+        # Only a real file is an original; a link is ours from an earlier run.
+        [[ -f $share/$w && ! -L $share/$w && ! -e $state/$w ]] && cp -p -- "$share/$w" "$state/$w"
+        ln -sf -- "$image" "$share/$w"
+    done
+    cmd=$(printf 'ln -sf %s %s' "$image" "$(printf '/usr/share/hypr/%s ' "${walls[@]}")")
+    cat >"$hook" <<HOOK
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = hyprland
+
+[Action]
+Description = Pointing Hyprland's default wallpapers at $image
+When = PostTransaction
+Exec = /usr/bin/sh -c '$cmd'
+HOOK
+    echo "linked ${walls[*]} -> $image; hook: ${hook#"$root"}"
+    ;;
+uninstall)
+    need_root uninstall
+    for w in "${walls[@]}"; do
+        if [[ -f $state/$w ]]; then
+            rm -f -- "$share/$w"
+            cp -p -- "$state/$w" "$share/$w"
+        elif [[ -L $share/$w ]]; then
+            echo "no backup of $w: reinstall the package to get it back (pacman -S hyprland)" >&2
+        fi
+    done
+    rm -f -- "$hook"
+    rm -rf -- "$state"
+    echo "originals restored, hook removed"
+    ;;
+status)
+    for w in "${walls[@]}"; do
+        if [[ -L $share/$w ]]; then
+            if [[ -e $share/$w ]]; then note="(file: $(basename -- "$(readlink -f -- "$share/$w")"))"; else note="(MISSING TARGET)"; fi
+            echo "$w -> $(readlink -- "$share/$w") $note"
+        elif [[ -f $share/$w ]]; then
+            echo "$w: the package's own picture"
+        else
+            echo "$w: missing"
+        fi
+    done
+    [[ -f $hook ]] && echo "pacman hook: installed" || echo "pacman hook: not installed"
+    ;;
+*) sed -n '2,/^set -euo/p' "$0" | sed '$d; s/^# \{0,1\}//'; exit 2 ;;
+esac
