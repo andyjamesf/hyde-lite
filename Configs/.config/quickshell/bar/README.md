@@ -13,7 +13,7 @@ documented in the repository's [`docs/`](../../../../docs/) folder (the bar layo
 | Path | Contents |
 |---|---|
 | `shell.qml` | entry point: per-screen windows and IPC targets |
-| `services/` | singletons with the logic (colors, audio, network, Bluetooth, notifications, launcher, keybindings, lock, rofi colors…) |
+| `services/` | singletons with the logic (colors, audio, network, Bluetooth, notifications, launcher, keybindings, lock…) |
 | `components/` | reusable visual pieces (buttons, sliders, cards, popouts, menus, tooltips) |
 | `modules/` | bar, control center, notifications, OSD, launcher, power menu, lock screen |
 | `pickers/` | the launcher's pickers, HyDE's rofi menus ported to the shell: windows, files, web, emoji, glyphs, bookmarks, games, HyDE themes, wallpapers, wallbash, animations, lock screen, workflows, shaders, layouts (`qs ipc call launcher pick <name>`; settings in `config.json` → `pickers`) |

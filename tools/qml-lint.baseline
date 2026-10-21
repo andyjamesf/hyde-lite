@@ -5,12 +5,11 @@
 # (tools/tests/test_qml_baseline.py checks the record). Rewriting the baseline keeps those lines.
 #
 # Format of a record: #! accepted DATE SHELL CATEGORY FROM->TO FILE[:LINE]: why it is inherent; how it could go
-#! accepted 2026-10-15 bar import 33->34 Configs/.config/quickshell/bar/services/BarWidgets.qml: a new singleton file; qmllint reports every singleton file as "not declared as singleton in qmldir"; it would go if BarWidgets were merged into BarLayout.qml (measured in CI run 38745431293 with --since 351dfb1f)
 #! accepted 2026-10-15 bar uncreatable-type 7->8 Configs/.config/quickshell/bar/modules/barbuilder/BarEditor.qml:15: the bar editor is a PanelWindow like every other window of the shell, and qmllint reports each one as "not creatable"; inherent to having the window (measured in CI run 38745431293)
 #! accepted 2026-10-15 bar unqualified 115->116 Configs/.config/quickshell/bar/Shell.qml:122: the bar editor's LazyLoader reads its own modelData inside the component, the pattern the other Loaders use and the baseline already counts; renaming the reads was tried (PR 54) and changed nothing (measured in CI run 38745431293)
-bar 34 import
-bar 8 incompatible-type
-bar 188 missing-property
+bar 32 import
+bar 5 incompatible-type
+bar 184 missing-property
 bar 2 property-override
 bar 8 uncreatable-type
 bar 116 unqualified

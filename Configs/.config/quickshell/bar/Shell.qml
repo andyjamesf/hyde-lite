@@ -18,9 +18,7 @@ import qs.bar.modules.avatar
 
 Scope {
     // Singletons are only created when something uses them; these must exist from startup
-    // (the swaync colors and the calendar events, which must be ready before it is opened).
-    readonly property var swaync: Swaync
-    readonly property var rofi: Rofi
+    // (the calendar events, which must be ready before it is opened).
     readonly property var agenda: Agenda
     readonly property var notifs: Notifs
 
