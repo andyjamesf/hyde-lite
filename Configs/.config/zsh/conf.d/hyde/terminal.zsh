@@ -22,7 +22,10 @@ function _load_functions() {
 }
 
 function _load_completions() {
-    for file in "${ZDOTDIR:-$HOME/.config/zsh}/completions/"*.zsh; do
+    # (N): nothing to load is not an error. This used to depend on completions/hydectl.zsh, which upstream's
+    # hydectl wrote and this repository's script does not, so an empty folder made every shell start print
+    # "Could not source terminal.zsh".
+    for file in "${ZDOTDIR:-$HOME/.config/zsh}/completions/"*.zsh(N); do
         [ -r "$file" ] && source "$file"
     done
 }
