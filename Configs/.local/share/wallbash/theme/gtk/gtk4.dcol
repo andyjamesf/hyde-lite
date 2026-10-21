@@ -7010,3 +7010,9 @@ indicatorbin.needs-attention > indicator {
 indicatorbin.needs-attention > indicator > label {
   color: <wallbash_txt4_rgba(0.87)>;
 }
+
+/* Colours from the wallpaper (matugen, ~/.config/matugen/config.toml, template gtk4): later @define-color
+ * wins over the Wallbash ramp above, whose selection colours can come out light on light. Written here and
+ * not only by matugen's post_hook because Wallbash rewrites this file on every colour change, and a line the
+ * hook appended once was lost with it. Missing wallpaper.css is skipped with a warning. */
+@import url("wallpaper.css");

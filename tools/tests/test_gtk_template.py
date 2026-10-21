@@ -39,5 +39,22 @@ class GtkTemplate(unittest.TestCase):
             self.assertIn(selector, self.text)
 
 
+class WallbashGtk4Template(unittest.TestCase):
+    """Wallbash rewrites gtk-4.0/gtk.css on every colour change from this template, so the import of matugen's
+    wallpaper.css has to be in it: matugen's post_hook appends the line only when matugen runs, and the next
+    rewrite dropped it (selected text light on a light background, measured with GTK 4.24 on 2026-10-21)."""
+    dcol = pathlib.Path(__file__).resolve().parents[2] / "Configs/.local/share/wallbash/theme/gtk/gtk4.dcol"
+
+    def test_it_ends_by_importing_the_matugen_file_after_the_wallbash_colours(self):
+        text = self.dcol.read_text()
+        imports = [m.start() for m in re.finditer(r'(?m)^@import url\("wallpaper\.css"\);$', text)]
+        self.assertEqual(len(imports), 1)
+        self.assertGreater(imports[0], text.rindex("@define-color"), "the import must come after every Wallbash colour")
+
+    def test_the_import_matches_what_the_matugen_hook_looks_for(self):
+        config = (pathlib.Path(__file__).resolve().parents[2] / "Configs/.config/matugen/config.toml").read_text()
+        self.assertIn("grep -qs wallpaper.css ~/.config/gtk-4.0/gtk.css", config)   # finds the line, appends nothing twice
+
+
 if __name__ == "__main__":
     unittest.main()
