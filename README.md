@@ -140,6 +140,12 @@ so an update whose installer failed half-way runs again next time even when git 
 
 By hand it is `git pull --ff-only` followed by `./install.sh --island --no-services` (or `--bar`).
 
+In the island, Settings has a "hyde-lite" row: it checks for news when the screen opens (`Check` does it again) and
+`Update` opens a terminal that runs `hyde-lite update --restart`, where `sudo` asks for your password. The
+installer's package step needs `sudo`, which the island's own password prompt (polkit) does not answer, so the
+password is typed in that terminal, which also shows the progress and any error. The terminal runs in its own unit,
+so the shell restart that ends the update does not close it.
+
 ## Using it
 
 A few keys to start with (`Super` is the main modifier; [`KEYBINDINGS.md`](KEYBINDINGS.md) has the rest,
