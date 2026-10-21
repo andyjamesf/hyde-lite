@@ -130,7 +130,7 @@ class Wiring(unittest.TestCase):
     def test_settings_shows_the_pills_editor(self):
         view = (MI / "components/SettingsView.qml").read_text()
         self.assertIn("PillsEditor {", view)
-        self.assertIn("pillsRow, resetRow]", view)
+        self.assertIn("pillsRow, updateRow, resetRow]", view)
 
     def test_pill_widget_choices_are_the_status_ones_plus_workspaces(self):
         screen = (MI / "config/SettingsScreen.qml").read_text()
