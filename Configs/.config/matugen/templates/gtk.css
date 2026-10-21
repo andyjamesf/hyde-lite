@@ -42,6 +42,16 @@
 @define-color destructive_bg_color {{colors.error.default.hex}};
 @define-color destructive_fg_color {{colors.on_error.default.hex}};
 
+/* --- selection ---
+ * Wallbash-Gtk draws selected items with literal colours (`.view:selected` is rgba(195,198,207,0.87) on
+ * #DFE2EB, a light text on a light background for some wallpapers), which the named colours above do not
+ * reach: Thunar's selected file name was unreadable. The pair is set here from matugen's primary and its
+ * on_primary, which are made to contrast. */
+.view:selected {
+  color: {{colors.on_primary.default.hex}};
+  background-color: {{colors.primary.default.hex}};
+}
+
 /* --- menus and popovers ---
  * Wallbash-Gtk draws these with literal colours from its accent ramp (a teal #00504D body with a cyan
  * #21BEB9 border on a teal wallpaper), which the named colours above do not reach, so they are set
@@ -63,6 +73,7 @@ menu menuitem:disabled, .menu menuitem:disabled, .context-menu menuitem:disabled
 }
 menu .view:selected, .menu .view:selected, .context-menu .view:selected {
   background-color: {{colors.primary_container.default.hex}};
+  color: {{colors.on_primary_container.default.hex}};
 }
 menu > arrow, .menu > arrow, .context-menu > arrow {
   background-color: {{colors.surface_container_high.default.hex}};
