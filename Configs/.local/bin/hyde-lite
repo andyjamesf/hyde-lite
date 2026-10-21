@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+# hyde-lite: keeps the installed system in step with the checkout it was installed from.
+#
+#   hyde-lite update             pull the checkout (fast-forward only), run the installer again for the shell you
+#                                use, and say what to reload
+#   hyde-lite update --check     only say whether there is something to install
+#   hyde-lite update --restart   also reload Hyprland and restart the shell when the update changed them
+#   hyde-lite where              the checkout it works on
+#
+# The checkout is the one install.sh ran from (recorded in ~/.local/state/hyde-lite/repo), else $HYDE_LITE_DIR,
+# else ~/hyde-lite. install.sh also records the commit it last installed completely (.../installed), so an
+# update whose installer failed half-way runs again the next time, even though git has nothing new.
+# It asks for your sudo password once (packages) and never touches your own files: the installer keeps
+# hyprland.lua, bar/config, island/config, prefs.json and your wallpapers, and saves what it replaces under
+# ~/.local/share/deez/backup/.
+set -euo pipefail
+
+state=${XDG_STATE_HOME:-$HOME/.local/state}/hyde-lite
+
+die() { echo "hyde-lite: $*" >&2; exit 1; }
+
+checkout() {
+    if [[ -n ${HYDE_LITE_DIR:-} ]]; then echo "$HYDE_LITE_DIR"
+    elif [[ -s $state/repo ]]; then cat "$state/repo"
+    else echo "$HOME/hyde-lite"; fi
+}
+
+# The shell in use: the island when its marker file exists, the bar otherwise (the same file island.lua reads).
+shell_in_use() {
+    [[ -e ${XDG_STATE_HOME:-$HOME/.local/state}/morphing-island/active ]] && echo island || echo bar
+}
+
+update() {
+    local check=0 restart=0 a
+    for a in "$@"; do
+        case $a in
+        --check) check=1 ;;
+        --restart) restart=1 ;;
+        *) die "unknown option '$a' (hyde-lite update [--check] [--restart])" ;;
+        esac
+    done
+
+    local dir branch head installed behind
+    dir=$(checkout)
+    [[ -d $dir/.git && -x $dir/install.sh ]] || die "no hyde-lite checkout at $dir (set HYDE_LITE_DIR)"
+    branch=$(git -C "$dir" rev-parse --abbrev-ref HEAD)
+    [[ $branch == main ]] || die "$dir is on '$branch', not main: git -C $dir switch main"
+    [[ -z $(git -C "$dir" status --porcelain) ]] || die "$dir has changes of its own; commit or stash them first"
+    git -C "$dir" fetch -q origin || die "cannot reach origin"
+    git -C "$dir" merge-base --is-ancestor HEAD origin/main \
+        || die "main has diverged from origin/main; look at it with: git -C $dir log --oneline --graph main origin/main"
+
+    behind=$(git -C "$dir" rev-list --count HEAD..origin/main)
+    if ((behind)); then
+        echo "$behind new commit(s) on origin/main:"
+        git -C "$dir" log --oneline --no-decorate -n 15 HEAD..origin/main | sed 's/^/  /'
+        ((behind > 15)) && echo "  ... and $((behind - 15)) more"
+    fi
+    head=$(git -C "$dir" rev-parse HEAD)
+    installed=$(cat "$state/installed" 2>/dev/null || true)
+    if ((check)); then
+        if ((behind)); then echo "run: hyde-lite update"
+        elif [[ $installed == "$head" ]]; then echo "hyde-lite is up to date ($(git -C "$dir" rev-parse --short HEAD))"
+        else echo "the checkout is current but the last install did not finish; run: hyde-lite update"; fi
+        return 0
+    fi
+    if ((!behind)) && [[ $installed == "$head" ]]; then
+        echo "hyde-lite is up to date ($(git -C "$dir" rev-parse --short HEAD))"
+        return 0
+    fi
+
+    # The installer deploys everything below; the pull hook would only do part of it a second time.
+    ((behind)) && HYDE_LITE_NO_SYNC=1 git -C "$dir" merge --ff-only -q origin/main
+    head=$(git -C "$dir" rev-parse HEAD)
+
+    local flag=--island changed=""
+    [[ $(shell_in_use) == bar ]] && flag=--bar
+    if [[ -n $installed ]] && git -C "$dir" cat-file -e "$installed^{commit}" 2>/dev/null; then
+        changed=$(git -C "$dir" diff --name-only "$installed" "$head")
+    fi
+    [[ -t 0 ]] && command -v sudo >/dev/null && sudo -v
+    echo
+    echo "== install.sh $flag --no-services (the shell you use now: $(shell_in_use))"
+    if ! (cd "$dir" && ./install.sh "$flag" --no-services </dev/null); then
+        die "the installer reported a problem (logs in ~/.local/state/hyde-lite-install). Nothing is rolled back; fix it and run hyde-lite update again"
+    fi
+    mkdir -p "$state"
+    echo "$head" >"$state/installed"
+
+    # What to load. Unknown (no earlier install recorded) means both.
+    local reload_hypr=0 reload_shell=0
+    if [[ -z $changed ]] || grep -q -E '^Configs/(\.config|\.local/share)/hypr/' <<<"$changed"; then reload_hypr=1; fi
+    if [[ -z $changed ]] || grep -q -E '^Configs/(\.config/quickshell/|\.local/bin/island$)' <<<"$changed"; then reload_shell=1; fi
+    local shell_cmd="qs ipc call shell reload"
+    [[ $(shell_in_use) == island ]] && shell_cmd="island off && island on"
+    echo
+    echo "hyde-lite updated to $(git -C "$dir" rev-parse --short HEAD)."
+    if ((!reload_hypr && !reload_shell)); then
+        echo "nothing to reload."
+    elif ((restart)); then
+        if ((reload_hypr)); then echo "reloading Hyprland"; hyprctl reload >/dev/null; fi
+        if ((reload_shell)); then echo "restarting the shell: $shell_cmd"; bash -c "$shell_cmd"; fi
+    else
+        if ((reload_hypr)); then echo "to load it: hyprctl reload"; fi
+        if ((reload_shell)); then echo "to restart the shell: $shell_cmd   (or run hyde-lite update --restart next time)"; fi
+    fi
+    return 0
+}
+
+main() {
+    case "${1:-}" in
+    update) shift; update "$@" ;;
+    where) checkout ;;
+    *) sed -n '2,/^set -euo/p' "$0" | sed '$d; s/^# \{0,1\}//'; [[ -z ${1:-} || ${1:-} == -h || ${1:-} == --help ]] || return 2 ;;
+    esac
+}
+# Everything is parsed before anything runs, and the script exits right after main: the installer replaces
+# this very file while it runs.
+main "$@"
+exit $?

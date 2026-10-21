@@ -1,0 +1,10 @@
+# `hyde-lite update`: pull this checkout and run the installer again. See the header of the script.
+[hyde-lite]
+description = "hyde-lite updater command"
+
+[[hyde-lite.files]]
+action = "sync"
+source_root = "Configs/.local/bin"
+target_root = "${HOME}/.local/bin"
+paths = ["hyde-lite"]
+post_command = "chmod +x ${HOME}/.local/bin/hyde-lite"

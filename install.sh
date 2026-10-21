@@ -276,6 +276,11 @@ if ((!dry)) && [[ -t 0 ]]; then
     fi
 fi
 
+# `hyde-lite update` works on this checkout and needs to know where it is, and which commit was last installed
+# completely (written below, only when every step passed).
+hl_state="${XDG_STATE_HOME:-$HOME/.local/state}/hyde-lite"
+((dry)) || { mkdir -p "$hl_state" && printf '%s\n' "$root" >"$hl_state/repo"; }
+
 # --- summary --------------------------------------------------------------------------------------
 say "Summary"
 failed=0
@@ -300,5 +305,6 @@ cause and run ./install.sh again: every step can be repeated.
 EOF
     exit 1
 fi
+((dry)) || git -C "$root" rev-parse HEAD >"$hl_state/installed" 2>/dev/null || true
 echo
 printf '%sDone.%s Log out and choose the Hyprland session in your login manager, or reboot.\n' "$c_ok" "$c_off"
