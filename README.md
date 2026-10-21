@@ -143,6 +143,9 @@ of HyDE's templates; the slow template rebuild runs in the background.
 Wallpapers of installed HyDE themes show up in that folder as links; `wallpaper-library --own` turns them into files of
 the folder (hard links, no extra space), so they stay if a theme is removed.
 
+The picture Hyprland shows before a wallpaper daemon has started is one of three files of its package; `sudo hypr-default-wallpaper
+install` points them at your current wallpaper (and re-does it after each `hyprland` upgrade), `uninstall` puts the originals back.
+
 ![Colour schemes](docs/images/colour-schemes.png)
 
 ### Build your own bar

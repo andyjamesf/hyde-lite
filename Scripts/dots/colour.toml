@@ -20,8 +20,8 @@ pacman = [
 action = "sync"
 source_root = "Configs/.local/bin"
 target_root = "${HOME}/.local/bin"
-paths = ["wallpaper-palette", "wallpaper-library", "wallbash-matugen", "matugen-icons"]
-post_command = "chmod +x ${HOME}/.local/bin/wallpaper-palette ${HOME}/.local/bin/wallpaper-library ${HOME}/.local/bin/wallbash-matugen ${HOME}/.local/bin/matugen-icons"
+paths = ["wallpaper-palette", "wallpaper-library", "wallbash-matugen", "matugen-icons", "hypr-default-wallpaper"]
+post_command = "chmod +x ${HOME}/.local/bin/wallpaper-palette ${HOME}/.local/bin/wallpaper-library ${HOME}/.local/bin/wallbash-matugen ${HOME}/.local/bin/matugen-icons ${HOME}/.local/bin/hypr-default-wallpaper"
 
 # matugen's config and the templates it writes (Hyprland borders, GTK, kitty).
 [[colour.files]]
