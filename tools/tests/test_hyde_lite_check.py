@@ -71,6 +71,12 @@ class KeyboardRows(unittest.TestCase):
     def test_the_screen_checks_for_hyde_lite_when_it_opens(self):
         self.assertIn("Updates.refreshHydeLite()", VIEW)
 
+    def test_the_system_updates_row_uses_the_existing_terminal_flow_and_stays_apart_from_the_hyde_lite_one(self):
+        self.assertIn("Updates.refresh()", VIEW)                      # counts are fresh when the screen opens
+        block = VIEW[VIEW.index("id: systemRow"):VIEW.index("id: resetRow")]
+        self.assertIn("onTriggered: Updates.open()", block)
+        self.assertNotIn("HydeLite", block)                           # a system upgrade never starts the hyde-lite one
+
 
 if __name__ == "__main__":
     unittest.main()

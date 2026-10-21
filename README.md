@@ -146,6 +146,12 @@ installer's package step needs `sudo`, which the island's own password prompt (p
 password is typed in that terminal, which also shows the progress and any error. The terminal runs in its own unit,
 so the shell restart that ends the update does not close it.
 
+Under it, a "System updates" row shows what pacman, the AUR and flatpak have waiting and opens HyDE's own update
+terminal, which lists them and asks before it updates. It is a separate button on purpose: a system upgrade can
+need a reboot and can break things, and starting it with the hyde-lite update would make it hard to tell which one
+did. Note that `install.sh`, and so `hyde-lite update`, still begins with `pacman -Syu --needed --noconfirm git
+base-devel`, which upgrades the pacman packages without showing the list.
+
 ## Using it
 
 A few keys to start with (`Super` is the main modifier; [`KEYBINDINGS.md`](KEYBINDINGS.md) has the rest,
