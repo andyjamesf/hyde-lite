@@ -38,6 +38,23 @@ class GtkTemplate(unittest.TestCase):
         for selector in ("menu, .menu, .context-menu {", "menu menuitem:hover", "popover.background list"):
             self.assertIn(selector, self.text)
 
+    def rule(self, selector):
+        m = re.search(re.escape(selector) + r"\s*\{(.*?)\n\}", self.text, re.S)
+        self.assertIsNotNone(m, selector)
+        return dict(re.findall(r"([a-z-]+):\s*\{\{colors\.([a-z_]+)\.default\.hex\}\}", m.group(1)))
+
+    def test_a_selected_item_gets_its_text_and_background_as_one_contrasting_pair(self):
+        # Wallbash-Gtk's `.view:selected` is a literal light-on-light pair for some wallpapers (Thunar's selected
+        # file name was unreadable); matugen's primary / on_primary are made to contrast, in light and dark.
+        self.assertEqual(self.rule("\n.view:selected"), {"color": "on_primary", "background-color": "primary"})
+        self.assertLess(self.text.index("\n.view:selected {"), self.text.index("menu .view:selected"),
+                        "the menu rule is more specific and must come after, so it can swap the pair")
+
+    def test_a_selected_menu_entry_swaps_both_halves_of_the_pair(self):
+        # The general rule above sets on_primary text: on the darker primary_container of a menu it needs its partner.
+        self.assertEqual(self.rule("menu .view:selected, .menu .view:selected, .context-menu .view:selected"),
+                         {"background-color": "primary_container", "color": "on_primary_container"})
+
 
 class WallbashGtk4Template(unittest.TestCase):
     """Wallbash rewrites gtk-4.0/gtk.css on every colour change from this template, so the import of matugen's
