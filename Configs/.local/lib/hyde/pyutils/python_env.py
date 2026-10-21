@@ -265,8 +265,34 @@ def rebuild_venv() -> None:
 # =========================
 
 
+def is_synced() -> bool:
+    """True when `uv sync` would change nothing (`uv sync --check` exits 0).
+
+    Not through run_uv(): a non-zero exit there is reported as a critical notification, and here it only means
+    "there is something to install".
+    """
+    try:
+        uv = get_uv()
+    except FileNotFoundError:
+        return False
+    venv_path = get_venv_path()
+    env = {**os.environ, "UV_PROJECT_ENVIRONMENT": venv_path, "VIRTUAL_ENV": venv_path}
+    cmd = [uv, "sync", "--check", "--project", get_project_dir(), "--active", "--link-mode", "copy"]
+    try:
+        return subprocess.run(cmd, env=env, capture_output=True).returncode == 0
+    except OSError:
+        return False
+
+
 def sync_packages() -> None:
-    """Installs dependencies from pyproject.toml using uv sync."""
+    """Installs dependencies from pyproject.toml using uv sync.
+
+    Says nothing when there is nothing to install, which is nearly always: this runs on every HyDE reload and
+    whenever hyde-shell starts a Python script, and each run used to show "Syncing dependencies..." and
+    "Dependencies are up to date" among the notifications. A real install still announces itself.
+    """
+    if is_synced():
+        return
     run_uv(["sync"], notify_msg="📦 Syncing dependencies...")
     notify.send("HyDE UV", "✅ Dependencies are up to date", replace_id=9)
 
