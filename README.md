@@ -116,6 +116,30 @@ session, or reboot.
 
 </details>
 
+### Updating
+
+`hyde-lite update` brings the installed system up to date with its checkout:
+
+```sh
+hyde-lite update              # pull (fast-forward only), run the installer again, say what to reload
+hyde-lite update --check      # only say whether there is something to install
+hyde-lite update --restart    # also reload Hyprland and restart the shell when the update changed them
+```
+
+It lists the new commits, pulls `main`, runs `./install.sh` for the shell you use now (`--island` or `--bar`,
+so the installer does not ask again) and reports what to load afterwards: `hyprctl reload` if the Hyprland
+configuration changed, and `island off && island on` (island) or `qs ipc call shell reload` (bar) if the
+shells changed. It asks for `sudo` once, for packages.
+
+It stops without changing anything when the checkout has changes of its own, is not on `main`, or has diverged
+from `origin/main`. The installer redeploys only the dots whose content changed and does not overwrite what is
+yours: your `hyprland.lua`, the settings in `bar/config` and `island/config`, `prefs.json` and your wallpapers.
+Before it replaces a file it saves the old one under `~/.local/share/deez/backup/`.
+`install.sh` records the checkout and the last commit it installed completely in `~/.local/state/hyde-lite/`,
+so an update whose installer failed half-way runs again next time even when git has nothing new.
+
+By hand it is `git pull --ff-only` followed by `./install.sh --island --no-services` (or `--bar`).
+
 ## Using it
 
 A few keys to start with (`Super` is the main modifier; [`KEYBINDINGS.md`](KEYBINDINGS.md) has the rest,

@@ -20,6 +20,7 @@
         "../dots/quickshell.toml", # bar, notifications, launcher, lockscreen (replaces waybar, dunst, wlogout)
         "../dots/morphing-island.toml",
         "../dots/colour.toml",
+        "../dots/hyde-lite.toml",
         "../dots/wallpapers.toml",
         "../dots/archives.toml",
     ]
