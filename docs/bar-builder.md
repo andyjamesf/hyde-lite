@@ -2,7 +2,7 @@
 
 Status: **proposal for the owner to review. No code is written until it is approved** (PLAN 3.1).
 
-Scope: the HyDE-style shell in `Configs/.config/quickshell/`. The Morphing Island is one pill that
+Scope: the HyDE-style bar in `Configs/.config/quickshell/bar/`. The Morphing Island is one pill that
 expands and has no layouts, so it is not touched here (open question 1).
 
 ## What exists today
@@ -100,7 +100,7 @@ each widget file, so there is one place to edit.
 
 ## Phases (PLAN 3.2 to 3.5) and what each one costs
 
-- 3.2 Validator in `tools/check.sh`: `Configs/.config/quickshell/scripts/validate_layouts.py` (standard library only; it lives in the shell so the shell can run it too), implementing the
+- 3.2 Validator in `tools/check.sh`: `Configs/.config/quickshell/bar/scripts/validate_layouts.py` (standard library only; it lives in the shell so the shell can run it too), implementing the
   rules above and reading the widget ids and pill styles from the QML, so there is no JSON Schema file to keep in
   step with it (decision 3: a helper script). No QML. Every shipped layout must pass. Done.
 - 3.3 Live reload: the shipped file was already watched. This step adds the owner's file

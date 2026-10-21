@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Switches between HyDE's Quickshell shell (~/.config/quickshell) and the Morphing Island
-# (~/.config/morphing-island). Only one can be active: both want to be the notification
-# server, and the island is also the polkit agent.
+# Switches the Quickshell configuration (~/.config/quickshell) between its two UIs: the HyDE-style bar
+# and the Morphing Island. Only one can be active: both want to be the notification server, and the
+# island is also the polkit agent. shell.qml picks the UI at start from the `active` file below, so a
+# switch writes (or removes) that file and starts the process again.
 #
 #   island on | off | toggle | status
 #   island ipc <function> [args]   e.g. island ipc open launcher
@@ -14,7 +15,7 @@
 #                                  sync-once updates its colours and wallpaper once (bar shell, at login)
 set -euo pipefail
 
-cfg="$HOME/.config/morphing-island"
+cfg="$HOME/.config/quickshell"
 state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/morphing-island"
 active="$state_dir/active"
 desk="${XDG_SESSION_DESKTOP:-Hyprland}"
@@ -102,6 +103,6 @@ case "${1:-status}" in
         if [[ ${2:-} == sync-once ]]; then
             ISLAND_LOCK_ENTRY=fade exec qs -p "$cfg/sync.qml"
         fi
-        shift; exec python3 "$cfg/scripts/sddm.py" "${1:-test}" ;;
+        shift; exec python3 "$cfg/island/scripts/sddm.py" "${1:-test}" ;;
     *) sed -n '2,13p' "$0"; exit 1 ;;
 esac

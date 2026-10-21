@@ -7,7 +7,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-MI = Path(__file__).resolve().parents[2] / "Configs/.config/morphing-island"
+MI = Path(__file__).resolve().parents[2] / "Configs/.config/quickshell/island"
 PILLS = (MI / "config/PillsConfig.qml").read_text()
 SCHEMA = (MI / "config/PrefsSchema.qml").read_text()
 WINDOW = (MI / "core/IslandWindow.qml").read_text()

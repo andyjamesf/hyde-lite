@@ -6,7 +6,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-MI = Path(__file__).resolve().parents[2] / "Configs/.config/morphing-island"
+MI = Path(__file__).resolve().parents[2] / "Configs/.config/quickshell/island"
 ACTIONS = (MI / "core/IslandController.qml").read_text()
 SHORTCUTS = (MI / "services/Shortcuts.qml").read_text()
 

@@ -9,7 +9,7 @@ tree on 2026-10-15 (`wc`, `grep`); the shells were not run for it. Upstream HyDE
 Neither shell is object-oriented in the textbook sense, and neither is classic MVC. Both are **QML singletons
 in layers**, close to MVVM: services hold state and logic, components draw it.
 
-| Layer | Morphing Island (`Configs/.config/morphing-island`) | Bar shell (`Configs/.config/quickshell`) |
+| Layer | Morphing Island (`Configs/.config/quickshell/island`) | Bar (`Configs/.config/quickshell/bar`) |
 |---|---|---|
 | Constants | `config/`: 30 singletons, each property documented | none; `config.json` and `services/Config.qml` |
 | State and logic | `services/`: 60 singletons (20 are `Pick*` pickers) | `services/`: 30; `pickers/` mixes logic and views |
@@ -34,7 +34,7 @@ Keybinds, Lock, Media, Network, NightLight, PamText, Prefs, SysInfo). Apart from
 
 ## Where the layers leak
 
-1. **Config reads services.** `morphing-island/config/*.qml` such as `Pill`, `Clock` and `StatusPillConfig`
+1. **Config reads services.** `island/config/*.qml` such as `Pill`, `Clock` and `StatusPillConfig`
    call `Prefs.get(...)`, so the constants layer depends on the state layer. It is a deliberate shortcut: one
    place per setting, live from `prefs.json`. A pref must have an entry in `config/PrefsSchema.qml`
    (`tools/tests/test_prefs_schema.py` checks it).

@@ -140,7 +140,7 @@ class Watch(unittest.TestCase):
     def test_the_default_config_is_not_a_personal_path(self):
         text = SCRIPT.read_text()
         self.assertNotIn("/home/", text)
-        self.assertIn("${XDG_CONFIG_HOME:-$HOME/.config}/morphing-island", text)
+        self.assertIn("${XDG_CONFIG_HOME:-$HOME/.config}/quickshell", text)
 
 
 if __name__ == "__main__":

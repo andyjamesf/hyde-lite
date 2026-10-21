@@ -20,7 +20,7 @@ import tempfile
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-ISLAND = ROOT / "Configs/.config/morphing-island"
+ISLAND = ROOT / "Configs/.config/quickshell/island"
 CONTROLLER = ISLAND / "core/IslandController.qml"
 AUDIO = ISLAND / "services/Audio.qml"
 OSD_CONFIG = ISLAND / "config/OsdConfig.qml"

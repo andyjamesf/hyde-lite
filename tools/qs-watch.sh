@@ -6,7 +6,8 @@
 #
 #   tools/qs-watch.sh [CONFIG_DIR] [options]
 #
-#   CONFIG_DIR        the shell to watch, as given to `qs -p` (default ~/.config/morphing-island)
+#   CONFIG_DIR        the configuration to watch, as given to `qs -p` (default ~/.config/quickshell); a plain
+#                     `qs` with no -p counts as the default one
 #   --threshold N     CPU percent of one core that counts as busy (default 60)
 #   --hits N          how many busy samples in a row make a runaway (default 2)
 #   --interval S      seconds between samples (default 15)
@@ -20,7 +21,7 @@
 # DIR/qs-watch.log. Exit 1: gave up after --max-loops without seeing one. Exit 2: bad usage.
 set -u
 
-cfg=${XDG_CONFIG_HOME:-$HOME/.config}/morphing-island
+cfg=${XDG_CONFIG_HOME:-$HOME/.config}/quickshell
 threshold=60 hits=2 interval=15 window=5 out=$HOME maxloops=0
 
 usage() { sed -n '2,/^set -u/p' "${BASH_SOURCE[0]}" | sed '$d; s/^# \{0,1\}//'; }
@@ -50,7 +51,13 @@ tck=$(getconf CLK_TCK)
 # parentheses, so everything up to the last ") " is dropped first.
 ticks() { awk '{ sub(/^.*\) /, ""); print $12 + $13 }' "/proc/$1/stat" 2>/dev/null; }
 
-find_pid() { pgrep -f -- "qs -p $cfg" | head -n 1; }
+# The island runs as `qs -p CONFIG`; the bar UI as a plain `qs` (the default configuration).
+find_pid() {
+    local pid
+    pid=$(pgrep -f -- "qs -p $cfg( |\$)" | head -n 1)
+    [[ -n $pid ]] || pid=$(pgrep -x -f -- qs | head -n 1)
+    echo "$pid"
+}
 
 snapshot() {
     local pid=$1 f

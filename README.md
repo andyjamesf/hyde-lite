@@ -72,9 +72,9 @@ pipeline, installed with one command.
 
 <!-- ![Login screen](docs/images/login.png) -->
 
-Both shells are written in QML on [Quickshell](https://quickshell.org). They live in this repository:
-the island in `Configs/.config/morphing-island`, the bar shell in `Configs/.config/quickshell`. Only one
-runs at a time.
+Both UIs are written in QML on [Quickshell](https://quickshell.org) and are one configuration,
+`Configs/.config/quickshell`: the island in `island/`, the bar in `bar/`, and `shell.qml` loads the one that is
+active. Only one runs at a time.
 
 ## Requirements
 
@@ -147,7 +147,7 @@ the folder (hard links, no extra space), so they stay if a theme is removed.
 
 ### Build your own bar
 
-With the bar shell, a bar is data: zones (left, centre, right) of pills, each pill a list of widgets.
+With the bar UI, a bar is data: zones (left, centre, right) of pills, each pill a list of widgets.
 Open the editor with `qs ipc call bar edit`, or write `~/.config/quickshell/layouts.json` by hand; the
 file is validated and reloaded while the shell runs. See [`docs/bar-builder.md`](docs/bar-builder.md).
 

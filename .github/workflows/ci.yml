@@ -33,7 +33,7 @@ jobs:
         run: shellcheck -S warning install.sh tools/*.sh Configs/.local/bin/island Configs/.local/bin/wallpaper-library
       - name: ruff (bugs only)
         run: |
-          mapfile -t files < <(git ls-files 'tools/*.py' 'Configs/.config/morphing-island/scripts/*.py' 'Configs/.config/quickshell/scripts/*.py')
+          mapfile -t files < <(git ls-files 'tools/*.py' 'Configs/.config/quickshell/*/scripts/*.py')
           ruff check --isolated --select F,E9,B,PLE "${files[@]}" Configs/.local/bin/wallpaper-palette Configs/.local/bin/wallbash-matugen
       - name: luacheck
         run: luacheck --no-color Configs/.config/hypr/hyprland.lua Configs/.config/hypr/island.lua Configs/.config/hypr/lua

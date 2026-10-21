@@ -7,7 +7,7 @@ where something could not be checked it says so.
 
 ## Original to hyde-lite
 
-- The Morphing Island and the bar shell (`Configs/.config/morphing-island`, `Configs/.config/quickshell`), the
+- The Quickshell configuration with the Morphing Island and the bar (`Configs/.config/quickshell`), the
   colour pipeline (`Configs/.local/bin/wallpaper-palette`, `wallbash-matugen`, `wallpaper-library`,
   `Configs/.config/matugen`), the installer wrapper (`install.sh`), `tools/` and the documentation: GPL-3.0.
 - `Wallpapers/`, the README logo (`docs/images/logo.gif`) and the Island banner (`docs/images/banner.gif`), generated

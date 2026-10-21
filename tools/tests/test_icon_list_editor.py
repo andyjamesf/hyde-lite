@@ -6,7 +6,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-MI = Path(__file__).resolve().parents[2] / "Configs/.config/morphing-island"
+MI = Path(__file__).resolve().parents[2] / "Configs/.config/quickshell/island"
 EDITOR = (MI / "components/IconListEditor.qml").read_text()
 SCREEN = (MI / "config/SettingsScreen.qml").read_text()
 ZONE = (MI / "components/StatusZone.qml").read_text()

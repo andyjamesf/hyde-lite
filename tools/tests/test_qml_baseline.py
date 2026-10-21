@@ -44,7 +44,7 @@ class Baseline(unittest.TestCase):
         self.assertEqual(bad, [])
         self.assertTrue(counts)
         self.assertEqual({c for _, c in counts} & ZERO, set(), "a category that must stay at zero is in the baseline")
-        self.assertEqual({s for s, _ in counts}, {"quickshell", "morphing-island"})
+        self.assertEqual({s for s, _ in counts}, {"bar", "island"})
 
     def test_every_accepted_increase_matches_the_numbers(self):
         counts, records, _ = read()

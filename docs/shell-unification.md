@@ -1,6 +1,6 @@
 # One Quickshell configuration instead of two
 
-Status: plan, 2026-10-20. Nothing here is built yet. Numbers are from `git ls-files`, `wc`, `difflib` and a comparison
+Status: step 1 built (see "Step 1, as built"); steps 2 to 5 are still plan. Numbers are from `git ls-files`, `wc`, `difflib` and a comparison
 of declared properties, functions and signals, on `origin/main` (`19625ee2`).
 
 ## Why
@@ -58,6 +58,25 @@ quickshell/
 5. **Then look at the bar again.** With the services and pickers shared, what is left of `bar/` is its own UI
    (about the size of the island's `core/` plus `components/`). If it still cannot reuse the island's widgets,
    the waybar-style bar leaves this repository and becomes an optional install from its own repository.
+
+## Step 1, as built
+
+Where it differs from the order above, and why:
+
+- `lock.qml` and `sync.qml` are at the root, not in `island/`. `qs -p <file>` takes the file's folder as the
+  configuration root, so for `qs.island.*` to resolve they have to sit above `island/`.
+- Quickshell finds `qs.<dir>` modules by following imports from the root file, and a file loaded by URL is not
+  followed (measured on Quickshell 0.3.2: `import qs.island.services` inside a Loader's file is "not installed"
+  unless the root file imports the module too). So `shell.qml` imports `qs.island` and `qs.bar` and loads
+  `island/Shell.qml` or `bar/Shell.qml` by URL. Measured in the same test: a syntax error in the UI that is not
+  loaded does not stop the other one, so only the active UI is compiled.
+- The UI is chosen at start from the existing `~/.local/state/morphing-island/active` (present: island), not from a
+  new `~/.local/state/quickshell/ui`. `island.lua`, `island` and `install.sh` already read that file; moving the
+  state folder belongs with step 4, which moves the rest of the state.
+- `island on|off` still start the process again (the `morphing-island.service` unit and HyDE's `qsbar` unit
+  both run `qs`) instead of swapping the Loader's source inside one process. A singleton lives as long as the
+  engine, and the island and the bar each create a notification server, so a UI swapped in place would leave the
+  old one's singletons running. Collapsing the two units into one is a later cleanup.
 
 ## What this does not decide
 

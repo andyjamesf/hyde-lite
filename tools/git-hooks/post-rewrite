@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Runs after `git pull` (post-merge) and after a pull that rebases (post-rewrite, same script): brings the
-# installed island, and the bar shell if it is installed, up to date with this checkout using tools/sync_shell.py.
+# installed Quickshell configuration up to date with this checkout using tools/sync_shell.py.
 # Turn it on once with `bash tools/install_hooks.sh`; turn it off with HYDE_LITE_NO_SYNC=1 for one pull, or
 # `git config --unset core.hooksPath` for good.
 #
 # It never fails the pull: whatever goes wrong here is printed and the exit status stays 0. It only does
-# anything when files under Configs/.config/<shell> changed in what was just pulled.
-# HYDE_LITE_ISLAND_TARGET / HYDE_LITE_BAR_TARGET override the folders to update (the tests use them).
+# anything when files under Configs/.config/quickshell changed in what was just pulled.
+# HYDE_LITE_SHELL_TARGET overrides the folder to update (the tests use it).
 set -u
 hook=$(basename "$0")
 root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
@@ -21,18 +21,13 @@ command -v python3 >/dev/null || { echo "hyde-lite: python3 not found, installed
 range="ORIG_HEAD..HEAD"
 git rev-parse --verify -q ORIG_HEAD >/dev/null || exit 0
 
-sync_one() { # name  folder-in-repo  default-target  target-override
-    local name=$1 dir=$2 default=$3 override=${4:-}
-    git diff --quiet "$range" -- "$dir" 2>/dev/null && return 0
-    local target=${override:-$default}
-    [ -e "$target" ] || return 0
-    python3 -I tools/sync_shell.py "$name" --target "$target" --apply --quiet --keep 5 \
-        || echo "hyde-lite: updating the $name shell failed (the pull itself is fine); run: python3 tools/sync_shell.py $name" >&2
-    updated=1
-}
-
-updated=0
-sync_one island Configs/.config/morphing-island "$HOME/.config/morphing-island" "${HYDE_LITE_ISLAND_TARGET:-}"
-sync_one bar Configs/.config/quickshell "$HOME/.config/quickshell" "${HYDE_LITE_BAR_TARGET:-}"
-[ "$updated" = 1 ] && echo "hyde-lite: restart the shell to load it (island off && island on). Your settings and wallpapers were not touched."
+dir=Configs/.config/quickshell
+git diff --quiet "$range" -- "$dir" 2>/dev/null && exit 0
+target=${HYDE_LITE_SHELL_TARGET:-$HOME/.config/quickshell}
+[ -e "$target" ] || exit 0
+if python3 -I tools/sync_shell.py --target "$target" --apply --quiet --keep 5; then
+    echo "hyde-lite: restart the shell to load it (island off && island on). Your settings and wallpapers were not touched."
+else
+    echo "hyde-lite: updating the shell failed (the pull itself is fine); run: python3 tools/sync_shell.py" >&2
+fi
 exit 0

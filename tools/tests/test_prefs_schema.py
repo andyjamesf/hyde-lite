@@ -6,7 +6,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-SCHEMA = Path(__file__).resolve().parents[2] / "Configs/.config/morphing-island/config/PrefsSchema.qml"
+SCHEMA = Path(__file__).resolve().parents[2] / "Configs/.config/quickshell/island/config/PrefsSchema.qml"
 
 
 def faults(cases):

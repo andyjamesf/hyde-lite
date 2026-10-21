@@ -17,8 +17,8 @@ from datetime import UTC, date, datetime, timedelta
 from unittest import mock
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-ISLAND = REPO / "Configs/.config/morphing-island/scripts/ical_events.py"
-BAR = REPO / "Configs/.config/quickshell/scripts/ical_events.py"
+ISLAND = REPO / "Configs/.config/quickshell/island/scripts/ical_events.py"
+BAR = REPO / "Configs/.config/quickshell/bar/scripts/ical_events.py"
 
 
 def load(path=ISLAND):

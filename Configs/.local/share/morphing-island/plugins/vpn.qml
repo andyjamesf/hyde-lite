@@ -1,10 +1,10 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import qs.components
-import qs.config
-import qs.services
-import qs.theme
+import qs.island.components
+import qs.island.config
+import qs.island.services
+import qs.island.theme
 
 // VPN: state and switch, for the VPN and WireGuard connections NetworkManager knows about.
 //
