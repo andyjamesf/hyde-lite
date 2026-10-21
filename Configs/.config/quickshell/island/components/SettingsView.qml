@@ -25,7 +25,7 @@ FocusScope {
     readonly property real bodyWidth: implicitWidth - 2 * pad
 
     // Rows navigable by keyboard, in screen order.
-    readonly property var rows: [barRow, fontRow, themeRow, wallpaperRow, hoverRow, peaceRow, animationsRow, speedRow, clockRow, topRow, statusPillRow, nearClockRow, statusIconsRow, shortcutsRow, pillsRow, updateRow, resetRow]
+    readonly property var rows: [barRow, fontRow, themeRow, wallpaperRow, hoverRow, peaceRow, animationsRow, speedRow, clockRow, topRow, statusPillRow, nearClockRow, statusIconsRow, shortcutsRow, pillsRow, updateRow, systemRow, resetRow]
     property int current: 0
     // The ring only shows after using the keyboard.
     property bool keyNav: false
@@ -49,6 +49,7 @@ FocusScope {
         if (open) {
             reset();
             Updates.refreshHydeLite();
+            Updates.refresh();
         } else {
             Prefs.flush();
         }
@@ -514,6 +515,37 @@ FocusScope {
                 }
             }
 
+            // The system's own updates (pacman, AUR, flatpak), kept apart from the hyde-lite one on purpose: a
+            // terminal lists what is waiting and asks before it updates (HyDE's system.update.py, as the Updates icon).
+            SettingsRow {
+                id: systemRow
+                width: parent.width
+                title: "System updates"
+                subtitle: Updates.checking ? "Checking…" : Updates.count > 0 ? Updates.summary : "Up to date"
+                clickable: false
+                focused: root.keyNav && root.current === 16
+                onEntered: root.current = 16
+                onTriggered: Updates.open()
+
+                Row {
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 8
+
+                    CcTextButton {
+                        text: "Check"
+                        enabled: !Updates.checking
+                        onClicked: Updates.refresh()
+                    }
+
+                    CcTextButton {
+                        text: "Update"
+                        primary: Updates.count > 0
+                        enabled: !Updates.updating
+                        onClicked: systemRow.triggered()
+                    }
+                }
+            }
+
             Item {
                 width: 1
                 height: 6
@@ -523,8 +555,8 @@ FocusScope {
                 id: resetRow
                 width: parent.width
                 clickable: false
-                focused: root.keyNav && root.current === 16
-                onEntered: root.current = 16
+                focused: root.keyNav && root.current === 17
+                onEntered: root.current = 17
                 onTriggered: root.resetDefaults()
 
                 CcTextButton {
