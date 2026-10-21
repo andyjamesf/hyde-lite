@@ -4,6 +4,8 @@
 # matugen colours whichever one is set (see wallpaper-palette).
 #
 #   wallpaper-library          link every theme wallpaper into ~/Pictures/Wallpapers
+#   wallpaper-library --own    turn those links into files of the folder (hard links: the same data, no extra
+#                              space), so the wallpapers stay when a theme is removed. Run it before deleting themes
 #   wallpaper-library --clean  remove the links this script made (files of yours are never touched)
 #   wallpaper-library next | prev | random
 #                              set the next, previous or a random wallpaper of the folder. Same
@@ -46,14 +48,33 @@ cycle() {
 
 case "${1:-}" in
     next | prev | random) cycle "$1"; exit 0 ;;
-    "" | --clean) ;;
-    *) sed -n '2,16p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
+    "" | --clean | --own) ;;
+    *) sed -n '2,18p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
 esac
 
 # Only links into the themes folder count as ours.
 ours() { [[ -L "$1" && "$(readlink "$1")" == "$themes"/* ]]; }
 
+# --own: replace each of our links whose file exists by a hard link to that file (a copy when the folder is on
+# another filesystem). The new name is made beside the old one and moved over it, so a wallpaper is never missing
+# half-way; a broken link is left as it is and counted.
+own() {
+    local l target tmp owned=0 broken=0 copied=0
+    rm -f -- "$dest"/.own.*   # left by an interrupted run
+    for l in "$dest"/*; do
+        ours "$l" || continue
+        target=$(readlink -f -- "$l")
+        [[ -f "$target" ]] || { broken=$((broken + 1)); continue; }
+        tmp=$(mktemp -u -- "$dest/.own.XXXXXX")
+        if ln -- "$target" "$tmp" 2>/dev/null; then :; else cp -- "$target" "$tmp"; copied=$((copied + 1)); fi
+        mv -T -- "$tmp" "$l"
+        owned=$((owned + 1))
+    done
+    echo "$owned links in $dest are now files ($copied copied, $((owned - copied)) hard-linked), $broken broken left as they are"
+}
+
 mkdir -p "$dest"
+[[ "${1:-}" == "--own" ]] && { own; exit 0; }
 for l in "$dest"/*; do
     [[ -e "$l" || -L "$l" ]] || continue
     if ours "$l" && { [[ "${1:-}" == "--clean" ]] || [[ ! -e "$l" ]]; }; then rm -- "$l"; fi
@@ -70,4 +91,4 @@ while IFS= read -r -d '' f; do
 done < <(find "$themes" -mindepth 3 -maxdepth 3 -path '*/wallpapers/*' -type f \
     \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.gif' -o -iname '*.webp' \) -print0 | sort -z)
 
-echo "$added new, $(find "$dest" -maxdepth 1 -type l | wc -l) wallpapers in $dest"
+echo "$added new, $(list_walls | tr -cd '\0' | wc -c) wallpapers in $dest"

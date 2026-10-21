@@ -140,6 +140,9 @@ and `Super+\` lists them on screen):
 [`Wallpapers/SOURCES.md`](Wallpapers/SOURCES.md)). One change recolours the shell, the terminal, GTK and the rest
 of HyDE's templates; the slow template rebuild runs in the background.
 
+Wallpapers of installed HyDE themes show up in that folder as links; `wallpaper-library --own` turns them into files of
+the folder (hard links, no extra space), so they stay if a theme is removed.
+
 ![Colour schemes](docs/images/colour-schemes.png)
 
 ### Build your own bar
