@@ -100,6 +100,10 @@ local shell = {
 	-- Bar layouts only exist in the HyDE shell.
 	{ keys = "$mod + ALT + Up", island = nil, hyde = "qs ipc call bar next", desc = "[Theming and Wallpaper] next bar layout" },
 	{ keys = "$mod + ALT + Down", island = nil, hyde = "qs ipc call bar prev", desc = "[Theming and Wallpaper] previous bar layout" },
+	-- The minimal bar: a slimmer bar that stands in for the normal one and reserves no screen
+	-- space (~/.config/quickshell/bar/modules/minibar/model/MiniBarConfig.qml). The shell
+	-- remembers the choice, so this key is only needed to change it. HyDE shell only.
+	{ keys = "$mod + SHIFT + B", island = nil, hyde = "qs ipc call minibar toggle", desc = "[Theming and Wallpaper] minimal bar or the normal one" },
 
 	-- Screenshots: the island shows the capture with Copy, Save, Edit and Delete (HyDE's shell: HyDE's
 	-- script, which opens satty). OCR ($mod+CTRL+S) stays HyDE's.

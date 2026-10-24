@@ -5,15 +5,20 @@
 # (tools/tests/test_qml_baseline.py checks the record). Rewriting the baseline keeps those lines.
 #
 # Format of a record: #! accepted DATE SHELL CATEGORY FROM->TO FILE[:LINE]: why it is inherent; how it could go
-#! accepted 2026-10-15 bar uncreatable-type 7->8 Configs/.config/quickshell/bar/modules/barbuilder/BarEditor.qml:15: the bar editor is a PanelWindow like every other window of the shell, and qmllint reports each one as "not creatable"; inherent to having the window (measured in CI run 38745431293)
-#! accepted 2026-10-15 bar unqualified 115->116 Configs/.config/quickshell/bar/Shell.qml:122: the bar editor's LazyLoader reads its own modelData inside the component, the pattern the other Loaders use and the baseline already counts; renaming the reads was tried (PR 54) and changed nothing (measured in CI run 38745431293)
-bar 32 import
+#! accepted 2026-10-24 bar uncreatable-type 7->9 Configs/.config/quickshell/bar/modules/minibar/view/MiniBar.qml:16: one per window of this shell, which qmllint reports as "not creatable" because Quickshell supplies the backend at runtime; 7->8 was the bar editor (CI run 38745431293) and 8->9 is the minimal bar's window; inherent to having the window, and it goes only by not having one (measured locally, tools/qml-lint.sh --since, 2026-10-24)
+
+#! accepted 2026-10-24 bar unqualified 115->118 Configs/.config/quickshell/bar/modules/minibar/view/MiniBarWindows.qml:18: a LazyLoader or Repeater reading its own modelData inside the component, the pattern every other Loader of this shell uses and the baseline already counts; 115->116 was the bar editor (renaming the reads was tried in PR 54 and changed nothing, CI run 38745431293), 116->118 the minimal bar's per-screen loader and its module Repeater; it goes with pragma ComponentBehavior: Bound across the shell, not file by file (measured locally, tools/qml-lint.sh --since, 2026-10-24)
+#! accepted 2026-10-24 bar import 32->35 Configs/.config/quickshell/bar/modules/minibar/model/MiniBarConfig.qml: one per singleton the shell adds, here the minimal bar's three (config, state, controller): qmllint wants each `pragma Singleton` type declared in a qmldir, and Quickshell has no qmldir because it maps qs.<dir> at runtime; the same line is already counted for every other singleton of both shells, Prefs included, and it goes only if Quickshell starts shipping qmldir files (measured locally, tools/qml-lint.sh --since, 2026-10-24)
+#! accepted 2026-10-24 bar missing-property 184->187 Configs/.config/quickshell/bar/modules/minibar/model/MiniBarState.qml:19: reads of a singleton's own properties that the throwaway lint tree cannot type (MiniBarConfig.enabled/hideMainBar, and one more Theme.alpha call in BarLayout), the same report the baseline already carries for every Prefs.<property> read; the properties exist and resolve at runtime, so this goes with the qmldir line above (measured locally, tools/qml-lint.sh --since, 2026-10-24)
+#! accepted 2026-10-24 bar unresolved-type 6->7 Configs/.config/quickshell/bar/modules/minibar/model/MiniBarState.qml:38: the JsonAdapter inside a FileView comes out as the incomplete type "FileViewAdapter", exactly as services/Prefs.qml:41 already does in this baseline; the minimal bar keeps its own state file instead of a field in Prefs, so it pays the same line once (measured locally, tools/qml-lint.sh --since, 2026-10-24)
+
+bar 35 import
 bar 5 incompatible-type
-bar 184 missing-property
+bar 187 missing-property
 bar 2 property-override
-bar 8 uncreatable-type
-bar 116 unqualified
-bar 6 unresolved-type
+bar 9 uncreatable-type
+bar 118 unqualified
+bar 7 unresolved-type
 island 68 import
 island 4 incompatible-type
 island 1 key
