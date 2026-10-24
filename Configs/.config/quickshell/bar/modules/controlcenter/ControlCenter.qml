@@ -82,8 +82,18 @@ PanelWindow {
 
         width: parent.width
         height: parent.height
-        x: panel.slide * (panel.width + Theme.space3)
-        opacity: 1 - panel.slide * 0.6
+        // It comes in from the right for the normal bar, whose buttons are in that corner.
+        // Centred instead (BarLayout.centerPanels), it grows out of a point at the top middle,
+        // under the clock, which is the part of the bar it belongs to: sliding in sideways from
+        // a corner that has no button in it read as coming from nowhere.
+        x: BarLayout.centerPanels ? 0 : panel.slide * (panel.width + Theme.space3)
+        opacity: 1 - panel.slide * (BarLayout.centerPanels ? 1 : 0.6)
+        transform: Scale {
+            origin.x: bg.width / 2
+            origin.y: 0
+            xScale: BarLayout.centerPanels ? 1 - panel.slide * 0.35 : 1
+            yScale: xScale
+        }
         radius: Theme.shapeXL
         color: Theme.alpha(Theme.surfaceContainer, 0.96)
         border.width: 1
