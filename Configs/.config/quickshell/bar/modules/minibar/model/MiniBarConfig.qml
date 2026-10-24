@@ -14,8 +14,8 @@ import Quickshell
 //
 //  SWITCHING IT ON AND OFF, without editing anything
 //      qs ipc call minibar toggle     minimal bar <-> normal bar
-//      qs ipc call minibar show       switch the minimal one on
-//      qs ipc call minibar hide       back to the normal one
+//      qs ipc call minibar on         switch the minimal one on
+//      qs ipc call minibar off        back to the normal one
 //      qs ipc call minibar status     say which one is in use
 //  The key for it is $mod+SHIFT+B. The choice is remembered across restarts (model/MiniBarState).
 //

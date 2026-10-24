@@ -297,11 +297,11 @@ Scope {
         function toggle(): void {
             MiniBarController.toggle();
         }
-        function show(): void {
-            MiniBarController.show();
+        function on(): void {
+            MiniBarController.on();
         }
-        function hide(): void {
-            MiniBarController.hide();
+        function off(): void {
+            MiniBarController.off();
         }
         function status(): string {
             return MiniBarController.status();

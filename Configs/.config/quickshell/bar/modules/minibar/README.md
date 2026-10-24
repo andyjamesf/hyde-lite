@@ -15,10 +15,18 @@ It reserves no space, so a window can use the whole screen and the bar floats on
 
 ```sh
 qs ipc call minibar toggle     # minimal bar <-> normal bar
-qs ipc call minibar show       # switch the minimal one on
-qs ipc call minibar hide       # back to the normal one
+qs ipc call minibar on         # switch the minimal one on
+qs ipc call minibar off        # back to the normal one
 qs ipc call minibar status     # say which one is in use
 ```
+
+They are `on`/`off` and not `show`/`hide` because `show` is also the name of a `qs ipc`
+subcommand: `qs ipc call <target> show` never reaches the shell — the CLI prints the list of IPC
+targets and exits, having changed nothing. The shell's own `bar` target has had that hole for as
+long.
+
+The key is **`$mod+SHIFT+B`**. `$mod+CTRL+B` is a different thing: it hides whichever bar is in
+use, this one included.
 
 The key is `$mod+SHIFT+B` (`Configs/.config/hypr/keybinds.lua`, `M.shell`; it does nothing while
 the island is the active shell, like the bar layout keys next to it). The choice is kept in
@@ -70,7 +78,7 @@ minibar/
 │   ├── MiniBar.qml         the bar of one screen (a PanelWindow)
 │   └── MiniBarWindows.qml  one of those per screen, only while the bar is on
 └── controller/   what acts
-    └── MiniBarController.qml   show / hide / toggle / status
+    └── MiniBarController.qml   on / off / toggle / status
 ```
 
 - **The model has no dependencies.** `MiniBarState` keeps its own file instead of adding a field to
@@ -101,7 +109,10 @@ just to give them two sizes.
 
 ## Worth knowing
 
-- `qs ipc call bar hide` / `show` / `toggle` hide whichever bar is in use.
+- `qs ipc call bar toggle` ($mod+CTRL+B) hides whichever bar is in use, this one included.
+- The bar is on the `top` layer, like the normal one, so a **fullscreen** window covers it. For a
+  bar whose point is to leave the screen to the windows that is the wanted behaviour; a bar that
+  should stay over a fullscreen video wants `WlrLayer.Overlay` in `view/MiniBar.qml`.
 - `qs ipc call bar layout <name>` and the layout editor (`bar edit`) act on the **normal** bar; the
   minimal one has its own lists and ignores them.
 - `qs ipc call bar height N`, `taller` and `shorter` are ignored too while the minimal bar is in

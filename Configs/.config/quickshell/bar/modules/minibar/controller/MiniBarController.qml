@@ -14,11 +14,14 @@ Singleton {
         setSwitchedOn(!MiniBarState.switchedOn);
     }
 
-    function show(): void {
+    // Not named show/hide: `show` is also the name of a `qs ipc` subcommand, so
+    // `qs ipc call minibar show` is swallowed by the CLI and prints the target list instead of
+    // switching anything on (the "bar" target has had the same hole for as long).
+    function on(): void {
         setSwitchedOn(true);
     }
 
-    function hide(): void {
+    function off(): void {
         setSwitchedOn(false);
     }
 
