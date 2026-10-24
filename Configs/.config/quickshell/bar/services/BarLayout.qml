@@ -33,6 +33,9 @@ Singleton {
     // that has to know which bar is in charge. The dependency only points this way — that module's
     // model reads nothing from the services layer.
     readonly property bool mini: MiniBarState.replacesMainBar
+    // The panels (control centre, notifications) open in the middle rather than in the corner the
+    // normal bar's buttons sit in. Read by modules/controlcenter and modules/notifications.
+    readonly property bool centerPanels: mini && MiniBarConfig.centerPanels
 
     property string hydeTheme: ""
     property int hyprRounding: 10

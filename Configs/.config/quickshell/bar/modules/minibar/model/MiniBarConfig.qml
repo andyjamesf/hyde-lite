@@ -59,10 +59,10 @@ Singleton {
     // "top" | "bottom"
     readonly property string position: "top"
 
+    // "none"        no background at all: only the icons and the text, over whatever is behind
     // "continuous"  a thin strip from edge to edge, against the edge of the screen
     // "islands"     rounded groups that float, each with its own background
-    // "none"        no background at all: only the icons and the text over the wallpaper
-    readonly property string style: "continuous"
+    readonly property string style: "none"
 
     // Bar height in px. 0 = the same as the normal bar's. Clamped to 16–40.
     readonly property int height: 20
@@ -89,11 +89,13 @@ Singleton {
     readonly property int fontSize: 0
     readonly property int iconSize: 0
 
-    // false: the bar floats over the windows and takes no space from them, so a window can use
-    //        the whole screen and the bar sits on top of it. This is the default here.
-    // true:  windows open below the bar, which reserves its own strip of the screen (what the
-    //        normal bar does).
-    readonly property bool reserveSpace: false
+    // true:  windows open below the bar, which reserves its own strip of the screen, the way the
+    //        normal bar does. This is the default here: with the bar floating over the windows
+    //        instead, it draws on top of whatever the window has at its own top edge (a title row,
+    //        a tab strip) and both end up looking cut.
+    // false: the bar floats over the windows and takes no space from them, so a window can use the
+    //        whole screen. Worth it with `autoHide` below, which is the case the strip is for.
+    readonly property bool reserveSpace: true
 
     // ── HIDING THE BAR ─────────────────────────────────────────────────────────────────────
 
@@ -112,6 +114,12 @@ Singleton {
     // How much of the bar is left on the screen edge while it is hidden, in px: the strip to touch
     // to bring it back. 2 is enough for a mouse; raise it if you find it hard to hit.
     readonly property int peek: 2
+
+    // true: the panels this shell opens (notifications, the control centre, Wi-Fi, bluetooth,
+    //       audio) open in the middle of the screen instead of the top right corner. The corner is
+    //       where the normal bar keeps the buttons that open them; this bar does not, so the middle
+    //       is where they belong. Applies while the minimal bar is the one in charge.
+    readonly property bool centerPanels: true
 
     // Which monitors it appears on. [] = all of them.
     // Or only some, by the names `hyprctl monitors` prints: ["DP-1", "HDMI-A-1"]

@@ -18,12 +18,14 @@ PanelWindow {
     anchors {
         top: BarLayout.atTop
         bottom: !BarLayout.atTop
-        right: true
+        // Anchored to neither side, a layer surface is centred: that is where this opens while
+        // the minimal bar is in charge (BarLayout.centerPanels).
+        right: !BarLayout.centerPanels
     }
     margins {
         top: BarLayout.atTop ? 6 : 0
         bottom: BarLayout.atTop ? 0 : 6
-        right: 6
+        right: BarLayout.centerPanels ? 0 : 6
     }
     implicitWidth: 380
     implicitHeight: Math.max(1, column.implicitHeight)
