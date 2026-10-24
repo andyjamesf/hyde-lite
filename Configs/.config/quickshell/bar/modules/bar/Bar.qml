@@ -23,7 +23,9 @@ PanelWindow {
     }
     implicitHeight: BarLayout.height + gap
     color: "transparent"
-    visible: !ShellState.barHidden
+    // Hidden while the minimal bar (modules/minibar) stands in for it, unless that one is set to
+    // show alongside it (MiniBarConfig.hideMainBar).
+    visible: !ShellState.barHidden && !BarLayout.mini
 
     WlrLayershell.namespace: "quickshell:bar"
     WlrLayershell.layer: WlrLayer.Top

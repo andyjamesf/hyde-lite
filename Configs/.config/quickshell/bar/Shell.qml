@@ -15,6 +15,8 @@ import qs.bar.modules.powermenu
 import qs.bar.modules.barbuilder
 import qs.bar.modules.lock
 import qs.bar.modules.avatar
+import qs.bar.modules.minibar.controller
+import qs.bar.modules.minibar.view
 
 Scope {
     // Singletons are only created when something uses them; these must exist from startup
@@ -42,6 +44,10 @@ Scope {
 
         Bar {}
     }
+
+    // The minimal bar (modules/minibar): a slimmer bar that takes the one above's place while it
+    // is switched on. It creates its own windows, one per screen, and none while it is off.
+    MiniBarWindows {}
 
     Variants {
         model: Quickshell.screens
@@ -279,6 +285,26 @@ Scope {
         }
         function layouts(): string {
             return BarLayout.names.map(n => (n === BarLayout.current ? "* " : "  ") + n).join("\n");
+        }
+    }
+
+    // Which of the two bars is in use; what the minimal one shows is
+    // modules/minibar/model/MiniBarConfig.qml. The behaviour lives in its controller, so these are
+    // one line each.
+    IpcHandler {
+        target: "minibar"
+
+        function toggle(): void {
+            MiniBarController.toggle();
+        }
+        function on(): void {
+            MiniBarController.on();
+        }
+        function off(): void {
+            MiniBarController.off();
+        }
+        function status(): string {
+            return MiniBarController.status();
         }
     }
 

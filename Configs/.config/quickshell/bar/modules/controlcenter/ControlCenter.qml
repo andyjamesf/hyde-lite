@@ -38,12 +38,14 @@ PanelWindow {
     anchors {
         top: BarLayout.atTop
         bottom: !BarLayout.atTop
-        right: true
+        // Anchored to neither side, a layer surface is centred: that is where this opens while
+        // the minimal bar is in charge (BarLayout.centerPanels).
+        right: !BarLayout.centerPanels
     }
     margins {
         top: BarLayout.atTop ? 6 : 0
         bottom: BarLayout.atTop ? 0 : 6
-        right: 6
+        right: BarLayout.centerPanels ? 0 : 6
     }
     implicitWidth: 360
     implicitHeight: Math.min(content.implicitHeight + 2 * Theme.space5, modelData.height - BarLayout.height - BarLayout.margin - Theme.space6)
@@ -80,8 +82,18 @@ PanelWindow {
 
         width: parent.width
         height: parent.height
-        x: panel.slide * (panel.width + Theme.space3)
-        opacity: 1 - panel.slide * 0.6
+        // It comes in from the right for the normal bar, whose buttons are in that corner.
+        // Centred instead (BarLayout.centerPanels), it grows out of a point at the top middle,
+        // under the clock, which is the part of the bar it belongs to: sliding in sideways from
+        // a corner that has no button in it read as coming from nowhere.
+        x: BarLayout.centerPanels ? 0 : panel.slide * (panel.width + Theme.space3)
+        opacity: 1 - panel.slide * (BarLayout.centerPanels ? 1 : 0.6)
+        transform: Scale {
+            origin.x: bg.width / 2
+            origin.y: 0
+            xScale: BarLayout.centerPanels ? 1 - panel.slide * 0.35 : 1
+            yScale: xScale
+        }
         radius: Theme.shapeXL
         color: Theme.alpha(Theme.surfaceContainer, 0.96)
         border.width: 1
