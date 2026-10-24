@@ -5,8 +5,11 @@ nothing: it shows the **same modules** as the normal bar (`../bar/widgets/`), in
 (`Island`), through the same services. Putting a module on it means writing its name in a list —
 no new code.
 
-By default it reserves no space, so a window can use the whole screen and the bar floats on top
-(`reserveSpace` in the settings).
+It starts with the day and time in the middle and the desktop you are on at the left, and nothing
+else; every other module is one commented-out line away in the settings.
+
+It reserves no space, so a window can use the whole screen and the bar floats on top
+(`reserveSpace`), and it can hide itself as well (`autoHide`, below).
 
 ## Switching it on and off
 
@@ -29,11 +32,29 @@ applies the change on its own — the file is watched, nothing has to be restart
 | Section | What it controls |
 |---|---|
 | 1. The main switch | `enabled` (exist at all) and `hideMainBar` (replace the normal bar or sit beside it) |
-| 2. Position and shape | `position`, `style`, `height`, `margin`, `spacing`, `opacity`, `color`, `radius`, `fontSize`, `iconSize`, `reserveSpace`, `screens` |
+| 2. Position and shape | `position`, `style`, `height`, `margin`, `spacing`, `opacity`, `color`, `radius`, `fontSize`, `iconSize`, `reserveSpace`, `screens`, and the three hiding settings below |
 | 3. Modules | the `left`, `center` and `right` lists; commenting a line out with `//` switches that module off |
 
-Each module's **own** options (clock format, brightness step and so on) stay in
-`config/config.json` → `widgets`, shared with the normal bar.
+Each module's **own** options stay in `config/config.json` → `widgets`, shared with the normal bar.
+The clock's day is one of them: `widgets.clock.showDate` (with `format` and `dateFormat` next to
+it). That file is the owner's, so `tools/sync_shell.py` adds it when missing and never overwrites
+it — a change there stays on the machine it was made on.
+
+## Hiding it
+
+`autoHide: true` keeps the bar off the screen edge and leaves `peek` px of it behind. Only what the
+mask covers takes the pointer, so while the bar is hidden the clicks belong to the window
+underneath; moving the pointer onto that strip slides the bar back in, and it slides away again
+`hideDelay` ms after the pointer leaves. It never hides while one of its own panels is open (the
+calendar, the volume panel), and a bar that hides itself never reserves space, whatever
+`reserveSpace` says.
+
+The pointer is read with a `HoverHandler` rather than a `MouseArea` on purpose: a handler reports
+the pointer in parallel with the widgets' own mouse areas instead of competing with them for it, so
+hovering a module does not read as "the pointer left the bar". **This has not been seen on a
+screen.** If the bar does slide away while the pointer is over a module, that is the mechanism that
+failed, and the fix is to reveal on the widgets' own hover as well rather than to swap the handler
+for a `MouseArea`, which would eat their clicks.
 
 ## Layout
 

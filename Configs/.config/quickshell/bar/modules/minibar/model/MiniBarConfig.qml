@@ -95,6 +95,24 @@ Singleton {
     //        normal bar does).
     readonly property bool reserveSpace: false
 
+    // ── HIDING THE BAR ─────────────────────────────────────────────────────────────────────
+
+    // true:  the bar keeps itself off the screen edge and only a thin strip of it takes the
+    //        pointer, so the window underneath keeps the clicks; moving the pointer onto that
+    //        strip slides the bar back in, and it slides away again when the pointer leaves.
+    //        While hidden it reserves no space at all, whatever `reserveSpace` says above.
+    // false: the bar is always on screen (it still takes no space from windows unless
+    //        `reserveSpace` is true).
+    readonly property bool autoHide: false
+
+    // How long the pointer has to be away before the bar hides again, in milliseconds. It never
+    // hides while one of its own panels is open (the calendar, the volume panel…).
+    readonly property int hideDelay: 700
+
+    // How much of the bar is left on the screen edge while it is hidden, in px: the strip to touch
+    // to bring it back. 2 is enough for a mouse; raise it if you find it hard to hit.
+    readonly property int peek: 2
+
     // Which monitors it appears on. [] = all of them.
     // Or only some, by the names `hyprctl monitors` prints: ["DP-1", "HDMI-A-1"]
     readonly property var screens: []
@@ -139,29 +157,31 @@ Singleton {
 
     // LEFT
     readonly property var left: [
-        ["workspaces"],             // workspaces
+        ["workspaces"],             // which desktop you are on
         // ["activeWindow"],        // title of the focused window
         // ["hyde"],                // HyDE menu
     ]
 
     // CENTRE (if it does not fit between the sides, it hides instead of overlapping them)
     readonly property var center: [
-        ["clock"],                  // clock
+        // The clock also shows the day when config.json has widgets.clock.showDate (that setting,
+        // and the two date formats next to it, are shared with the normal bar).
+        ["clock"],                  // time and day
         // ["media"],               // the track that is playing
     ]
 
-    // RIGHT
+    // RIGHT — nothing for now. Drop the "//" from a line to put that group back.
     readonly property var right: [
-        ["audio", "network", "battery"],   // volume, network, battery
-        // ["tray"],                       // system tray
-        // ["mic", "brightness"],          // microphone and brightness
-        // ["bluetooth"],                  // bluetooth
-        // ["stats"],                      // CPU / memory / temperature
-        // ["media"],                      // the track that is playing
-        // ["cava"],                       // audio visualiser
-        // ["aiUsage"],                    // the AI tools' usage
-        // ["nightLight", "idle"],         // night light and idle inhibitor
-        // ["notifications"],              // notifications and "do not disturb"
-        // ["controlCenter", "power"],     // control centre and power menu
+        // ["audio", "network", "battery"],   // volume, network, battery
+        // ["tray"],                          // system tray
+        // ["mic", "brightness"],             // microphone and brightness
+        // ["bluetooth"],                     // bluetooth
+        // ["stats"],                         // CPU / memory / temperature
+        // ["media"],                         // the track that is playing
+        // ["cava"],                          // audio visualiser
+        // ["aiUsage"],                       // the AI tools' usage
+        // ["nightLight", "idle"],            // night light and idle inhibitor
+        // ["notifications"],                 // notifications and "do not disturb"
+        // ["controlCenter", "power"],        // control centre and power menu
     ]
 }
