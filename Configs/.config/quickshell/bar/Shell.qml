@@ -207,6 +207,14 @@ Scope {
         }
     }
 
+    // Here a shortcut that chooses something opens a picker, so one whose picker is not
+    // registered is a button that would do nothing.
+    Binding {
+        target: CcShortcuts
+        property: "hidden"
+        value: CcShortcuts.items.filter(s => s.pick && Pickers.get(s.pick) === null).map(s => s.id)
+    }
+
     // Cycling the bar layout only means something where there is a bar to cycle.
     Binding {
         target: CcShortcuts
@@ -222,23 +230,25 @@ Scope {
         ]
     }
 
-    // The control centre's toggles are shared with the island; this one is the bar's alone, since
-    // the island has no notion of where its colours come from.
+    // Where the colours come from, the bar's way: a source in its preferences.
     Binding {
         target: CcToggles
-        property: "extra"
-        value: [
-            {
-                id: "colors",
-                label: "Colors",
-                icon: "wallpaper",
-                status: Prefs.colorSource === "wallpaper" ? "From the wallpaper" : "From HyDE",
-                active: Prefs.colorSource === "wallpaper",
-                available: true,
-                page: "",
-                toggle: () => Theme.setColorSource(Prefs.colorSource === "wallpaper" ? "hyde" : "wallpaper")
-            }
-        ]
+        property: "colorSourceName"
+        value: Prefs.colorSource === "wallpaper" ? "From the wallpaper" : "From HyDE"
+    }
+
+    Binding {
+        target: CcToggles
+        property: "colorFromWallpaper"
+        value: Prefs.colorSource === "wallpaper"
+    }
+
+    Connections {
+        target: CcToggles
+
+        function onColorSourceToggleRequested(): void {
+            Theme.setColorSource(Prefs.colorSource === "wallpaper" ? "hyde" : "wallpaper");
+        }
     }
 
     // The notification server is shared with the island; this shell's settings reach it here, and
@@ -406,6 +416,19 @@ Scope {
         // "wifi", "bluetooth" or "audio"
         function page(name: string): void {
             ShellState.openControlCenter(name);
+        }
+    }
+
+    // Test/diagnostic hooks (read-only): qs ipc call bar-debug <function>
+    IpcHandler {
+        target: "bar-debug"
+
+        // What this shell actually draws from the shared model, for checking that both offer the
+        // same things: "toggles=<ids> shortcuts=<ids>". The control centre cannot be held open for
+        // a screenshot (it closes as soon as a scripted call returns), so this is how the two are
+        // compared — see tools/tests/test_cc_parity.py.
+        function ccItems(): string {
+            return "toggles=" + CcToggles.shown.map(t => t.id).join(",") + " shortcuts=" + CcShortcuts.shown.map(s => s.id).join(",");
         }
     }
 

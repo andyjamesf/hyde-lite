@@ -4,7 +4,7 @@ import qs.island.theme
 
 // Small vector glyphs used across the UI (same 24×24 grid as the other icons, outline only):
 // "back" (‹), "chevron" (›), "lock", "check", "bell", "bellOff", "refresh", "mic", "micOff",
-// "close", "speaker", "coffee" (caffeine tile), "menu" (☰) and "plus".
+// "close", "speaker", "coffee" (caffeine tile), "wallpaper" (colors tile), "menu" (☰) and "plus".
 Item {
     id: root
 
@@ -41,6 +41,8 @@ Item {
             return "M 12 5 V 19 M 5 12 H 19";
         case "menu":
             return "M 4.5 7 H 19.5 M 4.5 12 H 19.5 M 4.5 17 H 19.5";
+        case "wallpaper":
+            return "M 4.5 5.5 H 19.5 A 1 1 0 0 1 20.5 6.5 V 17.5 A 1 1 0 0 1 19.5 18.5 H 4.5 A 1 1 0 0 1 3.5 17.5 V 6.5 A 1 1 0 0 1 4.5 5.5 Z M 3.5 15 L 9 10 L 14 15 M 12.5 13.5 L 15.5 10.5 L 20.5 15 M 15.5 8.5 A 1.2 1.2 0 1 0 15.5 8.4";
         case "coffee":
             return "M 5 9 H 16 V 14.5 A 4.5 4.5 0 0 1 11.5 19 H 9.5 A 4.5 4.5 0 0 1 5 14.5 Z M 16 10.5 H 17.5 A 2.25 2.25 0 0 1 17.5 15 H 16 M 8.5 3.5 V 6 M 12 3.5 V 6";
         }

@@ -1,7 +1,6 @@
 pragma Singleton
 import QtQuick
 import Quickshell
-import qs.shared.pickers
 
 // The row of shortcut buttons under the control centre, as data — the companion to CcToggles, and
 // the other half of "both shells offer the same things".
@@ -17,9 +16,10 @@ import qs.shared.pickers
 //   glyph    Nerd Font character, for the views that draw with those
 //   pick     the picker it opens, if it opens one
 //
-// A button whose picker is not registered is left out rather than drawn dead: these three used to
-// run HyDE's rofi scripts, and with no rofi installed they sat there looking alive and did
-// nothing. That check belongs here, with the list, not in each view.
+// A button nobody can answer is left out rather than drawn dead: these three used to run HyDE's
+// rofi scripts and, with no rofi installed, sat there looking alive and did nothing. Which ones
+// those are depends on the shell, though — the island opens its own wallpaper page where the bar
+// opens a picker — so each shell names what it cannot do in `hidden`, and the list does the rest.
 //
 // Opening a picker or the keybindings list is the launcher's business and each shell drives its
 // own, so this asks with `openRequested` the way the HyDE menu picker does.
@@ -28,6 +28,10 @@ Singleton {
 
     // A shell's own button (the bar's bar-layout one, which has nothing to cycle in the island).
     property var extra: []
+
+    // Ids this shell cannot offer, named by it. Not a picker check: a shell that answers
+    // openRequested its own way keeps the button.
+    property var hidden: []
 
     // Open the launcher: "pick:<name>" for a picker, "keys" for the keybindings list.
     signal openRequested(string what)
@@ -68,7 +72,7 @@ Singleton {
         }
     ]
 
-    readonly property var shown: items.filter(s => !s.pick || Pickers.get(s.pick) !== null).concat(extra)
+    readonly property var shown: items.filter(s => !root.hidden.includes(s.id)).concat(extra)
 
     function get(id) {
         return shown.find(s => s.id === id) ?? null;

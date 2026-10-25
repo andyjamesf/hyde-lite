@@ -109,6 +109,29 @@ Scope {
     }
 
 
+    // Where the colours come from, this shell's way: "Wallpaper" and "HyDE" are two of its schemes
+    // (theme/Palettes.qml), so the toggle moves between them. A fixed scheme reads as off, and the
+    // first click picks the wallpaper's colours; the theme picker takes it back.
+    Binding {
+        target: CcToggles
+        property: "colorSourceName"
+        value: ThemeConfig.name === "Wallpaper" ? "From the wallpaper" : ThemeConfig.name === "HyDE" ? "From HyDE" : ThemeConfig.name
+    }
+
+    Binding {
+        target: CcToggles
+        property: "colorFromWallpaper"
+        value: ThemeConfig.name === "Wallpaper"
+    }
+
+    Connections {
+        target: CcToggles
+
+        function onColorSourceToggleRequested(): void {
+            ThemeConfig.setTheme(ThemeConfig.name === "Wallpaper" ? "HyDE" : "Wallpaper");
+        }
+    }
+
     // The control centre's shortcut row is shared with the bar; opening the launcher is this
     // shell's own business, so the shared list asks and this answers.
     Connections {
@@ -118,6 +141,11 @@ Scope {
             if (what === "keys") {
                 IslandController.open(IslandState.launcher);
                 LauncherState.query = "?";
+                return;
+            }
+            // This shell has a wallpaper page of its own, where the bar has a picker.
+            if (what === "pick:wallpapers") {
+                IslandController.open(IslandState.wallpaper);
                 return;
             }
             LauncherState.provider = what.slice(5);
@@ -586,6 +614,16 @@ Scope {
         // The latest notifications in the history (app · title · icon).
         function recentNotifications(): string {
             return Notifications.list.slice(0, 10).map(n => `${n.appName} · ${n.summary} · ${n.appIcon}`).join("\n");
+        }
+        // What this shell actually draws from the shared model, for checking that both offer the
+        // same things: "toggles=<ids> shortcuts=<ids>". The control centre cannot be held open for
+        // a screenshot (it closes as soon as a scripted call returns), so this is how the two are
+        // compared — see tools/tests/test_cc_parity.py.
+        function ccItems(): string {
+            // What this shell draws is the owner's order, filtered by the shared list.
+            const t = ControlCenter.tiles.filter(id => CcToggles.shown.some(x => x.id === id));
+            const sc = ControlCenter.shortcuts.filter(id => CcShortcuts.shown.some(x => x.id === id));
+            return "toggles=" + t.join(",") + " shortcuts=" + sc.join(",");
         }
         // Control center: "page=<page> sliding=0|1 height=<px> wifi=… networks=<n>
         // bluetooth=… devices=<n> sinks=<n> sources=<n> media=0|1 notifications=<n>", or "closed".

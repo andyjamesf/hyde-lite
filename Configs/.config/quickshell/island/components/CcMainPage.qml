@@ -763,7 +763,8 @@ Item {
             nightlight: nightTileComponent,
             caffeine: caffeineTileComponent,
             mic: micTileComponent,
-            powerProfile: profileTileComponent
+            powerProfile: profileTileComponent,
+            colors: colorsTileComponent
         })
 
     Component {
@@ -927,6 +928,29 @@ Item {
     }
 
     // Caffeine: an idle inhibitor on the island window (no dimming, lock or suspend while on).
+    // Colors: where the shell takes its palette from — the wallpaper's colours or the current
+    // HyDE theme's. They are two of this shell's schemes (theme/Palettes.qml); Shell.qml answers
+    // the toggle, and the theme picker still has the fixed schemes.
+    Component {
+        id: colorsTileComponent
+
+        CcTile {
+            id: colorsTile
+            readonly property var entry: CcToggles.get("colors") ?? ({})
+            width: parent?.width ?? 0
+            title: colorsTile.entry.label ?? ""
+            status: colorsTile.entry.status ?? ""
+            active: colorsTile.entry.active ?? false
+            onToggled: CcToggles.toggle("colors")
+
+            Glyph {
+                kind: "wallpaper"
+                size: 18
+                color: colorsTile.iconColor
+            }
+        }
+    }
+
     Component {
         id: caffeineTileComponent
 

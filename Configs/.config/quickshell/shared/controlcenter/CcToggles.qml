@@ -29,6 +29,14 @@ Singleton {
 
     property var extra: []
 
+    // Where the colours come from. Both shells have the same two sources — the wallpaper's colours
+    // and the current HyDE theme's — but reach them differently: the bar has a colour source in
+    // its preferences, the island has them as two schemes in its theme picker. So each binds what
+    // its own answer is, and answers the toggle itself.
+    property string colorSourceName: ""
+    property bool colorFromWallpaper: false
+    signal colorSourceToggleRequested()
+
     readonly property var items: [
         {
             id: "wifi",
@@ -94,6 +102,15 @@ Singleton {
             page: ""
         },
         {
+            id: "colors",
+            label: "Colors",
+            icon: "wallpaper",
+            status: root.colorSourceName,
+            active: root.colorFromWallpaper,
+            available: true,
+            page: ""
+        },
+        {
             id: "powerProfile",
             label: "Power profile",
             icon: Battery.profileIcon,
@@ -138,6 +155,9 @@ Singleton {
             return;
         case "caffeine":
             Caffeine.toggle();
+            return;
+        case "colors":
+            root.colorSourceToggleRequested();
             return;
         default:
             // A shell's own entry carries its action with it.
