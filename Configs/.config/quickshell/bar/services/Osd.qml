@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import qs.shared.services
 
 // Volume, microphone and brightness OSD. Reacts to changes in the services (Pipewire and the
 // backlight uevent), so it shows up wherever the change comes from: HyDE keys, the bar, apps.
@@ -17,7 +18,6 @@ Singleton {
     readonly property bool needed: visible || fadeOut.running
     // During startup and when switching devices the values "change" without anyone touching them.
     property bool armed: false
-    property int lastBrightness: -1
 
     readonly property real value: kind === "brightness" ? Brightness.percent / 100 : kind === "mic" ? (Audio.micMuted ? 0 : Audio.micVolume) : (Audio.muted ? 0 : Audio.volume)
     readonly property string icon: kind === "brightness" ? Brightness.icon : kind === "mic" ? Audio.micIcon : Audio.icon
@@ -97,15 +97,12 @@ Singleton {
         }
     }
 
+    // The service tells the difference between the owner changing the brightness and hypridle
+    // dimming the screen (shared/services/Brightness.qml, dimmingThreshold), so there is nothing to
+    // filter here any more.
     Connections {
         target: Brightness
-        function onPercentChanged() {
-            const previous = root.lastBrightness;
-            root.lastBrightness = Brightness.percent;
-            if (previous >= 0 && (previous <= 2 || Brightness.percent <= 2)) {
-                console.debug("osd: brightness", previous, "→", Brightness.percent, "ignored (dimming)");
-                return;
-            }
+        function onChangedByUser() {
             root.show("brightness");
         }
     }

@@ -3,6 +3,7 @@ import qs.island.config
 import qs.island.icons
 import qs.island.services
 import qs.island.theme
+import qs.shared.services
 
 // On-screen display: icon + bar + percentage (or "Muted"), a pill-shaped transient.
 // `kind` selects the source: "volume" (default output), "mic" (default input) or "brightness".

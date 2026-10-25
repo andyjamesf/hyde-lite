@@ -30,6 +30,18 @@ Scope {
         property: "islandOpacity"
         value: Theme.islandOpacity
     }
+    // The brightness service is shared with the bar and has no settings of its own, so this shell
+    // hands it the two values it reads from config/OsdConfig.qml.
+    Binding {
+        target: Brightness
+        property: "step"
+        value: OsdConfig.brightnessStep
+    }
+    Binding {
+        target: Brightness
+        property: "dimmingThreshold"
+        value: OsdConfig.dimmingThreshold
+    }
 
     Variants {
         model: Quickshell.screens

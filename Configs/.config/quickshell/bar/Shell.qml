@@ -169,6 +169,12 @@ Scope {
         value: Config.widgets.battery.lowLevel
     }
 
+    Binding {
+        target: Brightness
+        property: "step"
+        value: Config.widgets.brightness.step
+    }
+
     LockScreen {}
 
     IpcHandler {
@@ -344,10 +350,10 @@ Scope {
         target: "brightness"
 
         function up(): void {
-            Brightness.change(Config.widgets.brightness.step);
+            Brightness.up();
         }
         function down(): void {
-            Brightness.change(-Config.widgets.brightness.step);
+            Brightness.down();
         }
         function set(percent: int): void {
             Brightness.set(percent);
