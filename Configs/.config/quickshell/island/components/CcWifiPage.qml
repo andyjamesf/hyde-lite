@@ -5,6 +5,7 @@ import qs.island.core
 import qs.island.icons
 import qs.island.services
 import qs.island.theme
+import qs.shared.services
 
 // Wi-Fi subview: switch, current network and the network list (connected first, then saved ones,
 // then by signal). Clicking a network → Network.connect(key); if the network needs a password

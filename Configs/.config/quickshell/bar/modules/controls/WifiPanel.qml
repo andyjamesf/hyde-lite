@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.bar.components
 import qs.bar.services
+import qs.shared.services
 
 // Wi-Fi: on/off, visible networks and connecting. Unknown secured networks ask for the
 // password; the field only appears where there is keyboard input (`canType`, in the control center). In the bar
@@ -25,7 +26,7 @@ ColumnLayout {
         onBack: root.back()
         icon: Network.wired ? "lan" : Network.icon
         title: "Wi-Fi"
-        subtitle: Network.wired ? "Wired connection" : Network.activeWifi ? `Connected to ${Network.name}` : Network.wifiEnabled ? "Not connected" : "Desligado"
+        subtitle: Network.wired ? "Wired connection" : Network.activeWifi ? `Connected to ${Network.name}` : Network.wifiEnabled ? "Not connected" : "Wi-Fi off"
         hasSwitch: true
         checked: Network.wifiEnabled
         onToggled: Network.setWifiEnabled(!Network.wifiEnabled)
@@ -42,7 +43,7 @@ ColumnLayout {
 
     // Password for the chosen network.
     Card {
-        visible: root.canType && Network.pendingNetwork !== null
+        visible: root.canType && Network.pendingKey !== ""
         Layout.fillWidth: true
         color: Theme.surfaceContainerHighest
         padding: 12
@@ -53,7 +54,7 @@ ColumnLayout {
 
             StyledText {
                 Layout.fillWidth: true
-                text: `Password for ${Network.pendingNetwork?.name ?? ""}`
+                text: `Password for ${Network.pendingKey}`
                 font.weight: Font.DemiBold
             }
 
@@ -76,7 +77,7 @@ ColumnLayout {
                 IconButton {
                     icon: "close"
                     size: 34
-                    onClicked: Network.pendingNetwork = null
+                    onClicked: Network.cancelPending()
                 }
 
                 IconButton {
@@ -109,20 +110,20 @@ ColumnLayout {
                 ListRow {
                     required property var modelData
                     width: list.width
-                    icon: Network.signalIcon(modelData.signalStrength)
+                    icon: Network.signalIcon(modelData.strength)
                     iconFill: 1
                     title: modelData.name
-                    subtitle: modelData.connected ? "Ligado" : modelData.stateChanging ? "A ligar…" : modelData.known ? "Guardada" : Network.isSecure(modelData) ? "Secured" : "Open"
+                    subtitle: modelData.connected ? "Connected" : modelData.connecting ? "Connecting…" : modelData.known ? "Saved" : modelData.secured ? "Secured" : "Open"
                     highlighted: modelData.connected
                     busy: modelData.stateChanging
                     onClicked: {
-                        Network.activate(modelData);
-                        if (Network.pendingNetwork && !root.canType)
+                        Network.toggle(modelData);
+                        if (Network.pendingKey !== "" && !root.canType)
                             ShellState.openControlCenter("wifi");
                     }
 
                     MaterialIcon {
-                        visible: Network.isSecure(modelData) && !modelData.connected
+                        visible: modelData.secured && !modelData.connected
                         icon: "lock"
                         size: 16
                         color: Theme.textFaint
