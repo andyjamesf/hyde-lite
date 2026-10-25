@@ -19,13 +19,8 @@ Singleton {
             command: ["loginctl", "lock-session"],
             confirm: false
         },
-        {
-            id: "suspend",
-            label: "Suspend",
-            glyph: "suspend",
-            command: ["systemctl", "suspend"],
-            confirm: false
-        },
+        // Suspend is not offered on this machine: it does not come back from it. The same reason
+        // hypridle no longer suspends on idle. Put the entry back if that is ever fixed.
         {
             // `hyde-shell logout` ends the uwsm session properly (and falls back to Hyprland's
             // `hl.dsp.exit()` outside uwsm); without HyDE, exit Hyprland directly.
