@@ -2,7 +2,6 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import qs.island.config as Config
 import qs.shared.services
 
 // Web search (HyDE's rofi.websearch.sh): one row per search engine for the typed text, the default
@@ -24,9 +23,9 @@ Singleton {
     readonly property string dataHome: Paths.dataHome
     readonly property string configHome: Paths.configHome
 
-    // Engines listed first and display names: config/PickersConfig.qml (webPreferred, webLabels).
-    readonly property var preferred: Config.PickersConfig.webPreferred
-    readonly property var labels: Config.PickersConfig.webLabels
+    // Engines listed first and display names: config/PickerSettings.qml (webPreferred, webLabels).
+    readonly property var preferred: PickerSettings.webPreferred
+    readonly property var labels: PickerSettings.webLabels
     // Used when there is no HyDE list at all.
     readonly property string fallbackList: " | google | https://www.google.com/search?q=%s\n | duckduckgo | https://duckduckgo.com/?q=%s\n | youtube | https://www.youtube.com/results?search_query=%s\n | github | https://www.github.com/search?q=%s\n | wikipedia | https://en.wikipedia.org/w/index.php?search=%s"
 

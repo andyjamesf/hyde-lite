@@ -1,4 +1,4 @@
-"""services/Fuzzy.qml (shared fuzzy scoring for the launcher and every picker) run in Node from the QML source."""
+"""shared/pickers/Fuzzy.qml (the fuzzy scoring the launcher and every picker use) run in Node from the QML source."""
 import json
 import shutil
 import sys
@@ -8,7 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import qml_js  # noqa: E402
 
-SRC = (Path(__file__).resolve().parents[2] / "Configs/.config/quickshell/island/services/Fuzzy.qml").read_text()
+SRC = (Path(__file__).resolve().parents[2] / "Configs/.config/quickshell/shared/pickers/Fuzzy.qml").read_text()
 # `score` reads and writes the singleton's _cache and `currentFirst` is pure: stand in for `_cache`.
 PRELUDE = "\n".join([
     f"const _cache = {qml_js.extract_property(SRC, '_cache')};",

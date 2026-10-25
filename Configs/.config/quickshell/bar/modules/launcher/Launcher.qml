@@ -6,8 +6,8 @@ import Quickshell.Hyprland
 import Quickshell.Widgets
 import qs.bar.components
 import qs.bar.services
-import qs.bar.pickers
 import qs.shared.services
+import qs.shared.pickers
 
 // Launcher (replaces HyDE's rofi): apps with fuzzy search, favorites and frecency; clipboard
 // (cliphist); calculator; keybindings; and the pickers (mode "pick:<name>", pickers/Pickers.qml):

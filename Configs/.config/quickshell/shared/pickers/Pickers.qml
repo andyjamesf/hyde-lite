@@ -1,7 +1,6 @@
 pragma Singleton
 import QtQuick
 import Quickshell
-import qs.bar.services
 
 // Registry of the launcher's pickers: HyDE's rofi screens ported to the shell (the same pickers as
 // the Morphing Island's). Each picker is a singleton pickers/Pick<Name>.qml with this contract:
@@ -16,14 +15,19 @@ import qs.bar.services
 //   refresh()      called whenever the picker opens
 //   items(query)   [{ key, title, subtitle, icon, text, glyph, badge }], best first
 //   activate(item) performs the action (the launcher closes first, unless keepOpen)
-// Only the pickers in "pickers.enabled" (config/config.json; defaults in services/Config.qml) can be
+// Only the pickers in PickerSettings.enabled (each shell binds that from its own settings) can be
 // opened. Open one with `qs ipc call launcher pick <name>`.
 Singleton {
     id: root
 
-    readonly property var providers: ({
+    // Pickers only one shell has: the bar's wallpaper picker, the island's theme import. Each
+    // binds its own from Shell.qml, and they are offered exactly like the shared ones.
+    property var extra: ({})
+
+    readonly property var providers: Object.assign({}, _shared, extra)
+
+    readonly property var _shared: ({
             "themes": PickHydeThemes,
-            "wallpapers": PickWallpapers,
             "windows": PickWindows,
             "files": PickFiles,
             "web": PickWeb,
@@ -63,10 +67,10 @@ Singleton {
             "menu": "widgets"
         })
     // Enabled picker names.
-    readonly property var names: Object.keys(providers).filter(n => Config.pickers.enabled.includes(n))
+    readonly property var names: Object.keys(providers).filter(n => PickerSettings.enabled.includes(n))
 
     // The enabled picker with that name, or null.
     function get(name) {
-        return name && Object.prototype.hasOwnProperty.call(providers, name) && Config.pickers.enabled.includes(name) ? providers[name] : null;
+        return name && Object.prototype.hasOwnProperty.call(providers, name) && PickerSettings.enabled.includes(name) ? providers[name] : null;
     }
 }

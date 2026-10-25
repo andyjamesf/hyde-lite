@@ -18,6 +18,7 @@ import qs.bar.modules.avatar
 import qs.bar.modules.minibar.controller
 import qs.bar.modules.minibar.view
 import qs.shared.services
+import qs.shared.pickers
 
 Scope {
     // Singletons are only created when something uses them; these must exist from startup
@@ -191,6 +192,84 @@ Scope {
         target: Lock
         property: "enabled"
         value: Config.widgets.lock.enabled
+    }
+
+    // The pickers are shared with the island; this shell's settings and its own wallpaper picker
+    // reach them here (config/config.json -> services/Config.qml).
+    Binding {
+        target: PickerSettings
+        property: "enabled"
+        value: Config.pickers.enabled
+    }
+    Binding {
+        target: PickerSettings
+        property: "menu"
+        value: Config.pickers.menu
+    }
+    Binding {
+        target: PickerSettings
+        property: "maxResults"
+        value: Config.pickers.maxResults
+    }
+    Binding {
+        target: PickerSettings
+        property: "files"
+        value: Config.pickers.files
+    }
+    Binding {
+        target: PickerSettings
+        property: "quickAppsFallback"
+        value: Config.pickers.quickAppsFallback
+    }
+    Binding {
+        target: PickerSettings
+        property: "recents"
+        value: Config.pickers.recents
+    }
+    Binding {
+        target: PickerSettings
+        property: "webLabels"
+        value: Config.pickers.webLabels
+    }
+    Binding {
+        target: PickerSettings
+        property: "webPreferred"
+        value: Config.pickers.webPreferred
+    }
+    Binding {
+        target: PickerSettings
+        property: "pasteDelayMs"
+        value: Config.pickers.pasteDelayMs
+    }
+    Binding {
+        target: PickerSettings
+        property: "qml"
+        value: Config.pickers.qml
+    }
+    Binding {
+        target: PickerSettings
+        property: "glyphFont"
+        value: Config.appearance.monoFont
+    }
+    Binding {
+        target: PickerSettings
+        property: "statePath"
+        value: Paths.shellState
+    }
+    // The wallpaper picker is the bar's own (the island picks wallpapers its own way).
+    Binding {
+        target: Pickers
+        property: "extra"
+        value: ({
+                "wallpapers": PickWallpapers
+            })
+    }
+    // Choosing a picker in the HyDE menu opens it in this shell's launcher.
+    Connections {
+        target: PickMenu
+        function onOpenRequested(name) {
+            ShellState.launcherMode = "pick:" + name;
+        }
     }
 
     LockScreen {}

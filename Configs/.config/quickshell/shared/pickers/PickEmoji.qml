@@ -2,109 +2,96 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import qs.bar.services
 import qs.shared.services
 
-// Nerd Font glyph picker for the launcher (port of HyDE's glyph-picker.sh).
-// Data: ${HYDE_DATA_HOME:-~/.local/share/hyde}/glyph.db, one glyph per line as
-// "<glyph>\t<family>-<name>" (e.g. "<glyph>\tcod-account"), ~10 800 entries.
+// Emoji picker for the launcher (port of HyDE's emoji-picker.sh).
+// Data: ${HYDE_DATA_HOME:-~/.local/share/hyde}/emoji.db, one emoji per line as
+// "<emoji> <name and keywords separated by spaces>" (HyDE does not separate the name from the
+// keywords, so the title is the whole description).
 // The file is only read and parsed on the first opening; afterwards it stays in memory.
-// Recents (Config.pickers.recents.glyph) are kept by PickerStore under the key "glyph".
-// The view draws `text` with the `textFont` family (the glyphs live in the Private Use Area).
+// Recents (PickerSettings.recents.emoji) are kept by PickerStore under the key "emoji".
 //
-// NOTE: activate() copies the glyph and pastes it into the focused window with Ctrl+V
+// NOTE: activate() copies the emoji and pastes it into the focused window with Ctrl+V
 // (Launch.pasteText) ON PURPOSE — it is exactly what HyDE does (paste_string in globalcontrol.sh)
 // and the whole point of this picker, not a testing shortcut.
 Singleton {
     id: root
 
-    readonly property string name: "glyph"
-    readonly property string title: "Glyphs"
-    readonly property string placeholder: "Search Nerd Font glyphs…"
+    readonly property string name: "emoji"
+    readonly property string title: "Emoji"
+    readonly property string placeholder: "Search emoji…"
     readonly property string glyph: ""
     readonly property bool loading: _loading
     readonly property bool grid: true
     readonly property bool keepOpen: false
-    readonly property string textFont: Config.appearance.monoFont
 
-    readonly property int maxResults: Config.pickers.maxResults.glyph ?? 300
+    readonly property int maxResults: PickerSettings.maxResults.emoji ?? 300
     readonly property string dataHome: Quickshell.env("HYDE_DATA_HOME") || `${Paths.dataHome}/hyde`
-
-    // Name prefix in glyph.db → readable name of the Nerd Fonts icon set.
-    readonly property var families: ({
-            cod: "Codicons",
-            custom: "Custom",
-            dev: "Devicons",
-            extra: "Extra",
-            fa: "Font Awesome",
-            fae: "Font Awesome Extension",
-            iec: "IEC Power Symbols",
-            indent: "Indentation",
-            indentation: "Indentation",
-            linux: "Font Logos",
-            md: "Material Design",
-            oct: "Octicons",
-            pl: "Powerline",
-            ple: "Powerline Extra",
-            pom: "Pomicons",
-            seti: "Seti UI",
-            weather: "Weather Icons"
-        })
 
     property bool _loading: false
     property bool _requested: false
-    // [{ ch, id, fam, low }] in file order.
+    // [{ ch, desc, low, code }] in file order (already grouped by category).
     property var _all: []
-    property var _byId: ({})
+    property var _byChar: ({})
 
     function refresh() {
         if (_requested)
             return;
         _requested = true;
         _loading = true;
-        db.path = `${dataHome}/glyph.db`;
+        db.path = `${dataHome}/emoji.db`;
     }
 
     function _parse(text) {
         const list = [];
         const map = {};
         for (const line of String(text).split("\n")) {
-            const tab = line.indexOf("\t");
-            if (tab <= 0)
+            const sp = line.indexOf(" ");
+            if (sp <= 0)
                 continue;
-            const ch = line.slice(0, tab);
-            const id = line.slice(tab + 1).trim();
-            if (!id || map[id])
+            const ch = line.slice(0, sp);
+            const desc = line.slice(sp + 1).trim();
+            if (map[ch])
                 continue;
-            const dash = id.indexOf("-");
-            const prefix = dash > 0 ? id.slice(0, dash) : id;
             const e = {
                 ch,
-                id,
-                fam: families[prefix] ?? prefix,
-                // Searches "cod account" and "codicons": hyphens and underscores count as spaces.
-                low: ` ${id.replace(/[-_]/g, " ")} ${(families[prefix] ?? "")} `.toLowerCase()
+                desc,
+                // Padded with spaces, so whole words can be tested with a plain indexOf.
+                low: ` ${desc.toLowerCase()} `,
+                code: _codepoints(ch)
             };
-            map[id] = e;
+            map[ch] = e;
             list.push(e);
         }
-        _byId = map;
+        _byChar = map;
         _all = list;
         _loading = false;
     }
 
+    // "U+2764 U+FE0F": walks code points (the JS engine iterates UTF-16 units).
+    function _codepoints(s) {
+        const out = [];
+        for (let i = 0; i < s.length; i++) {
+            const c = s.codePointAt(i);
+            out.push("U+" + c.toString(16).toUpperCase());
+            if (c > 0xffff)
+                i++;
+        }
+        return out.join(" ");
+    }
+
     function _item(e) {
         return {
-            key: e.id,
-            title: e.id,
-            subtitle: e.fam,
+            key: e.ch,
+            title: e.desc,
+            subtitle: e.code,
             icon: "",
             text: e.ch,
             badge: ""
         };
     }
 
-    // Score of one term: whole word > word start > substring.
+    // Score of one term in a description: whole word > word start > substring.
     // `t` = { term, word }; `low` is padded with spaces, so a whole word is " term "
     // (no regular expressions: this runs over thousands of entries per keystroke).
     function _termScore(t, low) {
@@ -120,20 +107,20 @@ Singleton {
     }
 
     function items(query) {
-        const q = String(query ?? "").trim().toLowerCase().replace(/[-_]/g, " ");
-        const recent = PickerStore.glyph ?? [];
+        const q = String(query ?? "").trim().toLowerCase();
         if (q === "") {
             // No search: recents first, then the rest in file order.
-            const rec = recent.filter(id => _byId[id]).map(id => _byId[id]);
+            const recent = (PickerStore.emoji ?? []).filter(ch => _byChar[ch]).map(ch => _byChar[ch]);
             const seen = {};
-            for (const e of rec)
-                seen[e.id] = true;
-            return rec.concat(_all.slice(0, maxResults).filter(e => !seen[e.id])).slice(0, maxResults).map(_item);
+            for (const e of recent)
+                seen[e.ch] = true;
+            return recent.concat(_all.filter(e => !seen[e.ch]).slice(0, maxResults)).slice(0, maxResults).map(_item);
         }
         const terms = q.split(/\s+/).map(term => ({
                     term,
                     word: ` ${term} `
                 }));
+        const recent = PickerStore.emoji ?? [];
         const scored = [];
         // Local copies: calling a QML method or reading an object property for each of thousands
         // of entries is several times slower than a local JS function.
@@ -150,10 +137,11 @@ Singleton {
                 s += ts;
             }
             if (s > 0) {
-                const r = recent.indexOf(e.id);
+                // Small bonus for recents and for short descriptions ("purer" names).
+                const r = recent.indexOf(e.ch);
                 scored.push({
                     e,
-                    s: s + (r >= 0 ? 20 - r / 2 : 0) - Math.min(10, e.low.length / 8)
+                    s: s + (r >= 0 ? 20 - r / 2 : 0) - Math.min(10, e.low.length / 10)
                 });
             }
         }
@@ -163,7 +151,7 @@ Singleton {
     function activate(item) {
         if (!item || !item.text)
             return;
-        PickerStore.push("glyph", item.key);
+        PickerStore.push("emoji", item.text);
         Launch.pasteText(item.text);
     }
 
@@ -173,9 +161,9 @@ Singleton {
         printErrors: false
         onLoaded: root._parse(text())
         onLoadFailed: {
-            // No glyph.db (HyDE not installed): empty list, no error.
+            // No emoji.db (HyDE not installed): empty list, no error.
             root._all = [];
-            root._byId = {};
+            root._byChar = {};
             root._loading = false;
         }
     }

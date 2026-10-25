@@ -2,7 +2,6 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import qs.bar.services
 
 // Browser bookmarks picker for the launcher (port of HyDE's rofi.bookmarks.sh +
 // bookmarks.py). Sources, read by a small Python script on every opening:
@@ -13,7 +12,7 @@ import qs.bar.services
 //   - HyDE's own list: ${XDG_CONFIG_HOME}/hyde/bookmarks.lst ("title | url").
 // Differences from HyDE: bookmark folders are walked recursively (HyDE only reads the first level
 // of the bar and "Other"), and profiles besides Default plus Brave Origin are included.
-// Duplicates (same URL) are merged into one entry. Recents (Config.pickers.recents.bookmarks) are kept by
+// Duplicates (same URL) are merged into one entry. Recents (PickerSettings.recents.bookmarks) are kept by
 // PickerStore under the key "bookmarks".
 // activate() opens the URL with Launch.open (xdg-open), like bookmarks.py without --browser.
 Singleton {
@@ -27,7 +26,7 @@ Singleton {
     readonly property bool grid: false
     readonly property bool keepOpen: false
 
-    readonly property int maxResults: Config.pickers.maxResults.bookmarks ?? 200
+    readonly property int maxResults: PickerSettings.maxResults.bookmarks ?? 200
 
     property bool _loading: false
     // [{ title, url, host, sources, low }] sorted by title (like HyDE).

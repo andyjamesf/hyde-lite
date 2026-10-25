@@ -5,6 +5,7 @@ import Quickshell.Io
 import qs.island.config
 import qs.island.core
 import qs.shared.services
+import qs.shared.pickers
 
 // Screenshots taken by the island (config/ScreenshotConfig.qml). take(mode) captures to a temporary
 // file with HyDE's grimblast and shows it in the island (mode "screenshot", components/

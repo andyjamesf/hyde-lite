@@ -10,6 +10,14 @@ import qs.shared.services
 // there is no pill: see config/LockScreenConfig.qml) and it quits once the screen is unlocked.
 // Nothing else of the island runs here: no notification server, no polkit agent, no windows.
 ShellRoot {
+    // This process is the lock screen, so it is the one allowed to take a lock back after a crash
+    // (shared/services/Lock.qml, recoverLock).
+    Binding {
+        target: Lock
+        property: "recoverLock"
+        value: true
+    }
+
     LockScreen {}
 
     // Same entry points as the island's (shell.qml): `qs -p <this file> ipc call lock lock|unlock`.

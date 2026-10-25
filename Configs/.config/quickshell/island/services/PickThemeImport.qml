@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.shared.services
+import qs.shared.pickers
 
 // HyDE gallery picker: the themes that can be downloaded (port of `hyde-shell theme.import --select`,
 // HyDE's fzf gallery selector). PickHydeThemes switches between the themes already installed; this

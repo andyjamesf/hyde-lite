@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import qs.island.services
+import qs.shared.pickers
 
 // Colours and surface look. The palettes themselves live in theme/Palettes.qml; the chosen one is
 // stored as the Prefs key "theme.name" (Settings → Theme). (Named ThemeConfig because

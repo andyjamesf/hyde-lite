@@ -1,14 +1,17 @@
 pragma Singleton
 import QtQuick
 import Quickshell
-import qs.bar.services
 
 // Picker of pickers: lists every screen that came from HyDE's rofi menus (including those without a
 // shortcut of their own, such as themes, workflows, shaders or layouts). Choosing one opens it in
 // the same launcher without closing the launcher — the equivalent of the HyDE menu in the bar.
-// Order, descriptions and icons: Config.pickers.menu in config/Config.pickers.qml.
+// Order, descriptions and icons: PickerSettings.menu in config/PickerSettings.qml.
 Singleton {
     id: root
+
+    // The owner chose a picker from the menu. Opening it is the launcher's business and
+    // each shell drives its own, so the shell listens for this.
+    signal openRequested(string name)
 
     readonly property string name: "menu"
     readonly property string title: "HyDE"
@@ -23,7 +26,7 @@ Singleton {
     function items(query) {
         const q = String(query ?? "").trim().toLowerCase();
         const out = [];
-        for (const entry of Config.pickers.menu) {
+        for (const entry of PickerSettings.menu) {
             // Pickers.get() is null for unknown or disabled pickers.
             const p = Pickers.get(entry.name);
             if (!p || p === root)
@@ -50,6 +53,6 @@ Singleton {
 
     // Opens the chosen picker in the same launcher (it stays open: keepOpen).
     function activate(item) {
-        ShellState.launcherMode = "pick:" + item.key;
+        root.openRequested(item.key);
     }
 }

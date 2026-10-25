@@ -7,10 +7,10 @@ import Quickshell.Services.UPower
 import Quickshell.Widgets
 import qs.bar.components
 import qs.bar.services
-import qs.bar.pickers
 import qs.bar.modules.controls
 import qs.bar.modules.notifications
 import qs.shared.services
+import qs.shared.pickers
 
 // Control center: side panel with quick toggles, sliders, media, HyDE shortcuts and
 // detail pages (Wi-Fi, Bluetooth, sound). Opens on the focused screen; closes with Esc or

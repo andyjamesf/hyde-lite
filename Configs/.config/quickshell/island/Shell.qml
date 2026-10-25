@@ -6,6 +6,7 @@ import qs.island.config
 import qs.island.services
 import qs.island.theme
 import qs.shared.services
+import qs.shared.pickers
 
 // Morphing Island: a single floating island at the top of each screen that turns into a clock,
 // an expanded bar, OSDs, notifications, the launcher, the control center, etc.
@@ -79,6 +80,11 @@ Scope {
     // The lock is shared with the bar now; this shell's settings reach it here.
     Binding {
         target: Lock
+        property: "recoverLock"
+        value: true
+    }
+    Binding {
+        target: Lock
         property: "pamService"
         value: LockScreenConfig.pamService
     }
@@ -96,6 +102,86 @@ Scope {
         target: Lock
         property: "animated"
         value: Animations.enabled
+    }
+
+
+    // The pickers are shared with the bar; this shell's settings reach them here
+    // (config/PickersConfig.qml).
+    Binding {
+        target: PickerSettings
+        property: "enabled"
+        value: PickersConfig.enabled
+    }
+    Binding {
+        target: PickerSettings
+        property: "menu"
+        value: PickersConfig.menu
+    }
+    Binding {
+        target: PickerSettings
+        property: "maxResults"
+        value: PickersConfig.maxResults
+    }
+    Binding {
+        target: PickerSettings
+        property: "files"
+        value: PickersConfig.files
+    }
+    Binding {
+        target: PickerSettings
+        property: "quickAppsFallback"
+        value: PickersConfig.quickAppsFallback
+    }
+    Binding {
+        target: PickerSettings
+        property: "recents"
+        value: PickersConfig.recents
+    }
+    Binding {
+        target: PickerSettings
+        property: "webLabels"
+        value: PickersConfig.webLabels
+    }
+    Binding {
+        target: PickerSettings
+        property: "webPreferred"
+        value: PickersConfig.webPreferred
+    }
+    Binding {
+        target: PickerSettings
+        property: "pasteDelayMs"
+        value: PickersConfig.pasteDelayMs
+    }
+    Binding {
+        target: PickerSettings
+        property: "qml"
+        value: PickersConfig.qml
+    }
+    Binding {
+        target: PickerSettings
+        property: "glyphFont"
+        value: Appearance.nerdFont
+    }
+    Binding {
+        target: PickerSettings
+        property: "statePath"
+        value: Paths.islandState
+    }
+    // The theme import picker is the island's own.
+    Binding {
+        target: Pickers
+        property: "extra"
+        value: ({
+                "themeimport": PickThemeImport
+            })
+    }
+    // Choosing a picker in the HyDE menu opens it in this shell's launcher.
+    Connections {
+        target: PickMenu
+        function onOpenRequested(name) {
+            LauncherState.query = "";
+            LauncherState.provider = name;
+        }
     }
 
     Connections {

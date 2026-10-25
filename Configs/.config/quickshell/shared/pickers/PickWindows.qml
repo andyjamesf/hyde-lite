@@ -3,7 +3,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
-import qs.island.config as Config
 
 // Window picker (HyDE's `rofi -show window`): every Hyprland window, in focus-history order. The
 // window that had focus goes last, so Enter right away jumps to the previous one (like Alt+Tab).
@@ -118,7 +117,7 @@ Singleton {
                     i
                 });
         }
-        return scored.sort((a, b) => b.s - a.s || a.i - b.i).slice(0, Config.PickersConfig.maxResults.windows ?? 200).map(x => ({
+        return scored.sort((a, b) => b.s - a.s || a.i - b.i).slice(0, PickerSettings.maxResults.windows ?? 200).map(x => ({
                     "key": x.w.addr,
                     "title": x.w.title || x.w.cls || "Untitled",
                     "subtitle": [x.w.cls, workspaceLabel(x.w)].filter(s => s !== "").join(" · "),

@@ -2,14 +2,13 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import qs.island.config as Config
 
-// "Quick apps" picker for the island launcher (port of HyDE's quickapps.sh).
+// "Quick apps" picker for the launcher (port of HyDE's quickapps.sh).
 // In HyDE the list comes from the script's arguments (`hyde-shell quickapps <app1> <app2> …`),
 // which HyDE takes from the `quickapps` key of the [desktop.app] section of
 // ~/.config/hyde/config.toml (a string of space-separated names; the schema default is "kitty").
 // Here that same key is read (a TOML array or commas work too); when it is missing,
-// PickersConfig.quickAppsFallback is used. Each name resolves to a .desktop file (exact id or
+// PickerSettings.quickAppsFallback is used. Each name resolves to a .desktop file (exact id or
 // Quickshell's heuristic), which provides the name and icon — as quickapps.sh does with grep.
 // activate() launches it with Launch.desktop, like HyDE; a name that matches no .desktop file is
 // run as a command.
@@ -25,7 +24,7 @@ Singleton {
     readonly property bool keepOpen: false
 
     // Used when config.toml has no [desktop.app].quickapps (HyDE's schema default).
-    readonly property var fallbackApps: Config.PickersConfig.quickAppsFallback
+    readonly property var fallbackApps: PickerSettings.quickAppsFallback
 
     property bool _loading: false
     property var _apps: []

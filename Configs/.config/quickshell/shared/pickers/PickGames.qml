@@ -2,7 +2,6 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import qs.bar.services
 
 // Games picker for the launcher (port of HyDE's gamelauncher.sh, "catalog" backend, which
 // merges Steam and Lutris). A small Python script (standard library only) runs on every opening and
@@ -28,7 +27,7 @@ Singleton {
     readonly property bool grid: false
     readonly property bool keepOpen: false
 
-    readonly property int maxResults: Config.pickers.maxResults.games ?? 200
+    readonly property int maxResults: PickerSettings.maxResults.games ?? 200
 
     property bool _loading: false
     // [{ launcher, id, name, art, low }] in alphabetical order.

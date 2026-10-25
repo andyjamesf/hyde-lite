@@ -2,14 +2,13 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import qs.bar.services
 import qs.shared.services
 
 // File picker (HyDE's `rofilaunch.sh f`, which opened rofi's file browser): folders and files under
 // the configured roots (home by default), opened with `xdg-open` (Launch.open).
 // The list is read once per opening with `fd` (no hidden files, .gitignore honoured; `find` when fd
 // is missing), limited by depth and entry count; searching filters that list in JS.
-// Roots, depth, limits and excluded names are in config/Config.pickers.qml (`files`).
+// Roots, depth, limits and excluded names are in config/PickerSettings.qml (`files`).
 Singleton {
     id: root
 
@@ -22,7 +21,7 @@ Singleton {
     readonly property bool keepOpen: false
 
     readonly property string home: Paths.home
-    readonly property var cfg: Config.pickers.files
+    readonly property var cfg: PickerSettings.files
     // Absolute roots, without trailing slashes.
     readonly property var roots: (cfg.roots ?? ["~"]).map(r => Paths.expand(r).replace(/\/+$/, "") || "/")
     readonly property int maxEntries: cfg.maxEntries ?? 5000

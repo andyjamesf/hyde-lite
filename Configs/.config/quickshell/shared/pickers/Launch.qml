@@ -2,7 +2,6 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import qs.bar.services
 
 // The single place that starts programs from the shell (apps, files, URLs, picker actions) and
 // pastes text into the focused window.
@@ -54,14 +53,14 @@ Singleton {
 
     // Direct paste, like HyDE's paste_string (globalcontrol.sh): runs `copyScript` (a shell snippet
     // that fills the clipboard; `arg` is available to it as "$1", never interpolated), waits
-    // Config.pickers.pasteDelayMs for the launcher to close and focus to return to the previous window,
+    // PickerSettings.pasteDelayMs for the launcher to close and focus to return to the previous window,
     // then sends Ctrl+V with wtype — except for the window classes listed in
     // ${HYDE_STATE_HOME}/ignore.paste (terminals by default, where Ctrl+V does not paste).
     //
     // NOTE: sending Ctrl+V is ON PURPOSE: it is the "paste directly" feature of the emoji, glyph and
     // clipboard pickers, not a testing shortcut.
     function pasteWith(copyScript, arg) {
-        const delay = Math.max(0, Config.pickers.pasteDelayMs) / 1000;
+        const delay = Math.max(0, PickerSettings.pasteDelayMs) / 1000;
         Quickshell.execDetached(["sh", "-c", `${copyScript} || exit 0\n` + "command -v wtype >/dev/null || exit 0\n" + `sleep ${delay}\n` + "f=\"${HYDE_STATE_HOME:-${XDG_STATE_HOME:-$HOME/.local/state}/hyde}/ignore.paste\"\n" + "if [ -f \"$f\" ]; then ign=$(cat \"$f\"); else ign='kitty\norg.kde.konsole\nterminator\nXTerm\nAlacritty\nxterm-256color'; fi\n" + "c=$(hyprctl -j activewindow 2>/dev/null | jq -r '.initialClass // empty')\n" + "[ -n \"$c\" ] && printf '%b\\n' \"$ign\" | grep -qF -- \"$c\" && exit 0\n" + "wtype -M ctrl -k v -m ctrl\n", "sh", String(arg ?? "")]);
     }
 
