@@ -85,15 +85,6 @@ Singleton {
             page: ""
         },
         {
-            id: "powerProfile",
-            label: "Power profile",
-            icon: Battery.profileIcon,
-            status: Battery.profileName,
-            active: Battery.profile !== 1,
-            available: true,
-            page: "battery"
-        },
-        {
             id: "caffeine",
             label: "Caffeine",
             icon: "coffee",
@@ -101,6 +92,15 @@ Singleton {
             active: Caffeine.active,
             available: true,
             page: ""
+        },
+        {
+            id: "powerProfile",
+            label: "Power profile",
+            icon: Battery.profileIcon,
+            status: Battery.profileName,
+            active: Battery.profile !== 1,
+            available: true,
+            page: "battery"
         }
     ]
 

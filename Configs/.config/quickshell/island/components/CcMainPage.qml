@@ -8,6 +8,7 @@ import qs.island.icons
 import qs.island.services
 import qs.island.theme
 import qs.shared.services
+import qs.shared.controlcenter
 
 // Main page of the control center: header (your picture and name, time since boot, battery,
 // settings, lock, power), quick-toggle tiles (ControlCenter.tiles), volume, microphone and
@@ -245,7 +246,12 @@ Item {
             spacing: 10
 
             readonly property real half: (width - spacing) / 2
-            readonly property var ids: ControlCenter.tiles.filter(t => root.tileComponents[t] !== undefined)
+            // What the control centre offers is shared with the bar
+            // (shared/controlcenter/CcToggles.qml): the same entries, with the same labels, status
+            // and behaviour. This keeps the owner's order and the right to leave one out
+            // (config/ControlCenter.qml, `tiles`), and leaves out whatever is not available —
+            // no Bluetooth adapter, no night light installed.
+            readonly property var ids: ControlCenter.tiles.filter(t => root.tileComponents[t] !== undefined && CcToggles.shown.some(x => x.id === t))
 
             Repeater {
                 model: tiles.ids
@@ -756,11 +762,11 @@ Item {
             wifi: wifiTileComponent,
             bluetooth: btTileComponent,
             sound: soundTileComponent,
-            peace: peaceTileComponent,
+            dnd: peaceTileComponent,
             nightlight: nightTileComponent,
             caffeine: caffeineTileComponent,
             mic: micTileComponent,
-            profile: profileTileComponent
+            powerProfile: profileTileComponent
         })
 
     Component {
@@ -768,12 +774,13 @@ Item {
 
         CcTile {
             id: wifiTile
+            readonly property var entry: CcToggles.get("wifi") ?? ({})
             width: parent?.width ?? 0
-            title: "Wi‑Fi"
-            status: !Network.wifiEnabled ? (Network.wired ? "Ethernet" : "Off") : Network.connected ? Network.name : "Not connected"
-            active: Network.wifiEnabled
-            expandable: true
-            onToggled: Network.setWifiEnabled(!Network.wifiEnabled)
+            title: wifiTile.entry.label ?? ""
+            status: wifiTile.entry.status ?? ""
+            active: wifiTile.entry.active ?? false
+            expandable: (wifiTile.entry.page ?? "") !== ""
+            onToggled: CcToggles.toggle("wifi")
             onOpened: root.go(IslandState.wifi)
 
             WifiIcon {
@@ -791,13 +798,14 @@ Item {
 
         CcTile {
             id: btTile
+            readonly property var entry: CcToggles.get("bluetooth") ?? ({})
             width: parent?.width ?? 0
-            title: "Bluetooth"
-            status: Bluetooth.summary
-            active: Bluetooth.enabled
+            title: btTile.entry.label ?? ""
+            status: btTile.entry.status ?? ""
+            active: btTile.entry.active ?? false
             enabled: Bluetooth.available
-            expandable: true
-            onToggled: Bluetooth.setEnabled(!Bluetooth.enabled)
+            expandable: (btTile.entry.page ?? "") !== ""
+            onToggled: CcToggles.toggle("bluetooth")
             onOpened: root.go(IslandState.bluetooth)
 
             BluetoothIcon {
@@ -814,12 +822,13 @@ Item {
 
         CcTile {
             id: audioTile
+            readonly property var entry: CcToggles.get("sound") ?? ({})
             width: parent?.width ?? 0
-            title: "Sound"
-            status: Audio.muted ? "Muted" : root.outputName || `${Math.round(Audio.volume * 100)}%`
-            active: !Audio.muted
-            expandable: true
-            onToggled: Audio.toggleMute()
+            title: audioTile.entry.label ?? ""
+            status: audioTile.entry.status ?? ""
+            active: audioTile.entry.active ?? false
+            expandable: (audioTile.entry.page ?? "") !== ""
+            onToggled: CcToggles.toggle("sound")
             onOpened: root.go(IslandState.audio)
 
             VolumeIcon {
@@ -836,11 +845,12 @@ Item {
 
         CcTile {
             id: peaceTile
+            readonly property var entry: CcToggles.get("dnd") ?? ({})
             width: parent?.width ?? 0
-            title: "Peace Mode"
-            status: Notifications.peaceMode ? "On" : "Off"
-            active: Notifications.peaceMode
-            onToggled: Notifications.togglePeace()
+            title: peaceTile.entry.label ?? ""
+            status: peaceTile.entry.status ?? ""
+            active: peaceTile.entry.active ?? false
+            onToggled: CcToggles.toggle("dnd")
 
             Glyph {
                 kind: Notifications.peaceMode ? "bellOff" : "bell"
@@ -855,12 +865,13 @@ Item {
 
         CcTile {
             id: nightTile
+            readonly property var entry: CcToggles.get("nightlight") ?? ({})
             width: parent?.width ?? 0
-            title: "Night Light"
-            status: !NightLight.available ? "Unavailable" : NightLight.active ? "On" : "Off"
-            active: NightLight.active
+            title: nightTile.entry.label ?? ""
+            status: nightTile.entry.status ?? ""
+            active: nightTile.entry.active ?? false
             enabled: NightLight.available
-            onToggled: NightLight.toggle()
+            onToggled: CcToggles.toggle("nightlight")
 
             MoonIcon {
                 size: 17
@@ -874,12 +885,13 @@ Item {
 
         CcTile {
             id: micTile
+            readonly property var entry: CcToggles.get("mic") ?? ({})
             width: parent?.width ?? 0
-            title: "Microphone"
-            status: Audio.micMuted ? "Off" : `${Math.round(Audio.micVolume * 100)}%`
-            active: !Audio.micMuted
-            expandable: true
-            onToggled: Audio.toggleMicMute()
+            title: micTile.entry.label ?? ""
+            status: micTile.entry.status ?? ""
+            active: micTile.entry.active ?? false
+            expandable: (micTile.entry.page ?? "") !== ""
+            onToggled: CcToggles.toggle("mic")
             onOpened: root.go(IslandState.audio)
 
             Label {
@@ -898,12 +910,13 @@ Item {
 
         CcTile {
             id: profileTile
+            readonly property var entry: CcToggles.get("powerProfile") ?? ({})
             width: parent?.width ?? 0
-            title: "Power Profile"
-            status: Battery.profileName
-            active: Battery.profile !== 1
-            expandable: true
-            onToggled: Battery.cycleProfile()
+            title: profileTile.entry.label ?? ""
+            status: profileTile.entry.status ?? ""
+            active: profileTile.entry.active ?? false
+            expandable: (profileTile.entry.page ?? "") !== ""
+            onToggled: CcToggles.toggle("powerProfile")
             onOpened: root.go(IslandState.battery)
 
             Label {
@@ -922,11 +935,12 @@ Item {
 
         CcTile {
             id: caffeineTile
+            readonly property var entry: CcToggles.get("caffeine") ?? ({})
             width: parent?.width ?? 0
-            title: "Caffeine"
-            status: Caffeine.active ? "Staying awake" : "Off"
-            active: Caffeine.active
-            onToggled: Caffeine.toggle()
+            title: caffeineTile.entry.label ?? ""
+            status: caffeineTile.entry.status ?? ""
+            active: caffeineTile.entry.active ?? false
+            onToggled: CcToggles.toggle("caffeine")
 
             Glyph {
                 kind: "coffee"
