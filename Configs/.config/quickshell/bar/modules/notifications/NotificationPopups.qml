@@ -45,7 +45,7 @@ PanelWindow {
         spacing: Theme.space2
 
         Repeater {
-            model: win.active ? Notifs.popups : []
+            model: win.active ? Popups.list : []
 
             Item {
                 id: slot
@@ -130,7 +130,7 @@ PanelWindow {
                         }
                     }
                     ScriptAction {
-                        script: Notifs.hidePopup(slot.modelData)
+                        script: Popups.hide(slot.modelData)
                     }
                 }
 

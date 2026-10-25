@@ -16,6 +16,9 @@ import qs.shared.pickers
 Scope {
     // Singletons are only created when something uses them: this starts the notification server now.
     readonly property int notificationCount: Notifications.count
+    // The queue must exist from startup, or the first notification is announced with nobody
+    // listening: a singleton is only created when something first touches it.
+    readonly property var notificationQueue: NotificationQueue
     // The polkit agent must exist from startup (it registers with polkitd).
     readonly property bool polkitRegistered: Polkit.registered
     // Wi-Fi and Bluetooth agent (scripts/agents.py) from startup.
@@ -104,6 +107,39 @@ Scope {
         value: Animations.enabled
     }
 
+
+    // The notification server is shared with the bar; this shell's settings reach it here
+    // (config/NotificationsConfig.qml).
+    Binding {
+        target: Notifications
+        property: "historySize"
+        value: NotificationsConfig.historySize
+    }
+    Binding {
+        target: Notifications
+        property: "normalTimeout"
+        value: NotificationsConfig.normalTimeout
+    }
+    Binding {
+        target: Notifications
+        property: "criticalTimeout"
+        value: NotificationsConfig.criticalTimeout
+    }
+    Binding {
+        target: Notifications
+        property: "criticalBypassesPeace"
+        value: NotificationsConfig.criticalBypassesPeace
+    }
+    Binding {
+        target: Notifications
+        property: "filterHydeOsd"
+        value: NotificationsConfig.filterHydeOsd
+    }
+    Binding {
+        target: Notifications
+        property: "transientLayoutAlert"
+        value: NotificationsConfig.transientLayoutAlert
+    }
 
     // The applications service is shared too: its history file and the frecency half-life.
     Binding {

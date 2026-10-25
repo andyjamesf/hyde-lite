@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Quickshell.Widgets
 import Quickshell.Services.Notifications
 import qs.bar.services
+import qs.shared.services
 
 // A notification: icon/image, app, time, title, body, actions and close button.
 // Clicking the card runs the app's default action (if any) and closes it.
@@ -70,7 +71,7 @@ Rectangle {
             Image {
                 id: img
                 anchors.fill: parent
-                source: Notifs.imageOf(root.notification)
+                source: Notifications.imageOf(root.notification)
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true
                 sourceSize.width: 80
@@ -94,7 +95,7 @@ Rectangle {
                 }
 
                 StyledText {
-                    text: Utils.relativeTime(Notifs.timeOf(root.notification))
+                    text: Utils.relativeTime(Notifications.timeOf(root.notification))
                     font.pixelSize: Theme.labelSmall
                     color: Theme.textFaint
                 }

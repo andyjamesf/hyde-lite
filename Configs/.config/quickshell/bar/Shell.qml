@@ -24,7 +24,9 @@ Scope {
     // Singletons are only created when something uses them; these must exist from startup
     // (the calendar events, which must be ready before it is opened).
     readonly property var agenda: Agenda
-    readonly property var notifs: Notifs
+    readonly property var notifs: Notifications
+    // The popup policy must exist from startup too, or the first notification has nowhere to go.
+    readonly property var popups: Popups
 
     // User picture editor (only exists while it is open).
     Variants {
@@ -64,7 +66,7 @@ Scope {
         LazyLoader {
             id: popupLoader
             required property ShellScreen modelData
-            active: Notifs.popups.length > 0 && (Hyprland.focusedMonitor?.name ?? "") === modelData.name
+            active: Popups.list.length > 0 && (Hyprland.focusedMonitor?.name ?? "") === modelData.name
 
             NotificationPopups {
                 modelData: popupLoader.modelData
@@ -194,6 +196,29 @@ Scope {
         value: Config.widgets.lock.enabled
     }
 
+    // The notification server is shared with the island; this shell's settings reach it here, and
+    // how many popups it stacks is its own (the island shows one at a time instead).
+    Binding {
+        target: Notifications
+        property: "historySize"
+        value: Config.widgets.notifications.historySize
+    }
+    Binding {
+        target: Notifications
+        property: "normalTimeout"
+        value: Config.widgets.notifications.timeout
+    }
+    Binding {
+        target: Notifications
+        property: "filterHydeOsd"
+        value: Config.widgets.osd.enabled
+    }
+    Binding {
+        target: Popups
+        property: "max"
+        value: Config.widgets.notifications.maxPopups
+    }
+
     // The applications service is shared too; its history file is this shell's own.
     Binding {
         target: Apps
@@ -308,10 +333,10 @@ Scope {
         target: "notifications"
 
         function toggleDnd(): void {
-            Notifs.toggleDnd();
+            Notifications.toggleDnd();
         }
         function clear(): void {
-            Notifs.clear();
+            Notifications.clear();
         }
         function open(): void {
             ShellState.openControlCenter("notifications");

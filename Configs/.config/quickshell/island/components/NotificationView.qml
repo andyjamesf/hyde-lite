@@ -5,6 +5,7 @@ import qs.island.config
 import qs.island.core
 import qs.island.services
 import qs.island.theme
+import qs.shared.services
 
 // Notification in the island ("notification" mode): the app icon or an avatar with its initial,
 // app name, title, body (up to NotificationsConfig.bodyLines lines), up to maxActions actions and a
@@ -76,7 +77,7 @@ Item {
             // First the notification, then the island (closing the island may expire the transient ones).
             if (n && (mouse.button === Qt.MiddleButton || root.defaultAction))
                 n.dismiss();
-            Notifications.hideCurrent();
+            NotificationQueue.hideCurrent();
         }
     }
 
@@ -206,7 +207,7 @@ Item {
                             chip.modelData.invoke();
                             if (n && !n.resident)
                                 n.dismiss();
-                            Notifications.hideCurrent();
+                            NotificationQueue.hideCurrent();
                         }
                     }
                 }
