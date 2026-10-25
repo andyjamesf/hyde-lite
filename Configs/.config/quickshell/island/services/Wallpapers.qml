@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.island.config
+import qs.shared.services
 
 // HyDE wallpapers (current theme + extra folders), for the island's picker. Folders, extensions
 // and polling: config/WallpapersConfig.qml.

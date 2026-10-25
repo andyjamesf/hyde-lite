@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.island.config
+import qs.shared.services
 
 // Keeps the login screen (SDDM theme in sddm/, installed by scripts/sddm.py) matching the island:
 // when the colours, the wallpaper or the settings change, scripts/sddm.py sync rewrites the theme's

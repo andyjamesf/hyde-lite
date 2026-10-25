@@ -11,6 +11,7 @@ import qs.island.config
 import qs.island.core
 import qs.island.services
 import qs.island.theme
+import qs.shared.services
 
 // Workspace overview: the workspaces of this screen as a grid of tiles, each window drawn where it
 // really sits on the screen, from a capture of the window itself.

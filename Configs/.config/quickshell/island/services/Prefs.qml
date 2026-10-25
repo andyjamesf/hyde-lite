@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.island.config
+import qs.shared.services
 
 // User overrides chosen in the Settings screen (and a few toggles such as peace mode or the hidden
 // pill), stored as a flat key → value map in <XDG_STATE_HOME>/morphing-island/prefs.json.

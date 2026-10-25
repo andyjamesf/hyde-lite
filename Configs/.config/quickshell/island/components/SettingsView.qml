@@ -5,6 +5,7 @@ import qs.island.icons
 import qs.island.core
 import qs.island.services
 import qs.island.theme
+import qs.shared.services
 
 // Settings in the island ("settings" mode): appearance, behaviour and animations. Everything
 // applies live (the bar height resizes the collapsed island on every screen at once) and is stored

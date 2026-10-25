@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.island.config
+import qs.shared.services
 
 // Waiting updates (config/UpdatesConfig.qml), from HyDE's system.update.py: `status` counts them
 // per package manager, `up` opens a terminal that lists them and asks before updating (checked again

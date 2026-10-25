@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import qs.island.config
 import qs.island.core
-import qs.island.services
+import qs.shared.pickers
 
 // Power menu in the island ("power" mode): a row of tiles from config/Power.qml
 // (Lock · Suspend · Log out · Restart · Power off by default).

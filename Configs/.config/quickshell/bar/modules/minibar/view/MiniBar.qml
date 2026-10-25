@@ -6,6 +6,7 @@ import qs.bar.components
 import qs.bar.services
 import qs.bar.modules.bar
 import qs.bar.modules.minibar.model
+import qs.shared.services
 
 // The minimal bar of one screen: a slimmer bar that takes the normal one's place while it is
 // switched on. Everything it shows comes from model/MiniBarConfig.qml, and it hosts the same
@@ -62,7 +63,7 @@ PanelWindow {
     // without this one `qs ipc call idle toggle` (and the "idle" widget) would do nothing here.
     IdleInhibitor {
         window: bar
-        enabled: ShellState.idleInhibited
+        enabled: Caffeine.active
     }
 
     // Reveals the bar while the pointer is anywhere on it. A handler rather than a MouseArea: it

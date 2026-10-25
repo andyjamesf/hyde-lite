@@ -8,8 +8,6 @@ Singleton {
     id: root
 
     property bool barHidden: false
-    // Read by each bar's IdleInhibitor (the inhibitor needs a window).
-    property bool idleInhibited: false
 
     // Control center: which screen it is open on, and which page ("" = main, "wifi", "bluetooth", "audio").
     property bool controlCenterOpen: false

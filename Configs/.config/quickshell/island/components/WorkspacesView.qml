@@ -2,8 +2,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Widgets
 import qs.island.config
-import qs.island.services
 import qs.island.theme
+import qs.shared.services
 
 // The workspace indicator's content: one chip per workspace (number + app icons, "+N" for more),
 // the current one filled with the accent colour. Click a chip to go there; scroll to step through.

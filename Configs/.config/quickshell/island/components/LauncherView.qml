@@ -7,6 +7,7 @@ import qs.island.services
 import qs.island.theme
 import qs.island.icons
 import qs.shared.services
+import qs.shared.pickers
 
 // The island's launcher (mode "launcher"): a search field on top and the result list below.
 // The prefix picks the mode (config/Launcher.qml `prefixes`): "=" calculator, ":" clipboard,

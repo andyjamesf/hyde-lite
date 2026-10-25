@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.island.config
+import qs.shared.services
 
 // Loads the plugins in ~/.local/share/morphing-island/plugins: one .qml file each, rooted at
 // components/IslandPlugin.qml, which says what it is called, whether it has anything to show, its

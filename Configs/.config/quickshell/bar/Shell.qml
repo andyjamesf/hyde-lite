@@ -18,12 +18,15 @@ import qs.bar.modules.avatar
 import qs.bar.modules.minibar.controller
 import qs.bar.modules.minibar.view
 import qs.shared.services
+import qs.shared.pickers
 
 Scope {
     // Singletons are only created when something uses them; these must exist from startup
     // (the calendar events, which must be ready before it is opened).
     readonly property var agenda: Agenda
-    readonly property var notifs: Notifs
+    readonly property var notifs: Notifications
+    // The popup policy must exist from startup too, or the first notification has nowhere to go.
+    readonly property var popups: Popups
 
     // User picture editor (only exists while it is open).
     Variants {
@@ -63,7 +66,7 @@ Scope {
         LazyLoader {
             id: popupLoader
             required property ShellScreen modelData
-            active: Notifs.popups.length > 0 && (Hyprland.focusedMonitor?.name ?? "") === modelData.name
+            active: Popups.list.length > 0 && (Hyprland.focusedMonitor?.name ?? "") === modelData.name
 
             NotificationPopups {
                 modelData: popupLoader.modelData
@@ -193,6 +196,114 @@ Scope {
         value: Config.widgets.lock.enabled
     }
 
+    // The notification server is shared with the island; this shell's settings reach it here, and
+    // how many popups it stacks is its own (the island shows one at a time instead).
+    Binding {
+        target: Notifications
+        property: "historySize"
+        value: Config.widgets.notifications.historySize
+    }
+    Binding {
+        target: Notifications
+        property: "normalTimeout"
+        value: Config.widgets.notifications.timeout
+    }
+    Binding {
+        target: Notifications
+        property: "filterHydeOsd"
+        value: Config.widgets.osd.enabled
+    }
+    Binding {
+        target: Popups
+        property: "max"
+        value: Config.widgets.notifications.maxPopups
+    }
+
+    // The applications service is shared too; its history file is this shell's own.
+    Binding {
+        target: Apps
+        property: "statePath"
+        value: Quickshell.statePath("launcher.json")
+    }
+
+    // The pickers are shared with the island; this shell's settings and its own wallpaper picker
+    // reach them here (config/config.json -> services/Config.qml).
+    Binding {
+        target: PickerSettings
+        property: "enabled"
+        value: Config.pickers.enabled
+    }
+    Binding {
+        target: PickerSettings
+        property: "menu"
+        value: Config.pickers.menu
+    }
+    Binding {
+        target: PickerSettings
+        property: "maxResults"
+        value: Config.pickers.maxResults
+    }
+    Binding {
+        target: PickerSettings
+        property: "files"
+        value: Config.pickers.files
+    }
+    Binding {
+        target: PickerSettings
+        property: "quickAppsFallback"
+        value: Config.pickers.quickAppsFallback
+    }
+    Binding {
+        target: PickerSettings
+        property: "recents"
+        value: Config.pickers.recents
+    }
+    Binding {
+        target: PickerSettings
+        property: "webLabels"
+        value: Config.pickers.webLabels
+    }
+    Binding {
+        target: PickerSettings
+        property: "webPreferred"
+        value: Config.pickers.webPreferred
+    }
+    Binding {
+        target: PickerSettings
+        property: "pasteDelayMs"
+        value: Config.pickers.pasteDelayMs
+    }
+    Binding {
+        target: PickerSettings
+        property: "qml"
+        value: Config.pickers.qml
+    }
+    Binding {
+        target: PickerSettings
+        property: "glyphFont"
+        value: Config.appearance.monoFont
+    }
+    Binding {
+        target: PickerSettings
+        property: "statePath"
+        value: Paths.shellState
+    }
+    // The wallpaper picker is the bar's own (the island picks wallpapers its own way).
+    Binding {
+        target: Pickers
+        property: "extra"
+        value: ({
+                "wallpapers": PickWallpapers
+            })
+    }
+    // Choosing a picker in the HyDE menu opens it in this shell's launcher.
+    Connections {
+        target: PickMenu
+        function onOpenRequested(name) {
+            ShellState.launcherMode = "pick:" + name;
+        }
+    }
+
     LockScreen {}
 
     IpcHandler {
@@ -222,10 +333,10 @@ Scope {
         target: "notifications"
 
         function toggleDnd(): void {
-            Notifs.toggleDnd();
+            Notifications.toggleDnd();
         }
         function clear(): void {
-            Notifs.clear();
+            Notifications.clear();
         }
         function open(): void {
             ShellState.openControlCenter("notifications");
@@ -357,10 +468,10 @@ Scope {
         target: "idle"
 
         function toggle(): void {
-            ShellState.idleInhibited = !ShellState.idleInhibited;
+            Caffeine.toggle();
         }
         function isInhibited(): bool {
-            return ShellState.idleInhibited;
+            return Caffeine.active;
         }
     }
 

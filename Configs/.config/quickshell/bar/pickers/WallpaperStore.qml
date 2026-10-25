@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.bar.services
+import qs.shared.services
 
 // HyDE wallpapers (current theme + extra folders), for the shell's picker. Folders, extensions
 // and polling: config/Config.pickers.wallpapers.qml.

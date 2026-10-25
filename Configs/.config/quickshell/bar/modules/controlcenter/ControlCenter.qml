@@ -7,10 +7,10 @@ import Quickshell.Services.UPower
 import Quickshell.Widgets
 import qs.bar.components
 import qs.bar.services
-import qs.bar.pickers
 import qs.bar.modules.controls
 import qs.bar.modules.notifications
 import qs.shared.services
+import qs.shared.pickers
 
 // Control center: side panel with quick toggles, sliders, media, HyDE shortcuts and
 // detail pages (Wi-Fi, Bluetooth, sound). Opens on the focused screen; closes with Esc or
@@ -447,10 +447,10 @@ PanelWindow {
 
                 QuickToggle {
                     Layout.fillWidth: true
-                    icon: Notifs.dnd ? "notifications_off" : "notifications"
+                    icon: Notifications.dnd ? "notifications_off" : "notifications"
                     label: "Silent"
-                    checked: Notifs.dnd
-                    onToggled: Notifs.toggleDnd()
+                    checked: Notifications.dnd
+                    onToggled: Notifications.toggleDnd()
                 }
 
                 QuickToggle {
@@ -474,8 +474,8 @@ PanelWindow {
                     Layout.fillWidth: true
                     icon: "coffee"
                     label: "Caffeine"
-                    checked: ShellState.idleInhibited
-                    onToggled: ShellState.idleInhibited = !ShellState.idleInhibited
+                    checked: Caffeine.active
+                    onToggled: Caffeine.toggle()
                 }
 
                 QuickToggle {
@@ -571,7 +571,7 @@ PanelWindow {
                     }
 
                     Rectangle {
-                        visible: Notifs.count > 0
+                        visible: Notifications.count > 0
                         implicitWidth: Math.max(implicitHeight, countText.implicitWidth + Theme.space3)
                         implicitHeight: 20
                         radius: height / 2
@@ -580,7 +580,7 @@ PanelWindow {
                         StyledText {
                             id: countText
                             anchors.centerIn: parent
-                            text: Notifs.count
+                            text: Notifications.count
                             font.pixelSize: Theme.labelSmall
                             font.weight: Font.DemiBold
                             color: Theme.onPrimaryContainer
@@ -592,31 +592,31 @@ PanelWindow {
                     }
 
                     TextButton {
-                        visible: Notifs.count > notifSection.limit
+                        visible: Notifications.count > notifSection.limit
                         text: "See all"
                         onClicked: ShellState.controlCenterPage = "notifications"
                     }
 
                     TextButton {
-                        visible: Notifs.count > 0
+                        visible: Notifications.count > 0
                         text: "Clear"
-                        onClicked: Notifs.clear()
+                        onClicked: Notifications.clear()
                     }
                 }
 
                 StyledText {
-                    visible: Notifs.count === 0
+                    visible: Notifications.count === 0
                     Layout.fillWidth: true
                     Layout.preferredHeight: 48
                     horizontalAlignment: Text.AlignHCenter
-                    text: Notifs.dnd ? "Silent mode on" : "No notifications"
+                    text: Notifications.dnd ? "Silent mode on" : "No notifications"
                     font.pixelSize: Theme.bodyMedium
                     color: Theme.textFaint
                 }
 
                 NotificationList {
                     Layout.fillWidth: true
-                    visible: Notifs.count > 0
+                    visible: Notifications.count > 0
                     showHeader: false
                     compact: true
                     limit: notifSection.limit

@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell.Widgets
 import qs.bar.components
 import qs.bar.services
+import qs.shared.services
 
 // Hyprland workspaces: always at least `shown` visible, the occupied ones with their apps' icons,
 // and an indicator that slides to this screen's active workspace. Scroll switches workspace.
@@ -13,7 +14,7 @@ Item {
 
     readonly property var cfg: Config.widgets.workspaces
     readonly property int activeId: bar?.monitor?.activeWorkspace?.id ?? 1
-    readonly property int count: Math.max(cfg.shown, activeId, ...Hypr.workspaces.map(w => w.id))
+    readonly property int count: Math.max(cfg.shown, activeId, ...Workspaces.workspaces.map(w => w.id))
 
     implicitWidth: row.implicitWidth + 8
     implicitHeight: BarLayout.height
@@ -25,7 +26,7 @@ Item {
         onWheel: event => {
             acc += event.angleDelta.y;
             if (Math.abs(acc) >= 120) {
-                Hypr.dispatchFocusWorkspace(acc > 0 ? "e-1" : "e+1");
+                Workspaces.focus(acc > 0 ? "e-1" : "e+1");
                 acc = 0;
             }
         }
@@ -73,7 +74,7 @@ Item {
                 required property int index
                 readonly property int wsId: index + 1
                 readonly property bool isActive: wsId === root.activeId
-                readonly property var toplevels: Hypr.toplevelsOn(wsId)
+                readonly property var toplevels: Workspaces.toplevelsOn(wsId)
                 readonly property bool occupied: toplevels.length > 0
                 readonly property bool showIcons: root.cfg.appIcons && occupied
 
@@ -85,7 +86,7 @@ Item {
                     anchors.topMargin: Math.round((row.height - root.indicatorHeight) / 2)
                     anchors.bottomMargin: Math.round((row.height - root.indicatorHeight) / 2)
                     highlight: ws.isActive ? "transparent" : Theme.hover
-                    onClicked: Hypr.dispatchFocusWorkspace(ws.wsId)
+                    onClicked: Workspaces.focus(ws.wsId)
                 }
 
                 Row {
@@ -100,7 +101,7 @@ Item {
                             required property var modelData
                             anchors.verticalCenter: parent.verticalCenter
                             implicitSize: Math.min(Math.round(BarLayout.iconSize * 0.9), root.indicatorHeight - 6)
-                            source: Apps.iconFor(Hypr.appIdOf(modelData))
+                            source: Apps.iconFor(Workspaces.appIdOf(modelData))
                         }
                     }
 

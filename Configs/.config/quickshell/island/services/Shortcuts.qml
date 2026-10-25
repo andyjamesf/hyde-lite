@@ -6,6 +6,7 @@ import qs.island.core
 // into, so it reports this import as unused. It is not.
 // qmllint disable unused-imports
 import qs.shared.services
+import qs.shared.pickers
 // qmllint enable unused-imports
 
 // What the status icons and the shortcut buttons of the expanded island do when clicked, and the

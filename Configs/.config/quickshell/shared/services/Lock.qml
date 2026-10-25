@@ -40,6 +40,11 @@ Singleton {
     // false: this lock is not used at all and lock() hands over to the command below.
     property bool enabled: true
     property string fallbackCommand: "hyde-shell lockscreen.sh"
+    // Take the lock back after a crash (see lockMarker below). Only the process that owns the lock
+    // screen may: the island and lock.qml set it. The bar shell must not — it reads the same
+    // service now, and on a reload it would find the marker of a lock it does not own and lock the
+    // session again, which is exactly what happened the first time this service was shared.
+    property bool recoverLock: false
 
     // The state survives a shell reload: the new WlSessionLock resumes the lock. Without this, a
     // reload with the screen locked dropped the lock and Hyprland showed "lockscreen app died".
@@ -145,7 +150,7 @@ Singleton {
     FileView {
         path: root.lockMarker
         printErrors: false
-        onLoaded: if (!persist.locked) {
+        onLoaded: if (root.recoverLock && !persist.locked) {
             console.warn("lock: the shell restarted while the screen was locked; locking again");
             root.lock();
         }

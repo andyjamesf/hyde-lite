@@ -6,6 +6,7 @@ import qs.island.config
 import qs.island.services
 import qs.island.components
 import qs.island.theme
+import qs.shared.services
 
 // One window per screen: transparent, as big as the island's largest shape, but only the island
 // receives clicks (mask). Reserves the space of the collapsed island at the top.

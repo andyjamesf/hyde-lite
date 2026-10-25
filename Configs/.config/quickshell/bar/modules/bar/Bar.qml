@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
 import qs.bar.services
+import qs.shared.services
 
 // The bar of one screen. The sections (left, center, right) and the islands come from config.json.
 PanelWindow {
@@ -32,7 +33,7 @@ PanelWindow {
 
     IdleInhibitor {
         window: bar
-        enabled: ShellState.idleInhibited
+        enabled: Caffeine.active
     }
 
     // Background of the "continuous" style.

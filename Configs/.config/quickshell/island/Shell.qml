@@ -6,6 +6,7 @@ import qs.island.config
 import qs.island.services
 import qs.island.theme
 import qs.shared.services
+import qs.shared.pickers
 
 // Morphing Island: a single floating island at the top of each screen that turns into a clock,
 // an expanded bar, OSDs, notifications, the launcher, the control center, etc.
@@ -15,6 +16,9 @@ import qs.shared.services
 Scope {
     // Singletons are only created when something uses them: this starts the notification server now.
     readonly property int notificationCount: Notifications.count
+    // The queue must exist from startup, or the first notification is announced with nobody
+    // listening: a singleton is only created when something first touches it.
+    readonly property var notificationQueue: NotificationQueue
     // The polkit agent must exist from startup (it registers with polkitd).
     readonly property bool polkitRegistered: Polkit.registered
     // Wi-Fi and Bluetooth agent (scripts/agents.py) from startup.
@@ -79,6 +83,11 @@ Scope {
     // The lock is shared with the bar now; this shell's settings reach it here.
     Binding {
         target: Lock
+        property: "recoverLock"
+        value: true
+    }
+    Binding {
+        target: Lock
         property: "pamService"
         value: LockScreenConfig.pamService
     }
@@ -96,6 +105,173 @@ Scope {
         target: Lock
         property: "animated"
         value: Animations.enabled
+    }
+
+
+    // The workspace service is shared with the bar; this shell's options reach it here.
+    Binding {
+        target: Workspaces
+        property: "perScreen"
+        value: WorkspacesConfig.perScreen
+    }
+    Binding {
+        target: Workspaces
+        property: "groupApps"
+        value: WorkspacesConfig.groupApps
+    }
+    Binding {
+        target: Workspaces
+        property: "maxIcons"
+        value: WorkspacesConfig.maxIcons
+    }
+
+    // The notification server is shared with the bar; this shell's settings reach it here
+    // (config/NotificationsConfig.qml).
+    Binding {
+        target: Notifications
+        property: "historySize"
+        value: NotificationsConfig.historySize
+    }
+    Binding {
+        target: Notifications
+        property: "normalTimeout"
+        value: NotificationsConfig.normalTimeout
+    }
+    Binding {
+        target: Notifications
+        property: "criticalTimeout"
+        value: NotificationsConfig.criticalTimeout
+    }
+    Binding {
+        target: Notifications
+        property: "criticalBypassesPeace"
+        value: NotificationsConfig.criticalBypassesPeace
+    }
+    Binding {
+        target: Notifications
+        property: "filterHydeOsd"
+        value: NotificationsConfig.filterHydeOsd
+    }
+    Binding {
+        target: Notifications
+        property: "transientLayoutAlert"
+        value: NotificationsConfig.transientLayoutAlert
+    }
+
+    // The applications service is shared too: its history file and the frecency half-life.
+    Binding {
+        target: Apps
+        property: "statePath"
+        value: `${Paths.islandState}/launcher.json`
+    }
+    Binding {
+        target: Apps
+        property: "frecencyHalfLifeDays"
+        value: Launcher.frecencyHalfLifeDays
+    }
+    Binding {
+        target: Apps
+        property: "maxResults"
+        value: Launcher.appsMaxResults
+    }
+    Binding {
+        target: Apps
+        property: "fuzzyWeights"
+        value: Launcher.fuzzyWeights
+    }
+    Binding {
+        target: Apps
+        property: "frecencyBonusScale"
+        value: Launcher.frecencyBonusScale
+    }
+    Binding {
+        target: Apps
+        property: "frecencyBonusMax"
+        value: Launcher.frecencyBonusMax
+    }
+    Binding {
+        target: Apps
+        property: "favoriteBonus"
+        value: Launcher.favoriteBonus
+    }
+
+    // The pickers are shared with the bar; this shell's settings reach them here
+    // (config/PickersConfig.qml).
+    Binding {
+        target: PickerSettings
+        property: "enabled"
+        value: PickersConfig.enabled
+    }
+    Binding {
+        target: PickerSettings
+        property: "menu"
+        value: PickersConfig.menu
+    }
+    Binding {
+        target: PickerSettings
+        property: "maxResults"
+        value: PickersConfig.maxResults
+    }
+    Binding {
+        target: PickerSettings
+        property: "files"
+        value: PickersConfig.files
+    }
+    Binding {
+        target: PickerSettings
+        property: "quickAppsFallback"
+        value: PickersConfig.quickAppsFallback
+    }
+    Binding {
+        target: PickerSettings
+        property: "recents"
+        value: PickersConfig.recents
+    }
+    Binding {
+        target: PickerSettings
+        property: "webLabels"
+        value: PickersConfig.webLabels
+    }
+    Binding {
+        target: PickerSettings
+        property: "webPreferred"
+        value: PickersConfig.webPreferred
+    }
+    Binding {
+        target: PickerSettings
+        property: "pasteDelayMs"
+        value: PickersConfig.pasteDelayMs
+    }
+    Binding {
+        target: PickerSettings
+        property: "qml"
+        value: PickersConfig.qml
+    }
+    Binding {
+        target: PickerSettings
+        property: "glyphFont"
+        value: Appearance.nerdFont
+    }
+    Binding {
+        target: PickerSettings
+        property: "statePath"
+        value: Paths.islandState
+    }
+    // The theme import picker is the island's own.
+    Binding {
+        target: Pickers
+        property: "extra"
+        value: ({
+                "themeimport": PickThemeImport
+            })
+    }
+    // Choosing a picker in the HyDE menu opens it in this shell's launcher.
+    Connections {
+        target: PickMenu
+        function onOpenRequested(name) {
+            LauncherState.query = "";
+            LauncherState.provider = name;
+        }
     }
 
     Connections {
