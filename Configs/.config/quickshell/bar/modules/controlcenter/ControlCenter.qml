@@ -9,7 +9,6 @@ import qs.bar.services
 import qs.bar.modules.controls
 import qs.bar.modules.notifications
 import qs.shared.services
-import qs.shared.pickers
 import qs.shared.controlcenter
 
 // Control center: side panel with quick toggles, sliders, media, HyDE shortcuts and
@@ -570,56 +569,18 @@ PanelWindow {
                 }
             }
 
-            // Shortcuts: a row of buttons with tooltips.
-            //
-            // The three that chose something used to run HyDE's own scripts, which open their menu
-            // in rofi; with no rofi installed they did nothing at all and the button sat there
-            // looking alive. They open this shell's own pickers instead (pickers/, the same ones
-            // `qs ipc call launcher pick <name>` and the HyDE menu widget use), so the work is done
-            // in one place and nothing here depends on a program that may not be installed.
+            // The shortcut row is shared with the island (shared/controlcenter/CcShortcuts.qml):
+            // the same buttons, the same names, the same actions. The bar's own one — cycling the
+            // bar layout, which the island has nothing to cycle for — goes in through `extra`,
+            // bound in Shell.qml.
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 0
 
                 Repeater {
-                    // A picker switched off in config.json (pickers.enabled) is not shown at all:
-                    // a button that cannot do anything has no business taking up the row.
-                    model: [
-                        {
-                            icon: "skip_next",
-                            label: "Next wallpaper",
-                            cmd: "hyde-shell app -t scope -- wallpaper.sh --next --global"
-                        },
-                        {
-                            icon: "image",
-                            label: "Choose wallpaper",
-                            pick: "wallpapers"
-                        },
-                        {
-                            icon: "palette",
-                            label: "Choose theme",
-                            pick: "themes"
-                        },
-                        {
-                            icon: "view_quilt",
-                            label: "Next bar layout",
-                            action: () => BarLayout.cycle(1)
-                        },
-                        {
-                            icon: "animation",
-                            label: "Animations",
-                            pick: "animations"
-                        },
-                        {
-                            icon: "keyboard",
-                            label: "Keybindings",
-                            action: () => ShellState.toggleLauncher("keys")
-                        }
-                    ].filter(t => !t.pick || Pickers.get(t.pick) !== null)
+                    model: CcShortcuts.shown
 
                     Item {
-                        id: tile
-
                         required property var modelData
 
                         Layout.fillWidth: true
@@ -627,23 +588,13 @@ PanelWindow {
 
                         IconButton {
                             anchors.centerIn: parent
-                            icon: tile.modelData.icon
+                            icon: modelData.icon
                             size: 44
                             iconSize: 22
                             tonal: true
-                            tooltip: tile.modelData.label
+                            tooltip: modelData.label
                             tooltipBelow: false
-                            onClicked: {
-                                if (tile.modelData.action) {
-                                    tile.modelData.action();
-                                } else if (tile.modelData.pick) {
-                                    // Opening the launcher closes this panel by itself.
-                                    ShellState.toggleLauncher("pick:" + tile.modelData.pick);
-                                } else {
-                                    ShellState.closeControlCenter();
-                                    Utils.run(tile.modelData.cmd);
-                                }
-                            }
+                            onClicked: CcShortcuts.run(modelData.id)
                         }
                     }
                 }

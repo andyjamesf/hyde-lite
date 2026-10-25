@@ -197,6 +197,31 @@ Scope {
         value: Config.widgets.lock.enabled
     }
 
+    // The shortcut row is shared too. Opening a picker or the keybindings list is the launcher's
+    // business and each shell drives its own, so the shared list asks and this answers.
+    Connections {
+        target: CcShortcuts
+
+        function onOpenRequested(what: string): void {
+            ShellState.toggleLauncher(what);
+        }
+    }
+
+    // Cycling the bar layout only means something where there is a bar to cycle.
+    Binding {
+        target: CcShortcuts
+        property: "extra"
+        value: [
+            {
+                id: "barlayout",
+                label: "Next bar layout",
+                icon: "view_week",
+                glyph: "\u{F0309}",
+                run: () => BarLayout.cycle()
+            }
+        ]
+    }
+
     // The control centre's toggles are shared with the island; this one is the bar's alone, since
     // the island has no notion of where its colours come from.
     Binding {

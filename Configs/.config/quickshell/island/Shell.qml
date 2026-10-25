@@ -7,6 +7,7 @@ import qs.island.services
 import qs.island.theme
 import qs.shared.services
 import qs.shared.pickers
+import qs.shared.controlcenter
 
 // Morphing Island: a single floating island at the top of each screen that turns into a clock,
 // an expanded bar, OSDs, notifications, the launcher, the control center, etc.
@@ -107,6 +108,25 @@ Scope {
         value: Animations.enabled
     }
 
+
+    // The control centre's shortcut row is shared with the bar; opening the launcher is this
+    // shell's own business, so the shared list asks and this answers.
+    Connections {
+        target: CcShortcuts
+
+        function onOpenRequested(what: string): void {
+            if (what === "keys") {
+                IslandController.open(IslandState.launcher);
+                LauncherState.query = "?";
+                return;
+            }
+            LauncherState.provider = what.slice(5);
+            if (IslandController.mode !== IslandState.launcher)
+                IslandController.open(IslandState.launcher);
+            else
+                LauncherState.query = "";
+        }
+    }
 
     // The calendar is shared with the bar; this shell's options and what its Google integration
     // knows reach it here (the bar has no Google integration, so it leaves those alone).

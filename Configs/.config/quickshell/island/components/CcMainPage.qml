@@ -480,16 +480,13 @@ Item {
             width: parent.width
             visible: ControlCenter.shortcuts.length > 0
 
-            readonly property var glyphs: ({
-                    nextwallpaper: "\u{F04AD}",
-                    wallpaper: "\u{F02E9}",
-                    hydetheme: "\u{F03D8}",
-                    animations: "\u{F05D8}",
-                    keybindings: "\u{F030C}"
-                })
+            // The shortcut row is shared with the bar (shared/controlcenter/CcShortcuts.qml):
+            // the same buttons, the same names, the same actions. The owner's order and the right
+            // to leave one out stay in config/ControlCenter.qml; a button whose picker is not
+            // registered is left out by the shared list rather than drawn dead.
 
             Repeater {
-                model: ControlCenter.shortcuts.filter(id => shortcutRow.glyphs[id] !== undefined)
+                model: ControlCenter.shortcuts.filter(id => CcShortcuts.shown.some(x => x.id === id))
 
                 Item {
                     id: shortcutCell
@@ -508,7 +505,7 @@ Item {
 
                         Label {
                             anchors.centerIn: parent
-                            text: shortcutRow.glyphs[shortcutCell.modelData]
+                            text: CcShortcuts.get(shortcutCell.modelData)?.glyph ?? ""
                             font.family: Appearance.nerdFont
                             font.pixelSize: 18
                             elide: Text.ElideNone
@@ -520,7 +517,7 @@ Item {
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             acceptedButtons: Qt.LeftButton | Qt.RightButton
-                            onClicked: event => event.button === Qt.RightButton ? root.menu(shortcutCell.modelData, parent) : Shortcuts.run(shortcutCell.modelData)
+                            onClicked: event => event.button === Qt.RightButton ? root.menu(shortcutCell.modelData, parent) : CcShortcuts.run(shortcutCell.modelData)
                             onContainsMouseChanged: root.hint(containsMouse, shortcutCell.modelData, parent)
                         }
                     }
