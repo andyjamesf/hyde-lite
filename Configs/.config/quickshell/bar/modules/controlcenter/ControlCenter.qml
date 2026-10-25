@@ -474,8 +474,8 @@ PanelWindow {
                     Layout.fillWidth: true
                     icon: "coffee"
                     label: "Caffeine"
-                    checked: ShellState.idleInhibited
-                    onToggled: ShellState.idleInhibited = !ShellState.idleInhibited
+                    checked: Caffeine.active
+                    onToggled: Caffeine.toggle()
                 }
 
                 QuickToggle {

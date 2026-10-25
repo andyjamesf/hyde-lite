@@ -468,10 +468,10 @@ Scope {
         target: "idle"
 
         function toggle(): void {
-            ShellState.idleInhibited = !ShellState.idleInhibited;
+            Caffeine.toggle();
         }
         function isInhibited(): bool {
-            return ShellState.idleInhibited;
+            return Caffeine.active;
         }
     }
 
