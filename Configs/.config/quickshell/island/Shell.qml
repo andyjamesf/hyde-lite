@@ -5,6 +5,7 @@ import qs.island.core
 import qs.island.config
 import qs.island.services
 import qs.island.theme
+import qs.shared.services
 
 // Morphing Island: a single floating island at the top of each screen that turns into a clock,
 // an expanded bar, OSDs, notifications, the launcher, the control center, etc.

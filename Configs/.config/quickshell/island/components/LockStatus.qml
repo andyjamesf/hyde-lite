@@ -3,6 +3,7 @@ import qs.island.config
 import qs.island.theme
 import qs.island.icons
 import qs.island.services
+import qs.shared.services
 
 // Small pill below the lock card: battery and, when music is playing, the title with the
 // play/pause button. Without battery nor music it has width 0 (and is invisible).

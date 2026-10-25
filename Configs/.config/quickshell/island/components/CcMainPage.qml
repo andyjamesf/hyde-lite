@@ -7,6 +7,7 @@ import qs.island.core
 import qs.island.icons
 import qs.island.services
 import qs.island.theme
+import qs.shared.services
 
 // Main page of the control center: header (your picture and name, time since boot, battery,
 // settings, lock, power), quick-toggle tiles (ControlCenter.tiles), volume, microphone and

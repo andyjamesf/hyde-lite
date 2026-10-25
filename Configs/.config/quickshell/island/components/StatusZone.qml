@@ -5,6 +5,7 @@ import qs.island.core
 import qs.island.icons
 import qs.island.services
 import qs.island.theme
+import qs.shared.services
 
 // Status icons, right-aligned: the right zone of the expanded island and the status pill at the
 // screen's right edge (StatusPillConfig.icons). Ids: "volume", "bluetooth", "wifi", "battery",

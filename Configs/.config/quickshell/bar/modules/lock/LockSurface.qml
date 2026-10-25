@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Widgets
 import qs.bar.components
 import qs.bar.services
+import qs.shared.services
 
 // Lock screen contents (one per monitor): HyDE's blurred wallpaper, clock, user,
 // password and, at the bottom, battery and what's playing.

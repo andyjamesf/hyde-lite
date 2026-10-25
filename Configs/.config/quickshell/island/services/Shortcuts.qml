@@ -2,6 +2,11 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import qs.island.core
+// Battery is only ever read inside template literals below, which qmllint does not look
+// into, so it reports this import as unused. It is not.
+// qmllint disable unused-imports
+import qs.shared.services
+// qmllint enable unused-imports
 
 // What the status icons and the shortcut buttons of the expanded island do when clicked, and the
 // hint shown when the pointer rests on them (what each one is, and its state) (components/StatusZone.qml). Kept here so every

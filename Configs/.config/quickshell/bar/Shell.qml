@@ -17,6 +17,7 @@ import qs.bar.modules.lock
 import qs.bar.modules.avatar
 import qs.bar.modules.minibar.controller
 import qs.bar.modules.minibar.view
+import qs.shared.services
 
 Scope {
     // Singletons are only created when something uses them; these must exist from startup
@@ -158,6 +159,14 @@ Scope {
             ShellState.launcherOpen = false;
             ShellState.toggleLauncher("apps", screen);
         }
+    }
+
+    // The battery service is shared with the island and has no settings of its own, so the shell
+    // that does have them hands over the one value it needs (services/Config.qml -> config.json).
+    Binding {
+        target: Battery
+        property: "lowLevel"
+        value: Config.widgets.battery.lowLevel
     }
 
     LockScreen {}
