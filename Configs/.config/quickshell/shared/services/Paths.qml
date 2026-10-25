@@ -10,7 +10,7 @@ Singleton {
     readonly property string home: Quickshell.env("HOME") || ""
     // $XDG_CONFIG_HOME, default ~/.config.
     readonly property string configHome: Quickshell.env("XDG_CONFIG_HOME") || `${home}/.config`
-    // $XDG_STATE_HOME, default ~/.local/state (Quickshell keeps this shell's files in its own state folder).
+    // $XDG_STATE_HOME, default ~/.local/state (the island keeps its files in <stateHome>/morphing-island).
     readonly property string stateHome: Quickshell.env("XDG_STATE_HOME") || `${home}/.local/state`
     // $XDG_CACHE_HOME, default ~/.cache.
     readonly property string cacheHome: Quickshell.env("XDG_CACHE_HOME") || `${home}/.cache`
@@ -21,8 +21,15 @@ Singleton {
     // $XDG_PICTURES_DIR, default ~/Pictures.
     readonly property string picturesDir: Quickshell.env("XDG_PICTURES_DIR") || `${home}/Pictures`
 
-    // This shell's own state directory (pickers.json…): Quickshell's per-shell state folder.
+    // Where a shell keeps its own state (pickers.json and the like). Quickshell gives each
+    // configuration one of these; the island keeps using the folder it has always used, so its
+    // files are where they were.
     readonly property string shellState: Quickshell.statePath("").replace(/\/$/, "")
+    // The island's own state directory (prefs.json, launcher.json, pickers.json…).
+    readonly property string islandState: `${stateHome}/morphing-island`
+    // Things the user wrote, as opposed to state the shell keeps about itself: the notepad lives
+    // here so a cleared state directory does not take the notes with it.
+    readonly property string islandData: `${dataHome}/morphing-island`
 
     // Expands a leading "~" to $HOME ("~/.face" → "/home/me/.face"); other paths are returned as is.
     function expand(path) {

@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell
+import qs.shared.services
 
 // Wallpaper picker: the current theme's wallpapers (plus the extra folders in
 // "pickers.wallpapers.dirs"), as a grid of thumbnails. Choosing one applies it globally through HyDE

@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.bar.services
+import qs.shared.services
 
 // Emoji picker for the launcher (port of HyDE's emoji-picker.sh).
 // Data: ${HYDE_DATA_HOME:-~/.local/share/hyde}/emoji.db, one emoji per line as

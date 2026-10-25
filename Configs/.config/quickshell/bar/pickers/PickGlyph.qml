@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.bar.services
+import qs.shared.services
 
 // Nerd Font glyph picker for the launcher (port of HyDE's glyph-picker.sh).
 // Data: ${HYDE_DATA_HOME:-~/.local/share/hyde}/glyph.db, one glyph per line as

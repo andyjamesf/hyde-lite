@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.island.config as Config
+import qs.shared.services
 
 // Installed applications (.desktop files) for the island launcher: fuzzy search, favourites and
 // "frecency" (the most used and most recent rise in the list). Favourites and usage history are

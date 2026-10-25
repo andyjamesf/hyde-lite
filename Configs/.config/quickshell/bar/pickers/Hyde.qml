@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell
+import qs.shared.services
 
 // Small helpers shared by the pickers that drive HyDE (themes, wallbash, hyprlock and the Lua
 // selectors: animations, workflows, layouts, shaders). Every action goes through Launch.run, so it

@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.island.config as Config
+import qs.shared.services
 
 // File picker (HyDE's `rofilaunch.sh f`, which opened rofi's file browser): folders and files under
 // the configured roots (home by default), opened with `xdg-open` (Launch.open).

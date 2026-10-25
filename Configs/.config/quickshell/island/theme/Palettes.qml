@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Io
 import qs.island.config
 import qs.island.services
+import qs.shared.services
 
 // The island's colour schemes (palettes). Each one defines only the base roles; Theme derives the
 // rest (and guarantees the minimum contrast). kind: "dark" | "light" | "eink" (e-ink has no

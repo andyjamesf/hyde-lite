@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.island.config
+import qs.shared.services
 
 // Calendars and their events, for the calendar view (components/CalendarView.qml).
 //

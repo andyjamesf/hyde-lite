@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.island.config as Config
+import qs.shared.services
 
 // Shared picker state (recently used emoji, glyphs and bookmarks) in a single file:
 // ${XDG_STATE_HOME:-~/.local/state}/morphing-island/pickers.json. One FileView/JsonAdapter for all

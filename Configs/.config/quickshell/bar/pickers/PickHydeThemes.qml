@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.shared.services
 
 // HyDE theme picker (port of `hyde-shell theme.select`, HyDE's rofi theme selector).
 //

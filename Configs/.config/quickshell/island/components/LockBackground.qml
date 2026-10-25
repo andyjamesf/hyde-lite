@@ -2,8 +2,8 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Effects
 import qs.island.config
-import qs.island.services
 import qs.island.theme
+import qs.shared.services
 
 // Lock screen background. At the bottom is the sharp wallpaper (the same as the desktop); on top,
 // HyDE's blurred version (~/.cache/hyde/wall.blur, or wall.set blurred here if it does not exist)

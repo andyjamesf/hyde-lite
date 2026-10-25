@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.bar.services
+import qs.shared.services
 
 // Web search (HyDE's rofi.websearch.sh): one row per search engine for the typed text, the default
 // engine first. Engines come from HyDE's own lists (~/.local/share/hyde/websearch.lst and
