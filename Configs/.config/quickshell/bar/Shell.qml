@@ -19,6 +19,7 @@ import qs.bar.modules.minibar.controller
 import qs.bar.modules.minibar.view
 import qs.shared.services
 import qs.shared.pickers
+import qs.shared.controlcenter
 
 Scope {
     // Singletons are only created when something uses them; these must exist from startup
@@ -194,6 +195,25 @@ Scope {
         target: Lock
         property: "enabled"
         value: Config.widgets.lock.enabled
+    }
+
+    // The control centre's toggles are shared with the island; this one is the bar's alone, since
+    // the island has no notion of where its colours come from.
+    Binding {
+        target: CcToggles
+        property: "extra"
+        value: [
+            {
+                id: "colors",
+                label: "Colors",
+                icon: "wallpaper",
+                status: Prefs.colorSource === "wallpaper" ? "From the wallpaper" : "From HyDE",
+                active: Prefs.colorSource === "wallpaper",
+                available: true,
+                page: "",
+                toggle: () => Theme.setColorSource(Prefs.colorSource === "wallpaper" ? "hyde" : "wallpaper")
+            }
+        ]
     }
 
     // The notification server is shared with the island; this shell's settings reach it here, and

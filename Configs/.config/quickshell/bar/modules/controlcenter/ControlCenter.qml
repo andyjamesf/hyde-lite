@@ -3,7 +3,6 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
-import Quickshell.Services.UPower
 import Quickshell.Widgets
 import qs.bar.components
 import qs.bar.services
@@ -11,6 +10,7 @@ import qs.bar.modules.controls
 import qs.bar.modules.notifications
 import qs.shared.services
 import qs.shared.pickers
+import qs.shared.controlcenter
 
 // Control center: side panel with quick toggles, sliders, media, HyDE shortcuts and
 // detail pages (Wi-Fi, Bluetooth, sound). Opens on the focused screen; closes with Esc or
@@ -424,76 +424,23 @@ PanelWindow {
                 columnSpacing: 0
                 rowSpacing: Theme.space3
 
-                QuickToggle {
-                    Layout.fillWidth: true
-                    icon: Network.wired ? "lan" : Network.icon
-                    label: "Wi-Fi"
-                    checked: Network.wifiEnabled
-                    expandable: true
-                    onToggled: Network.setWifiEnabled(!Network.wifiEnabled)
-                    onExpand: ShellState.controlCenterPage = "wifi"
-                }
+                // What the control centre offers is shared with the island
+                // (shared/controlcenter/CcToggles.qml): the same entries, in the same order, with
+                // the same labels and the same behaviour. This draws them the bar's way.
+                Repeater {
+                    model: CcToggles.shown
 
-                QuickToggle {
-                    Layout.fillWidth: true
-                    visible: Bluetooth.available
-                    icon: Bluetooth.icon
-                    label: "Bluetooth"
-                    checked: Bluetooth.enabled
-                    expandable: true
-                    onToggled: Bluetooth.setEnabled(!Bluetooth.enabled)
-                    onExpand: ShellState.controlCenterPage = "bluetooth"
-                }
+                    QuickToggle {
+                        required property var modelData
 
-                QuickToggle {
-                    Layout.fillWidth: true
-                    icon: Notifications.dnd ? "notifications_off" : "notifications"
-                    label: "Silent"
-                    checked: Notifications.dnd
-                    onToggled: Notifications.toggleDnd()
-                }
-
-                QuickToggle {
-                    Layout.fillWidth: true
-                    icon: "nightlight"
-                    label: "Night light"
-                    checked: NightLight.active
-                    onToggled: NightLight.toggle()
-                }
-
-                QuickToggle {
-                    Layout.fillWidth: true
-                    visible: Battery.available || PowerProfiles.profile !== undefined
-                    icon: Battery.profileIcon
-                    label: Battery.profileName
-                    checked: Battery.profile !== 1
-                    onToggled: Battery.setProfile((Battery.profile + 1) % (PowerProfiles.hasPerformanceProfile ? 3 : 2))
-                }
-
-                QuickToggle {
-                    Layout.fillWidth: true
-                    icon: "coffee"
-                    label: "Caffeine"
-                    checked: Caffeine.active
-                    onToggled: Caffeine.toggle()
-                }
-
-                QuickToggle {
-                    Layout.fillWidth: true
-                    icon: Audio.micIcon
-                    label: "Microphone"
-                    checked: !Audio.micMuted
-                    expandable: true
-                    onToggled: Audio.toggleMicMute()
-                    onExpand: ShellState.controlCenterPage = "audio"
-                }
-
-                QuickToggle {
-                    Layout.fillWidth: true
-                    icon: "wallpaper"
-                    label: "Colors"
-                    checked: Prefs.colorSource === "wallpaper"
-                    onToggled: Theme.setColorSource(Prefs.colorSource === "wallpaper" ? "hyde" : "wallpaper")
+                        Layout.fillWidth: true
+                        icon: modelData.icon
+                        label: modelData.label
+                        checked: modelData.active
+                        expandable: modelData.page !== ""
+                        onToggled: CcToggles.toggle(modelData.id)
+                        onExpand: ShellState.controlCenterPage = modelData.page
+                    }
                 }
             }
 
