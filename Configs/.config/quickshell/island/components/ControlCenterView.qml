@@ -2,6 +2,7 @@ import QtQuick
 import qs.island.config
 import qs.island.core
 import qs.island.services
+import qs.shared.services
 
 // Control center: a single island content for the "controlcenter", "wifi", "bluetooth", "audio"
 // and "media" modes. Inside it is a stack of pages: when the page changes, the new one slides in

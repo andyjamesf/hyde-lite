@@ -2,6 +2,7 @@ import QtQuick
 import qs.bar.components
 import qs.bar.services
 import qs.bar.modules.controls
+import qs.shared.services
 
 // Microphone: icon only. Click opens the sound panel; right click mutes; scroll adjusts.
 BarItem {

@@ -42,6 +42,21 @@ Scope {
         property: "dimmingThreshold"
         value: OsdConfig.dimmingThreshold
     }
+    Binding {
+        target: Audio
+        property: "armDelay"
+        value: OsdConfig.audioArmDelay
+    }
+    Binding {
+        target: Audio
+        property: "micMinDelta"
+        value: OsdConfig.micMinDelta
+    }
+    Binding {
+        target: Audio
+        property: "micMinIntervalMs"
+        value: OsdConfig.micMinIntervalMs
+    }
 
     Variants {
         model: Quickshell.screens

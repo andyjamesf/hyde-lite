@@ -3,9 +3,14 @@
 QML cannot run in a cloud session, but the JavaScript inside the functions can: this extracts the functions
 from the .qml files and runs them in Node with a fake clock and fake singletons.
 
-  core/IslandController.qml   _stormy()           the storm guard (an OSD requested without a pause for 20 s)
-  services/Audio.qml          _micVolumeChange()  the microphone filter (tiny AGC nudges never show an OSD)
-                              _micMuteChange()
+  island/core/IslandController.qml    _stormy()           the storm guard (an OSD requested without a
+                                                          pause for 20 s)
+  shared/services/Audio.qml           _micVolumeChange()  the microphone filter (tiny AGC nudges never
+                                      _micMuteChange()    show an OSD)
+
+The audio service is shared by both shells now, so the two thresholds it filters by are its own
+properties rather than reads of OsdConfig; the values still come from the island's OsdConfig here,
+because that is what island/Shell.qml binds them to.
 
 Skipped without Node. NOT TESTED here: the singletons wired together in a running shell, on a screen. Run:
 
@@ -22,7 +27,7 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 ISLAND = ROOT / "Configs/.config/quickshell/island"
 CONTROLLER = ISLAND / "core/IslandController.qml"
-AUDIO = ISLAND / "services/Audio.qml"
+AUDIO = ROOT / "Configs/.config/quickshell/shared/services/Audio.qml"
 OSD_CONFIG = ISLAND / "config/OsdConfig.qml"
 NODE = shutil.which("node")
 
@@ -80,7 +85,7 @@ out.longerGapBreaksRun = (() => { const s2 = { _runs: {} }, f = make(%(stormy)s,
   for (t = 0; t <= 60000; t += 1501) ignored = ignored || f("x"); return ignored; })();
 
 // ---- microphone filter ----
-const mic = n => ({ _armed: true, micVolume: 0.5, _micShownVolume: 0.5, _micLastEmit: 0, micEmitTimer: { n: 0, restart() { this.n++; } }, ...n });
+const mic = n => ({ _armed: true, micMinDelta: cfg.micMinDelta, micMinIntervalMs: cfg.micMinIntervalMs, micVolume: 0.5, _micShownVolume: 0.5, _micLastEmit: 0, micEmitTimer: { n: 0, restart() { this.n++; } }, ...n });
 const volChange = s => make(%(micVolumeChange)s, s);
 const muteChange = s => make(%(micMuteChange)s, s);
 

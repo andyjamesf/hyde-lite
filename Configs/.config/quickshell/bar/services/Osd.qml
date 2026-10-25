@@ -34,11 +34,6 @@ Singleton {
         hideTimer.restart();
     }
 
-    function disarmBriefly() {
-        armed = false;
-        arm.restart();
-    }
-
     // Idle for 20 s: well before hypridle's dimming (60 s). Ignores the inhibitors
     // (caffeine, videos): with those active hypridle doesn't touch the brightness either.
     IdleMonitor {
@@ -78,22 +73,17 @@ Singleton {
         onTriggered: root.armed = true
     }
 
+    // The service already tells a change by the owner from the values settling during startup or a
+    // device switch, and filters the microphone's jitter (shared/services/Audio.qml), so there is
+    // nothing to arm or disarm here. The microphone OSD now also follows its volume, not only its
+    // mute, which is what the island had.
     Connections {
         target: Audio
-        function onVolumeChanged() {
+        function onChangedByUser() {
             root.show("volume");
         }
-        function onMutedChanged() {
-            root.show("volume");
-        }
-        function onMicMutedChanged() {
+        function onMicChangedByUser() {
             root.show("mic");
-        }
-        function onSinkChanged() {
-            root.disarmBriefly();
-        }
-        function onSourceChanged() {
-            root.disarmBriefly();
         }
     }
 

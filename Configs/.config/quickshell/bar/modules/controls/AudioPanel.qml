@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Services.Pipewire
 import qs.bar.components
 import qs.bar.services
+import qs.shared.services
 
 // Sound: output and input volume, device selection and per-app volume.
 ColumnLayout {
@@ -50,9 +51,9 @@ ColumnLayout {
             required property PwNode modelData
             Layout.fillWidth: true
             icon: (modelData.properties["device.form-factor"] ?? "").includes("head") ? "headphones" : "speaker"
-            title: Audio.nameOf(modelData)
-            highlighted: modelData === Audio.sink
-            onClicked: Audio.setSink(modelData)
+            title: modelData.name
+            highlighted: modelData.isDefault
+            onClicked: Audio.setDefaultSink(modelData)
         }
     }
 
@@ -75,9 +76,9 @@ ColumnLayout {
             required property PwNode modelData
             Layout.fillWidth: true
             icon: "mic"
-            title: Audio.nameOf(modelData)
-            highlighted: modelData === Audio.source
-            onClicked: Audio.setSource(modelData)
+            title: modelData.name
+            highlighted: modelData.isDefault
+            onClicked: Audio.setDefaultSource(modelData)
         }
     }
 

@@ -2,6 +2,7 @@ import QtQuick
 import qs.bar.components
 import qs.bar.services
 import qs.bar.modules.controls
+import qs.shared.services
 
 // Output volume. Click opens the sound panel; scroll adjusts; right click mutes.
 BarItem {
