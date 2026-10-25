@@ -21,8 +21,22 @@ Singleton {
 
     // Where the usage history lives (launcher.json). Each shell has its own; they bind it.
     property string statePath: ""
-    // A launch counts for less as it ages, halving every this many days.
+    // How the list is ranked. The island read these from its config/Launcher.qml through an import
+    // alias, which is how they survived the first pass of this move unnoticed: `Config.Launcher`
+    // reads as one name, not as a dependency on the island. The defaults are those values; the
+    // island binds them, the bar takes them as they are.
     property real frecencyHalfLifeDays: 7
+    property int maxResults: 50
+    property real frecencyBonusScale: 4
+    property real frecencyBonusMax: 25
+    property real favoriteBonus: 10
+    property var fuzzyWeights: ({
+            "name": 1,
+            "genericName": 0.75,
+            "keywords": 0.65,
+            "id": 0.6,
+            "comment": 0.4
+        })
 
     // Looking an application up by its id, which is what a bar widget has when all it knows is the
     // window or the stream it is showing. The island never needed these; the bar's widgets do.
@@ -86,7 +100,7 @@ Singleton {
         if (!u)
             return 0;
         const days = (Date.now() - u.last) / 86400000;
-        return u.count * Math.pow(0.5, days / Math.max(0.1, Config.root.frecencyHalfLifeDays));
+        return u.count * Math.pow(0.5, days / Math.max(0.1, root.frecencyHalfLifeDays));
     }
 
     // Fuzzy score of `q` in `text` (kept here for callers; the implementation is services/Fuzzy.qml).
@@ -95,8 +109,7 @@ Singleton {
     }
 
     function search(query) {
-        const L = Config.Launcher;
-        const max = L.appsMaxResults;
+        const max = root.maxResults;
         const q = String(query ?? "").trim().toLowerCase();
         if (q === "") {
             // No search: favourites, then the most used, then the rest alphabetically.
@@ -105,7 +118,7 @@ Singleton {
             const rest = applications.filter(e => !isFavorite(e) && frecency(e) === 0);
             return fav.concat(used, rest).slice(0, max);
         }
-        const w = L.fuzzyWeights;
+        const w = root.fuzzyWeights;
         const score = Fuzzy.score;
         const scored = [];
         for (const e of applications) {
@@ -113,7 +126,7 @@ Singleton {
             if (s > 0)
                 scored.push({
                     e,
-                    s: s + Math.min(L.frecencyBonusMax, frecency(e) * L.frecencyBonusScale) + (isFavorite(e) ? L.favoriteBonus : 0)
+                    s: s + Math.min(root.frecencyBonusMax, frecency(e) * root.frecencyBonusScale) + (isFavorite(e) ? root.favoriteBonus : 0)
                 });
         }
         // Ties: alphabetical, so the list does not jump between identical searches.

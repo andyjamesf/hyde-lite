@@ -116,6 +116,31 @@ Scope {
         property: "frecencyHalfLifeDays"
         value: Launcher.frecencyHalfLifeDays
     }
+    Binding {
+        target: Apps
+        property: "maxResults"
+        value: Launcher.appsMaxResults
+    }
+    Binding {
+        target: Apps
+        property: "fuzzyWeights"
+        value: Launcher.fuzzyWeights
+    }
+    Binding {
+        target: Apps
+        property: "frecencyBonusScale"
+        value: Launcher.frecencyBonusScale
+    }
+    Binding {
+        target: Apps
+        property: "frecencyBonusMax"
+        value: Launcher.frecencyBonusMax
+    }
+    Binding {
+        target: Apps
+        property: "favoriteBonus"
+        value: Launcher.favoriteBonus
+    }
 
     // The pickers are shared with the bar; this shell's settings reach them here
     // (config/PickersConfig.qml).
