@@ -2,7 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import qs.island.config
+
 import qs.shared.services
 
 // Calendars and their events, for the calendar view (components/CalendarView.qml).
@@ -19,6 +19,32 @@ import qs.shared.services
 // Names are unique (colours and errors are matched by name): a repeated one gets a number.
 Singleton {
     id: root
+
+    // What a shell configures or plugs in. A shared service has no settings file and cannot reach
+    // either shell's own services, so: the island binds its colours and refresh period from
+    // config/CalendarConfig.qml, and tells this one what its Google integration knows. The bar has
+    // none, so nothing is editable there — which is what it did before anyway.
+    property var colors: ["#8ab4f8", "#f28b82", "#81c995", "#fdd663", "#c58af9", "#78d9ec", "#fcad70", "#ff8bcb"]
+    property int refreshMinutes: 15
+    property bool googleConnected: false
+    property var googleCalendarIds: []
+
+    // Reading the calendars failed. The island shows these; the bar logs and carries on.
+    signal readFailed(string message)
+
+    // There is at least one calendar to read: the bar's popout asks before showing anything.
+    readonly property bool configured: calendars.length > 0
+
+    // The next `count` events that have not ended yet.
+    function upcoming(count) {
+        const now = new Date();
+        return events.filter(e => e.end > now).slice(0, count);
+    }
+
+    // Opens the day in Google Calendar, which is where these events mostly come from.
+    function openInBrowser(day) {
+        Quickshell.execDetached(["xdg-open", `https://calendar.google.com/calendar/r/day/${day.getFullYear()}/${day.getMonth() + 1}/${day.getDate()}`]);
+    }
 
     readonly property string dataDir: `${Paths.dataHome}/quickshell`
     readonly property string configPath: `${dataDir}/calendars.json`
@@ -89,7 +115,7 @@ Singleton {
     // Whether an event can be changed or deleted here: it comes from a Google calendar you can
     // write to, and Google Calendar is connected.
     function editable(e) {
-        return !!e && (e.googleCalendar ?? "") !== "" && (e.uid ?? "") !== "" && GoogleCalendar.connected && GoogleCalendar.calendars.some(c => c.id === e.googleCalendar);
+        return !!e && (e.googleCalendar ?? "") !== "" && (e.uid ?? "") !== "" && googleConnected && googleCalendarIds.includes(e.googleCalendar);
     }
 
     // Hides an event changed or deleted elsewhere (GoogleCalendar.update/remove) right away.
@@ -209,7 +235,7 @@ Singleton {
     }
 
     function _add(entry) {
-        entry.color = CalendarConfig.colors[calendars.length % CalendarConfig.colors.length];
+        entry.color = root.colors[calendars.length % root.colors.length];
         _write(calendars.concat([entry]));
         notice(`Added "${entry.name}"`, false);
     }
@@ -282,7 +308,7 @@ Singleton {
     }
 
     Timer {
-        interval: Math.max(1, CalendarConfig.refreshMinutes) * 60000
+        interval: Math.max(1, root.refreshMinutes) * 60000
         running: root.calendars.length > 0
         repeat: true
         onTriggered: root.refresh(true)
@@ -291,7 +317,10 @@ Singleton {
     Process {
         id: fetcher
         command: ["python3", Quickshell.shellPath("shared/scripts/ical_events.py")]
-        Component.onCompleted: Errors.watch(fetcher, "calendar", "ical_events.py")
+        onExited: code => {
+            if (code !== 0)
+                root.readFailed(`ical_events.py exited with ${code}`);
+        }
         stderr: StdioCollector {
             onStreamFinished: if (text.trim() !== "")
                 console.info("calendar:", text.trim())

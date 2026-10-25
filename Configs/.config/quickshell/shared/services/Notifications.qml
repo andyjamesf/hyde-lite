@@ -45,8 +45,10 @@ Singleton {
     // notifications work at all gets a yes; the bar's service had this and used it.
     readonly property bool available: true
 
-    // History, newest first.
-    readonly property var list: server.trackedNotifications.values.slice().reverse()
+    // History, newest first. The server is declared further down, so during the first moments of
+    // a load this is read before it exists; without the guard the count below is assigned
+    // undefined and every start logged "Unable to assign [undefined] to int".
+    readonly property var list: (server.trackedNotifications?.values ?? []).slice().reverse()
     readonly property int count: list.length
 
 

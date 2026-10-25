@@ -3,15 +3,16 @@ import QtQuick.Layouts
 import Quickshell
 import qs.bar.components
 import qs.bar.services
+import qs.shared.services
 
 // Large clock, month calendar (Monday first) and Google Calendar events
-// (Agenda service). Arrows or scroll change the month; clicking a day shows that day's events.
+// (Calendar service). Arrows or scroll change the month; clicking a day shows that day's events.
 ColumnLayout {
     id: root
 
     property int shift: 0
     property date selected: new Date()
-    readonly property var selectedEvents: Agenda.eventsOn(selected)
+    readonly property var selectedEvents: Calendar.eventsOn(selected)
     readonly property date now: clock.date
     readonly property date month: new Date(now.getFullYear(), now.getMonth() + shift, 1)
 
@@ -27,7 +28,7 @@ ColumnLayout {
     width: 300
     spacing: 12
 
-    Component.onCompleted: Agenda.refresh()
+    Component.onCompleted: Calendar.refresh()
 
     SystemClock {
         id: clock
@@ -118,7 +119,7 @@ ColumnLayout {
                 readonly property bool inMonth: modelData.getMonth() === root.month.getMonth()
                 readonly property bool today: modelData.toDateString() === root.now.toDateString()
                 readonly property bool isSelected: modelData.toDateString() === root.selected.toDateString()
-                readonly property var dayEvents: Agenda.eventsOn(modelData)
+                readonly property var dayEvents: Calendar.eventsOn(modelData)
 
                 width: (root.width - 12) / 7
                 height: 36
@@ -185,15 +186,15 @@ ColumnLayout {
             }
 
             IconButton {
-                visible: Agenda.configured
+                visible: Calendar.configured
                 icon: "open_in_new"
                 size: 26
-                onClicked: Agenda.openInBrowser(root.selected)
+                onClicked: Calendar.openInBrowser(root.selected)
             }
         }
 
         StyledText {
-            visible: !Agenda.configured
+            visible: !Calendar.configured
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
             font.pixelSize: Theme.labelSmall
@@ -202,7 +203,7 @@ ColumnLayout {
         }
 
         StyledText {
-            visible: Agenda.configured && root.selectedEvents.length === 0
+            visible: Calendar.configured && root.selectedEvents.length === 0
             text: "No events"
             font.pixelSize: Theme.labelSmall
             color: Theme.textFaint
@@ -257,18 +258,18 @@ ColumnLayout {
                 StateLayer {
                     anchors.fill: parent
                     radius: ev.radius
-                    onClicked: Agenda.openInBrowser(ev.modelData.start)
+                    onClicked: Calendar.openInBrowser(ev.modelData.start)
                 }
             }
         }
 
         StyledText {
-            visible: Agenda.errors.length > 0
+            visible: Calendar.errors.length > 0
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
             font.pixelSize: Theme.labelSmall
             color: Theme.warning
-            text: "Could not update: " + Agenda.errors.join("; ")
+            text: "Could not update: " + Calendar.errors.join("; ")
         }
     }
 }

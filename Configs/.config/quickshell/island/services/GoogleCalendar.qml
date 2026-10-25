@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.shared.services
 
 // Google Calendar: creating events (the calendars the calendar view reads are iCal links, which are
 // read-only). The work is done by scripts/gcal.py (OAuth, calendar list, event creation); the

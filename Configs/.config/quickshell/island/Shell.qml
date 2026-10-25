@@ -108,6 +108,35 @@ Scope {
     }
 
 
+    // The calendar is shared with the bar; this shell's options and what its Google integration
+    // knows reach it here (the bar has no Google integration, so it leaves those alone).
+    Binding {
+        target: Calendar
+        property: "colors"
+        value: CalendarConfig.colors
+    }
+    Binding {
+        target: Calendar
+        property: "refreshMinutes"
+        value: CalendarConfig.refreshMinutes
+    }
+    Binding {
+        target: Calendar
+        property: "googleConnected"
+        value: GoogleCalendar.connected
+    }
+    Binding {
+        target: Calendar
+        property: "googleCalendarIds"
+        value: GoogleCalendar.calendars.map(c => c.id)
+    }
+    Connections {
+        target: Calendar
+        function onReadFailed(message) {
+            Errors.report("calendar", message);
+        }
+    }
+
     // The workspace service is shared with the bar; this shell's options reach it here.
     Binding {
         target: Workspaces

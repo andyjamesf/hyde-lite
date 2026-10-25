@@ -23,7 +23,7 @@ import qs.shared.pickers
 Scope {
     // Singletons are only created when something uses them; these must exist from startup
     // (the calendar events, which must be ready before it is opened).
-    readonly property var agenda: Agenda
+    readonly property var agenda: Calendar
     readonly property var notifs: Notifications
     // The popup policy must exist from startup too, or the first notification has nowhere to go.
     readonly property var popups: Popups
