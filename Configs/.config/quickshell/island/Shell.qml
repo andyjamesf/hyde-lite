@@ -108,6 +108,23 @@ Scope {
     }
 
 
+    // The workspace service is shared with the bar; this shell's options reach it here.
+    Binding {
+        target: Workspaces
+        property: "perScreen"
+        value: WorkspacesConfig.perScreen
+    }
+    Binding {
+        target: Workspaces
+        property: "groupApps"
+        value: WorkspacesConfig.groupApps
+    }
+    Binding {
+        target: Workspaces
+        property: "maxIcons"
+        value: WorkspacesConfig.maxIcons
+    }
+
     // The notification server is shared with the bar; this shell's settings reach it here
     // (config/NotificationsConfig.qml).
     Binding {

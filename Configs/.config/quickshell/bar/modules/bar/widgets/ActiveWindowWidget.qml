@@ -6,8 +6,8 @@ import qs.shared.services
 BarItem {
     id: root
 
-    readonly property var toplevel: Hypr.activeToplevel
-    readonly property string appId: Hypr.appIdOf(toplevel)
+    readonly property var toplevel: Workspaces.activeToplevel
+    readonly property string appId: Workspaces.appIdOf(toplevel)
 
     shown: !!toplevel && toplevel.title !== "" && (!bar?.monitor || toplevel.monitor === bar.monitor)
     image: appId ? Apps.iconFor(appId) : ""
