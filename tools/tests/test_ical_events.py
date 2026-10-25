@@ -1,4 +1,4 @@
-"""Display-free tests for the iCal reader the two shells share (scripts/ical_events.py).
+"""Display-free tests for the iCal reader the two shells share (shared/scripts/ical_events.py).
 
 Covers the parser, the RRULE expansion (the part most likely to be subtly wrong), expand() with exceptions
 and cancellations, and main() end to end against a local .ics file. The clock zone is pinned to UTC. Run:
@@ -17,11 +17,10 @@ from datetime import UTC, date, datetime, timedelta
 from unittest import mock
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
-ISLAND = REPO / "Configs/.config/quickshell/island/scripts/ical_events.py"
-BAR = REPO / "Configs/.config/quickshell/bar/scripts/ical_events.py"
+SCRIPT = REPO / "Configs/.config/quickshell/shared/scripts/ical_events.py"
 
 
-def load(path=ISLAND):
+def load(path=SCRIPT):
     spec = importlib.util.spec_from_file_location("ical_events_under_test", path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
@@ -285,12 +284,6 @@ class MainEndToEnd(Base):
         titles = [e["title"] for e in json.loads(pathlib.Path(self.m.CACHE).read_text())["events"]]
         self.assertIn("From B", titles)
         self.assertEqual(os.listdir(os.path.dirname(self.m.CACHE)), ["calendar.json"])  # no temp file left behind
-
-
-class Copies(unittest.TestCase):
-    def test_both_shells_ship_the_same_script(self):
-        self.assertEqual(ISLAND.read_bytes(), BAR.read_bytes(),
-                         "the two copies of ical_events.py drifted; copy one over the other")
 
 
 if __name__ == "__main__":

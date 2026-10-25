@@ -4,7 +4,7 @@ import Quickshell
 import Quickshell.Io
 
 // Calendar events (Google Calendar or any other with an iCal address), for the bar calendar.
-// The work is done by scripts/ical_events.py, which downloads the calendars listed in
+// The work is done by shared/scripts/ical_events.py, which downloads the calendars listed in
 // ~/.local/share/quickshell/calendars.json and writes ~/.cache/quickshell/calendar.json; this
 // service watches that file. It refreshes every 15 minutes and when the calendar is opened.
 Singleton {
@@ -88,7 +88,7 @@ Singleton {
 
     Process {
         id: fetcher
-        command: ["python3", Quickshell.shellPath("bar/scripts/ical_events.py")]
+        command: ["python3", Quickshell.shellPath("shared/scripts/ical_events.py")]
         stderr: StdioCollector {
             onStreamFinished: if (text.trim() !== "")
                 console.warn("calendar:", text.trim())

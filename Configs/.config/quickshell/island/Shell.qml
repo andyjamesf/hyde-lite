@@ -73,6 +73,18 @@ Scope {
         value: ControlCenter.nightLightTemperature
     }
 
+    // A picture chosen in the control centre is saved as it is (the bar positions it in an editor
+    // first), and the login screen, which reads the same file, is told to pick it up.
+    Connections {
+        target: SysInfo
+        function onAvatarFilePicked(path) {
+            SysInfo.applyAvatar(path);
+        }
+        function onAvatarFileChanged() {
+            SddmTheme.sync();
+        }
+    }
+
     Variants {
         model: Quickshell.screens
 

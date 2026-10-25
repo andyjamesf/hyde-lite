@@ -4,6 +4,9 @@ must not drift apart: a fix in one is a fix in the other. Run:
     python3 -I tools/tests/test_mirrored_files.py
 
 Scripts are mirrored automatically: any file name present in both scripts/ folders must be identical.
+Both files that were (ical_events.py and pick_file.py) now live in quickshell/shared/scripts, so the
+check has nothing left to compare and skips; what remains in each scripts/ folder belongs to that UI
+alone.
 Services are mirrored only when listed here. The list is empty: PamText, the only one that was ever
 byte-identical, now lives in quickshell/shared/services with the rest of the services the two UIs
 share, which is the end this file was written to expect. The same-named services still sitting in
@@ -25,7 +28,8 @@ def names(folder, pattern):
 class Mirrored(unittest.TestCase):
     def test_shared_scripts_are_identical(self):
         shared = sorted(names(BAR / "scripts", "*.py") & names(ISLAND / "scripts", "*.py"))
-        self.assertTrue(shared, "expected at least ical_events.py and pick_file.py in both")
+        if not shared:
+            self.skipTest("no script is in both folders any more; the shared ones live in shared/scripts")
         for n in shared:
             self.assertEqual((BAR / "scripts" / n).read_bytes(), (ISLAND / "scripts" / n).read_bytes(),
                              f"scripts/{n} differs between the shells; edit one, copy it to the other")

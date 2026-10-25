@@ -161,6 +161,17 @@ Scope {
         }
     }
 
+    // A picture chosen in the control centre opens in the editor, to be positioned in the circle
+    // before it is saved to ~/.face. The island saves it as it is; the shared service only picks
+    // the file and leaves the rest to whichever shell is running.
+    Connections {
+        target: SysInfo
+        function onAvatarFilePicked(path) {
+            ShellState.avatarScreen = Hyprland.focusedMonitor?.name ?? "";
+            ShellState.avatarSource = path;
+        }
+    }
+
     // The battery service is shared with the island and has no settings of its own, so the shell
     // that does have them hands over the one value it needs (services/Config.qml -> config.json).
     Binding {

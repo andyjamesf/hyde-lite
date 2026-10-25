@@ -111,7 +111,7 @@ Item {
                     Image {
                         id: avatarImage
                         anchors.fill: parent
-                        source: `file://${SysInfo.avatar}?v=${SysInfo.avatarVersion}`
+                        source: SysInfo.avatarUrl
                         fillMode: Image.PreserveAspectCrop
                         sourceSize.width: 80
                         sourceSize.height: 80

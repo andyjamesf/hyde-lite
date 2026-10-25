@@ -98,7 +98,7 @@ Item {
             Image {
                 id: avatar
                 anchors.fill: parent
-                source: SysInfo.avatar
+                source: SysInfo.avatarUrl
                 fillMode: Image.PreserveAspectCrop
                 sourceSize.width: 168
                 sourceSize.height: 168

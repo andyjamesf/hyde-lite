@@ -178,7 +178,7 @@ PanelWindow {
             Image {
                 id: avatar
                 anchors.fill: parent
-                source: SysInfo.avatar
+                source: SysInfo.avatarUrl
                 fillMode: Image.PreserveAspectCrop
                 sourceSize.width: 80
                 sourceSize.height: 80

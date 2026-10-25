@@ -2,6 +2,7 @@ import QtQuick
 import qs.island.config
 import qs.island.services
 import qs.island.theme
+import qs.shared.services
 
 // PC statistics (services/SysStats.qml), shown by the control center's System page and by the
 // detached window (core/StatsWindow.qml): CPU (per core), memory (apps, cache, free, swap), GPU,
