@@ -145,10 +145,18 @@ Singleton {
         forecaster.running = true;
     }
 
+    // Tries so far since the last success, so a failure does not wait for the next periodic refresh.
+    property int _retries: 0
+
     function _fail(what) {
         root.loading = false;
         root.error = what;
         Errors.report("weather", what);
+        // The first reading is 4 s after login, which the network often loses. Rather than leave
+        // the island without weather until the next refresh (up to WeatherConfig.refreshMinutes),
+        // try again soon, a few times, and then stop bothering.
+        if (root._retries < 5)
+            retry.restart();
     }
 
     // Where this IP looks like it is. Approximate by nature: see config/WeatherConfig.qml.
@@ -156,6 +164,10 @@ Singleton {
         id: locator
         stdout: StdioCollector {
             onStreamFinished: {
+                if (text.trim() === "") {
+                    root._fail("the IP lookup answered nothing (no network yet?)");
+                    return;
+                }
                 try {
                     const d = JSON.parse(text);
                     const lat = Number(d.latitude), lon = Number(d.longitude);
@@ -183,6 +195,12 @@ Singleton {
         id: geocoder
         stdout: StdioCollector {
             onStreamFinished: {
+                // curl writes its errors to stderr, so a failed request arrives here as nothing at all.
+                // Parsing that gives "SyntaxError", which says nothing about what went wrong.
+                if (text.trim() === "") {
+                    root._fail("the place lookup answered nothing (no network yet?)");
+                    return;
+                }
                 try {
                     const r = (JSON.parse(text).results ?? [])[0];
                     if (!r) {
@@ -209,6 +227,10 @@ Singleton {
         id: forecaster
         stdout: StdioCollector {
             onStreamFinished: {
+                if (text.trim() === "") {
+                    root._fail("the forecast answered nothing (no network yet?)");
+                    return;
+                }
                 try {
                     const d = JSON.parse(text);
                     const c = d.current ?? {};
@@ -267,6 +289,9 @@ Singleton {
 
                     root.error = "";
                     root.loading = false;
+                    // A good reading clears the retry budget for the next failure.
+                    root._retries = 0;
+                    retry.stop();
                 } catch (e) {
                     root._fail(`the forecast could not be read: ${e}`);
                 }
@@ -284,6 +309,15 @@ Singleton {
         running: WeatherConfig.enabled
         interval: 4000
         onTriggered: root.refresh()
+    }
+
+    Timer {
+        id: retry
+        interval: 30000
+        onTriggered: {
+            root._retries++;
+            root.refresh();
+        }
     }
 
     Timer {
