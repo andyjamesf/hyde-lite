@@ -1,4 +1,4 @@
-"""services/Calculator.qml (the launcher's calculator: its own parser, no eval) run in Node from the QML source."""
+"""shared/services/Calculator.qml (the launcher's calculator: its own parser, no eval) run in Node from the QML source."""
 import json
 import shutil
 import sys
@@ -8,7 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import qml_js  # noqa: E402
 
-SRC = (Path(__file__).resolve().parents[2] / "Configs/.config/quickshell/island/services/Calculator.qml").read_text()
+SRC = (Path(__file__).resolve().parents[2] / "Configs/.config/quickshell/shared/services/Calculator.qml").read_text()
 PRELUDE = "\n".join([
     f"const _functions = {qml_js.extract_property(SRC, '_functions')};",
     f"const _constants = {qml_js.extract_property(SRC, '_constants')};",

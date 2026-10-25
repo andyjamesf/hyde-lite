@@ -194,6 +194,13 @@ Scope {
         value: Config.widgets.lock.enabled
     }
 
+    // The applications service is shared too; its history file is this shell's own.
+    Binding {
+        target: Apps
+        property: "statePath"
+        value: Quickshell.statePath("launcher.json")
+    }
+
     // The pickers are shared with the island; this shell's settings and its own wallpaper picker
     // reach them here (config/config.json -> services/Config.qml).
     Binding {

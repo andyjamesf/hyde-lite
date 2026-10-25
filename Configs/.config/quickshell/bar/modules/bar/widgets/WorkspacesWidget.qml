@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell.Widgets
 import qs.bar.components
 import qs.bar.services
+import qs.shared.services
 
 // Hyprland workspaces: always at least `shown` visible, the occupied ones with their apps' icons,
 // and an indicator that slides to this screen's active workspace. Scroll switches workspace.

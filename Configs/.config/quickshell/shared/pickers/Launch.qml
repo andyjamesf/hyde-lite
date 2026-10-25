@@ -32,12 +32,14 @@ Singleton {
 
     // Launches an app by its .desktop id (with or without the extension). Without hyde-shell, uses
     // `entry.execute()` when the DesktopEntry is given, else `gtk-launch`.
-    function desktop(id, entry) {
+    // `actionId` is one of a .desktop file's extra actions ("new-window" and the like); the bar
+    // launched those and the island did not, so it is optional.
+    function desktop(id, entry, actionId) {
         const d = String(id ?? "").replace(/\.desktop$/, "");
         if (d === "")
             return;
         if (hasHydeShell)
-            Quickshell.execDetached(["hyde-shell", "app", "--", `${d}.desktop`]);
+            Quickshell.execDetached(["hyde-shell", "app", "--", actionId ? `${d}.desktop:${actionId}` : `${d}.desktop`]);
         else if (entry)
             entry.execute();
         else

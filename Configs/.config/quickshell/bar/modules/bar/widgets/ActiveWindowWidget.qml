@@ -1,5 +1,6 @@
 import qs.bar.components
 import qs.bar.services
+import qs.shared.services
 
 // Icon and title of the active window, only on the bar of the screen it is on.
 BarItem {

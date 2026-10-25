@@ -105,6 +105,18 @@ Scope {
     }
 
 
+    // The applications service is shared too: its history file and the frecency half-life.
+    Binding {
+        target: Apps
+        property: "statePath"
+        value: `${Paths.islandState}/launcher.json`
+    }
+    Binding {
+        target: Apps
+        property: "frecencyHalfLifeDays"
+        value: Launcher.frecencyHalfLifeDays
+    }
+
     // The pickers are shared with the bar; this shell's settings reach them here
     // (config/PickersConfig.qml).
     Binding {
