@@ -8,8 +8,8 @@ import qs.bar.services
 
 // Compact power menu: a centered card with the session actions. The actions that close everything
 // (log out, reboot, shut down) require a second click/Enter to confirm.
-// Keyboard: ←/→ select · Enter run · Esc close · shortcuts: B (lock) L (log out)
-// R (reboot) D (shut down).
+// Keyboard: ←/→ select · Enter run · Esc close · shortcuts: B (lock) S (suspend)
+// H (hibernate) L (log out) R (reboot) D (shut down).
 PanelWindow {
     id: win
 
@@ -23,10 +23,20 @@ PanelWindow {
             cmd: "loginctl lock-session",
             confirm: false
         },
-        // Suspend and hibernate are not offered on this machine: it does not come back from
-        // either (the screen stays dark and the session is gone), so the buttons were a way to
-        // lose work. hypridle's idle suspend is off for the same reason. Put them back here if
-        // suspend is ever fixed.
+        {
+            icon: "bedtime",
+            label: "Suspend",
+            key: Qt.Key_S,
+            cmd: "systemctl suspend",
+            confirm: false
+        },
+        {
+            icon: "downloading",
+            label: "Hibernate",
+            key: Qt.Key_H,
+            cmd: "systemctl hibernate",
+            confirm: false
+        },
         {
             icon: "logout",
             label: "Log out",
