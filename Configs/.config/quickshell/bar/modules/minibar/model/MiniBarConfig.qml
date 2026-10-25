@@ -125,9 +125,12 @@ Singleton {
     // Or only some, by the names `hyprctl monitors` prints: ["DP-1", "HDMI-A-1"]
     readonly property var screens: []
 
-    // ── 3. MODULES ─────────────────────────────────────────────────────────────────────────
+    // ── 3. MODULES, AND THE LAYOUTS THEY MAKE ──────────────────────────────────────────────
     //
-    // Each line of the three lists is a GROUP of modules:
+    // The bar has a list of layouts and cycles through them ("Next bar layout" in the control
+    // centre, `qs ipc call bar next`); each one names the modules in its left, centre and right.
+    //
+    // Each line of those three lists is a GROUP of modules:
     //     ["audio", "network", "battery"]   the three together, in one block/island
     //     ["clock"]                         one module alone in its own block
     // Between groups goes the `spacing` from section 2. A group whose modules have nothing to
@@ -163,33 +166,61 @@ Singleton {
     // Each module's own options (clock format, brightness step and so on) stay in
     // config/config.json, section "widgets" — they are shared with the normal bar.
 
-    // LEFT
-    readonly property var left: [
-        ["workspaces"],             // which desktop you are on
-        // ["activeWindow"],        // title of the focused window
-        // ["hyde"],                // HyDE menu
-    ]
-
-    // CENTRE (if it does not fit between the sides, it hides instead of overlapping them)
-    readonly property var center: [
-        // The clock also shows the day when config.json has widgets.clock.showDate (that setting,
-        // and the two date formats next to it, are shared with the normal bar).
-        ["clock"],                  // time and day
-        // ["media"],               // the track that is playing
-    ]
-
-    // RIGHT — nothing for now. Drop the "//" from a line to put that group back.
-    readonly property var right: [
-        // ["audio", "network", "battery"],   // volume, network, battery
-        // ["tray"],                          // system tray
-        // ["mic", "brightness"],             // microphone and brightness
-        // ["bluetooth"],                     // bluetooth
-        // ["stats"],                         // CPU / memory / temperature
-        // ["media"],                         // the track that is playing
-        // ["cava"],                          // audio visualiser
-        // ["aiUsage"],                       // the AI tools' usage
-        // ["nightLight", "idle"],            // night light and idle inhibitor
-        // ["notifications"],                 // notifications and "do not disturb"
-        // ["controlCenter", "power"],        // control centre and power menu
+    // The layouts this bar cycles through, in order. "Next bar layout" in the control centre,
+    // `qs ipc call bar next` and `bar prev` all walk this list, and the one in use is remembered.
+    //
+    //   label       what the notification says when you land on it
+    //   clockDate   true: the clock also shows the day. Leave it out to follow config.json
+    //               (widgets.clock.showDate), which is what the normal bar does.
+    //   left/center/right   groups of modules, exactly as described above
+    //
+    // Add a layout by adding an entry; remove one by commenting it out. One layout is fine: the
+    // key then has nothing to cycle and says so.
+    readonly property var layouts: [
+        {
+            label: "Desktops and clock",
+            clockDate: true,
+            left: [
+                ["workspaces"],
+            ],
+            center: [
+                ["clock"],
+            ],
+            right: [],
+        },
+        {
+            label: "Clock and day",
+            clockDate: true,
+            left: [],
+            center: [
+                ["clock"],
+            ],
+            right: [],
+        },
+        {
+            label: "Clock",
+            clockDate: false,
+            left: [],
+            center: [
+                ["clock"],
+            ],
+            right: [],
+        },
+        {
+            label: "Desktops",
+            left: [
+                ["workspaces"],
+            ],
+            center: [],
+            right: [],
+        },
+        // A fuller one, for when the minimal bar is the only bar in use. Drop the "//" to get it.
+        // {
+        //     label: "Everything",
+        //     clockDate: true,
+        //     left: [["workspaces"], ["activeWindow"]],
+        //     center: [["clock"]],
+        //     right: [["tray"], ["audio", "network", "battery"], ["notifications", "controlCenter", "power"]],
+        // },
     ]
 }

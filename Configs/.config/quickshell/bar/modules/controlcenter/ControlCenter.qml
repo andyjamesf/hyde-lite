@@ -7,6 +7,7 @@ import Quickshell.Services.UPower
 import Quickshell.Widgets
 import qs.bar.components
 import qs.bar.services
+import qs.bar.pickers
 import qs.bar.modules.controls
 import qs.bar.modules.notifications
 
@@ -621,12 +622,20 @@ PanelWindow {
                 }
             }
 
-            // HyDE shortcuts: a row of buttons with tooltips.
+            // Shortcuts: a row of buttons with tooltips.
+            //
+            // The three that chose something used to run HyDE's own scripts, which open their menu
+            // in rofi; with no rofi installed they did nothing at all and the button sat there
+            // looking alive. They open this shell's own pickers instead (pickers/, the same ones
+            // `qs ipc call launcher pick <name>` and the HyDE menu widget use), so the work is done
+            // in one place and nothing here depends on a program that may not be installed.
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 0
 
                 Repeater {
+                    // A picker switched off in config.json (pickers.enabled) is not shown at all:
+                    // a button that cannot do anything has no business taking up the row.
                     model: [
                         {
                             icon: "skip_next",
@@ -636,12 +645,12 @@ PanelWindow {
                         {
                             icon: "image",
                             label: "Choose wallpaper",
-                            cmd: "hyde-shell app -t scope -- wallpaper.sh --select --global"
+                            pick: "wallpapers"
                         },
                         {
                             icon: "palette",
                             label: "Choose theme",
-                            cmd: "hyde-shell app -t scope -- theme.select.sh"
+                            pick: "themes"
                         },
                         {
                             icon: "view_quilt",
@@ -651,14 +660,14 @@ PanelWindow {
                         {
                             icon: "animation",
                             label: "Animations",
-                            cmd: "hyde-shell animations --select"
+                            pick: "animations"
                         },
                         {
                             icon: "keyboard",
                             label: "Keybindings",
                             action: () => ShellState.toggleLauncher("keys")
                         }
-                    ]
+                    ].filter(t => !t.pick || Pickers.get(t.pick) !== null)
 
                     Item {
                         id: tile
@@ -679,6 +688,9 @@ PanelWindow {
                             onClicked: {
                                 if (tile.modelData.action) {
                                     tile.modelData.action();
+                                } else if (tile.modelData.pick) {
+                                    // Opening the launcher closes this panel by itself.
+                                    ShellState.toggleLauncher("pick:" + tile.modelData.pick);
                                 } else {
                                     ShellState.closeControlCenter();
                                     Utils.run(tile.modelData.cmd);

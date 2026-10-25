@@ -37,6 +37,20 @@ Singleton {
         MiniBarState.save();
     }
 
+    // Next (step 1) or previous (step -1) layout of MiniBarConfig.layouts, wrapping around.
+    // services/BarLayout.qml sends "Next bar layout" and `qs ipc call bar next|prev` here while the
+    // minimal bar is the one in charge, so one key and one tile drive whichever bar is up.
+    function cycleLayout(step: int): void {
+        const n = MiniBarState.layoutCount;
+        if (n < 2) {
+            console.warn("minibar: only one layout to choose from (model/MiniBarConfig.qml)");
+            return;
+        }
+        MiniBarState.layoutIndex = (((MiniBarState.layoutIndex + step) % n) + n) % n;
+        MiniBarState.save();
+        Quickshell.execDetached(["notify-send", "-a", "Quickshell", "-r", "91", "-t", "1500", "-h", "int:transient:1", "-i", "preferences-desktop", "Minimal bar", MiniBarState.layout.label ?? ""]);
+    }
+
     // Which bar is in use, for `qs ipc call minibar status`.
     function status(): string {
         if (!MiniBarConfig.enabled)

@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.bar.modules.minibar.model
+import qs.bar.modules.minibar.controller
 
 // Effective bar layout. The presets live in config/layouts.json (more can be added), and the owner's own
 // in ~/.config/quickshell/layouts.json, which replaces a shipped one of the same name. The owner's file is
@@ -36,6 +37,10 @@ Singleton {
     // The panels (control centre, notifications) open in the middle rather than in the corner the
     // normal bar's buttons sit in. Read by modules/controlcenter and modules/notifications.
     readonly property bool centerPanels: mini && MiniBarConfig.centerPanels
+    // The clock's day. A layout of the minimal bar can ask for it or refuse it (clockDate);
+    // otherwise it is the owner's setting in config.json, which is what the normal bar follows.
+    // widgets/ClockWidget.qml reads this rather than the setting, so one clock serves both bars.
+    readonly property bool clockShowDate: mini && MiniBarState.layout.clockDate !== undefined ? MiniBarState.layout.clockDate : Config.widgets.clock.showDate
 
     property string hydeTheme: ""
     property int hyprRounding: 10
@@ -176,6 +181,12 @@ Singleton {
     }
 
     function cycle(step) {
+        // "Next bar layout" and `qs ipc call bar next|prev` drive whichever bar is in charge: the
+        // minimal bar keeps its own layouts (modules/minibar/model/MiniBarConfig.qml).
+        if (mini) {
+            MiniBarController.cycleLayout(step);
+            return;
+        }
         const i = names.indexOf(current);
         select(names[(i + step + names.length) % names.length]);
     }

@@ -133,7 +133,7 @@ PanelWindow {
                 id: leftSection
                 anchors.left: parent.left
                 barRef: bar
-                islandList: MiniBarConfig.left
+                islandList: MiniBarState.layout.left ?? []
             }
 
             // Centred, but pushed aside when the sides need the space; if it does not fit between
@@ -142,14 +142,14 @@ PanelWindow {
                 visible: parent.width - leftSection.width - rightSection.width - 2 * BarLayout.spacing >= implicitWidth
                 x: Math.max(leftSection.width + BarLayout.spacing, Math.min((parent.width - width) / 2, rightSection.x - width - BarLayout.spacing))
                 barRef: bar
-                islandList: MiniBarConfig.center
+                islandList: MiniBarState.layout.center ?? []
             }
 
             Section {
                 id: rightSection
                 anchors.right: parent.right
                 barRef: bar
-                islandList: MiniBarConfig.right
+                islandList: MiniBarState.layout.right ?? []
             }
         }
     }
