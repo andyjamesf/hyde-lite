@@ -3,7 +3,11 @@ import QtQuick
 import Quickshell
 import Quickshell.Hyprland
 import qs.island.config
-import qs.island.services
+// Brightness is only read inside a template literal below, which qmllint does not look into,
+// so it reports this import as unused. It is not.
+// qmllint disable unused-imports
+import qs.shared.services
+// qmllint enable unused-imports
 
 // The island's state machine. `mode` is what the island on the active screen shows on top of the
 // base mode; the base mode (clock or expanded) belongs to each screen and depends on hover and pin.

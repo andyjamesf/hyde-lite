@@ -1,7 +1,7 @@
 import QtQuick
 import Quickshell.Wayland
 import qs.island.theme
-import qs.island.services
+import qs.shared.services
 
 // Session lock: while Lock.locked, the compositor shows only these surfaces (one per monitor) and
 // nothing else receives keyboard or mouse. If the shell is reloaded with the screen locked, this

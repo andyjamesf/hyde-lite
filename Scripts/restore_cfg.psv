@@ -134,7 +134,7 @@ S|${HOME}/.config|MangoHud|mangohud
  Launcher 
 P|${HOME}/.config|rofi|rofi
 S|${HOME}/.config|wlogout|wlogout
-S|${HOME}/.config/quickshell|shell.qml lock.qml sync.qml README.md bar/Shell.qml bar/README.md bar/components bar/modules bar/pickers bar/scripts bar/services island/Shell.qml island/README.md island/components island/core island/icons island/scripts island/sddm island/services island/theme|quickshell
+S|${HOME}/.config/quickshell|shell.qml lock.qml sync.qml README.md bar/Shell.qml bar/README.md bar/components bar/modules bar/pickers bar/scripts bar/services island/Shell.qml island/README.md island/components island/core island/icons island/scripts island/sddm island/services island/theme shared|quickshell
 P|${HOME}/.config/quickshell|bar/config island/config|quickshell
 
  Lock Screen 

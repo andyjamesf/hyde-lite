@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Services.Polkit
 import qs.island.core
 import qs.island.config
+import qs.shared.services
 
 // The island's polkit authentication agent (pkexec, systemctl, package managers…). Uses Quickshell's
 // native agent (Quickshell.Services.Polkit): it registers with polkitd on the default path

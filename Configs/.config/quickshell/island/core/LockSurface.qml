@@ -1,7 +1,7 @@
 import QtQuick
 import qs.island.config
 import qs.island.components
-import qs.island.services
+import qs.shared.services
 
 // Lock screen content on one monitor. The star is the island itself: it starts as the clock pill
 // at the top (where it sits on the desktop) and, on the screen with the card, grows with the same

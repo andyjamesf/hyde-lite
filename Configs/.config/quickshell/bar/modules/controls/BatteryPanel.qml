@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Quickshell.Services.UPower
 import qs.bar.components
 import qs.bar.services
+import qs.shared.services
 
 // Battery: charge, time remaining, health and power profile.
 ColumnLayout {
@@ -38,8 +39,8 @@ ColumnLayout {
     }
 
     StyledText {
-        visible: Battery.device?.healthSupported ?? false
-        text: `Battery health: ${Math.round(Battery.device?.healthPercentage ?? 0)}%`
+        visible: Battery.health >= 0
+        text: `Battery health: ${Math.round(Battery.health)}%`
         font.pixelSize: Theme.labelSmall
         color: Theme.textFaint
     }

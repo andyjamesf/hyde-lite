@@ -37,7 +37,7 @@ class QsImports(unittest.TestCase):
                 for m in IMPORT.finditer(f.read_text()):
                     if m.group(1).split(".")[0] == other:
                         bad.append(f"{f.relative_to(CONFIG)}: import qs.{m.group(1)}")
-        self.assertEqual(bad, [], "the UIs share nothing yet; shared code goes to common/ (docs/shell-unification.md)")
+        self.assertEqual(bad, [], "neither UI may import the other; what they share goes to quickshell/shared")
 
     def test_the_root_registers_both_uis_and_each_has_a_shell(self):
         root = (CONFIG / "shell.qml").read_text()
@@ -46,10 +46,13 @@ class QsImports(unittest.TestCase):
             self.assertTrue((CONFIG / ui / "Shell.qml").is_file(), f"{ui}/Shell.qml is what shell.qml loads")
             self.assertIn(f'root.ui = "{ui}"', root, f"shell.qml never selects {ui}")
 
-    def test_entry_points_import_only_the_island(self):
+    def test_entry_points_import_only_the_island_and_the_shared_folder(self):
+        # They run the island's lock and login-screen sync on their own, so they may reach the
+        # island and quickshell/shared, and nothing else — the bar least of all.
         for name in ("lock.qml", "sync.qml"):
             mods = {m.group(1).split(".")[0] for m in IMPORT.finditer((CONFIG / name).read_text())}
-            self.assertEqual(mods, {"island"}, name)
+            self.assertTrue(mods <= {"island", "shared"}, f"{name}: {sorted(mods)}")
+            self.assertIn("island", mods, name)
 
 
 if __name__ == "__main__":

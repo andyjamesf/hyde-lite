@@ -6,7 +6,7 @@ import qs.island.config
 
 // Calendars and their events, for the calendar view (components/CalendarView.qml).
 //
-// The work is done by scripts/ical_events.py: it reads the calendars listed in
+// The work is done by shared/scripts/ical_events.py: it reads the calendars listed in
 // ~/.local/share/quickshell/calendars.json (links or local .ics files), expands recurring events and
 // writes ~/.cache/quickshell/calendar.json, which this service watches. The HyDE Quickshell shell
 // uses the same two files, so both shells show the same calendars.
@@ -289,7 +289,7 @@ Singleton {
 
     Process {
         id: fetcher
-        command: ["python3", Quickshell.shellPath("island/scripts/ical_events.py")]
+        command: ["python3", Quickshell.shellPath("shared/scripts/ical_events.py")]
         Component.onCompleted: Errors.watch(fetcher, "calendar", "ical_events.py")
         stderr: StdioCollector {
             onStreamFinished: if (text.trim() !== "")
@@ -314,7 +314,7 @@ Singleton {
     Process {
         id: picker
         property string name: ""
-        command: ["python3", Quickshell.shellPath("island/scripts/pick_file.py"), "Add a calendar (.ics)", "iCalendar:*.ics;*.ICS"]
+        command: ["python3", Quickshell.shellPath("shared/scripts/pick_file.py"), "Add a calendar (.ics)", "iCalendar:*.ics;*.ICS"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const src = text.trim();

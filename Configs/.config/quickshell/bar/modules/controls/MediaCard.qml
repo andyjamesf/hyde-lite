@@ -4,13 +4,14 @@ import Quickshell.Services.Mpris
 import Quickshell.Widgets
 import qs.bar.components
 import qs.bar.services
+import qs.shared.services
 
 // Media player: cover, title, progress (with seeking) and controls. With more than one player,
 // shows shortcuts to switch between them.
 ColumnLayout {
     id: root
 
-    readonly property MprisPlayer player: Media.active
+    readonly property MprisPlayer player: Media.player
 
     width: 320
     spacing: 12

@@ -1,5 +1,6 @@
 import qs.bar.components
 import qs.bar.services
+import qs.shared.services
 
 // Night light (HyDE's hyprsunset). Click toggles it, scroll adjusts the temperature,
 // right click opens the presets.

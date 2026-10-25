@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Wayland
 import qs.bar.components
 import qs.bar.services
+import qs.shared.services
 
 // User picture editor: the chosen image appears in a frame with the circle the
 // shell displays; drag to position it and zoom (mouse wheel or slider). "Save" writes

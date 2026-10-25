@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import qs.bar.components
-import qs.bar.services
+import qs.shared.services
 
 // Screen brightness and night light.
 ColumnLayout {

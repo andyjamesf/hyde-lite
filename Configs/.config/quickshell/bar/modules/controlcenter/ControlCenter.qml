@@ -7,8 +7,10 @@ import Quickshell.Services.UPower
 import Quickshell.Widgets
 import qs.bar.components
 import qs.bar.services
+import qs.bar.pickers
 import qs.bar.modules.controls
 import qs.bar.modules.notifications
+import qs.shared.services
 
 // Control center: side panel with quick toggles, sliders, media, HyDE shortcuts and
 // detail pages (Wi-Fi, Bluetooth, sound). Opens on the focused screen; closes with Esc or
@@ -38,12 +40,14 @@ PanelWindow {
     anchors {
         top: BarLayout.atTop
         bottom: !BarLayout.atTop
-        right: true
+        // Anchored to neither side, a layer surface is centred: that is where this opens while
+        // the minimal bar is in charge (BarLayout.centerPanels).
+        right: !BarLayout.centerPanels
     }
     margins {
         top: BarLayout.atTop ? 6 : 0
         bottom: BarLayout.atTop ? 0 : 6
-        right: 6
+        right: BarLayout.centerPanels ? 0 : 6
     }
     implicitWidth: 360
     implicitHeight: Math.min(content.implicitHeight + 2 * Theme.space5, modelData.height - BarLayout.height - BarLayout.margin - Theme.space6)
@@ -80,8 +84,18 @@ PanelWindow {
 
         width: parent.width
         height: parent.height
-        x: panel.slide * (panel.width + Theme.space3)
-        opacity: 1 - panel.slide * 0.6
+        // It comes in from the right for the normal bar, whose buttons are in that corner.
+        // Centred instead (BarLayout.centerPanels), it grows out of a point at the top middle,
+        // under the clock, which is the part of the bar it belongs to: sliding in sideways from
+        // a corner that has no button in it read as coming from nowhere.
+        x: BarLayout.centerPanels ? 0 : panel.slide * (panel.width + Theme.space3)
+        opacity: 1 - panel.slide * (BarLayout.centerPanels ? 1 : 0.6)
+        transform: Scale {
+            origin.x: bg.width / 2
+            origin.y: 0
+            xScale: BarLayout.centerPanels ? 1 - panel.slide * 0.35 : 1
+            yScale: xScale
+        }
         radius: Theme.shapeXL
         color: Theme.alpha(Theme.surfaceContainer, 0.96)
         border.width: 1
@@ -164,7 +178,7 @@ PanelWindow {
             Image {
                 id: avatar
                 anchors.fill: parent
-                source: SysInfo.avatar
+                source: SysInfo.avatarUrl
                 fillMode: Image.PreserveAspectCrop
                 sourceSize.width: 80
                 sourceSize.height: 80
@@ -244,7 +258,7 @@ PanelWindow {
     component MediaStrip: Card {
         id: strip
 
-        readonly property var player: Media.active
+        readonly property var player: Media.player
 
         padding: Theme.space3
 
@@ -533,7 +547,7 @@ PanelWindow {
             }
 
             MediaStrip {
-                visible: Media.active !== null
+                visible: Media.active
                 Layout.fillWidth: true
             }
 
@@ -541,7 +555,7 @@ PanelWindow {
             ColumnLayout {
                 id: notifSection
 
-                readonly property int limit: Media.active !== null ? 1 : 2
+                readonly property int limit: Media.active ? 1 : 2
 
                 Layout.fillWidth: true
                 spacing: Theme.space2
@@ -609,12 +623,20 @@ PanelWindow {
                 }
             }
 
-            // HyDE shortcuts: a row of buttons with tooltips.
+            // Shortcuts: a row of buttons with tooltips.
+            //
+            // The three that chose something used to run HyDE's own scripts, which open their menu
+            // in rofi; with no rofi installed they did nothing at all and the button sat there
+            // looking alive. They open this shell's own pickers instead (pickers/, the same ones
+            // `qs ipc call launcher pick <name>` and the HyDE menu widget use), so the work is done
+            // in one place and nothing here depends on a program that may not be installed.
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 0
 
                 Repeater {
+                    // A picker switched off in config.json (pickers.enabled) is not shown at all:
+                    // a button that cannot do anything has no business taking up the row.
                     model: [
                         {
                             icon: "skip_next",
@@ -624,12 +646,12 @@ PanelWindow {
                         {
                             icon: "image",
                             label: "Choose wallpaper",
-                            cmd: "hyde-shell app -t scope -- wallpaper.sh --select --global"
+                            pick: "wallpapers"
                         },
                         {
                             icon: "palette",
                             label: "Choose theme",
-                            cmd: "hyde-shell app -t scope -- theme.select.sh"
+                            pick: "themes"
                         },
                         {
                             icon: "view_quilt",
@@ -639,14 +661,14 @@ PanelWindow {
                         {
                             icon: "animation",
                             label: "Animations",
-                            cmd: "hyde-shell animations --select"
+                            pick: "animations"
                         },
                         {
                             icon: "keyboard",
                             label: "Keybindings",
                             action: () => ShellState.toggleLauncher("keys")
                         }
-                    ]
+                    ].filter(t => !t.pick || Pickers.get(t.pick) !== null)
 
                     Item {
                         id: tile
@@ -667,6 +689,9 @@ PanelWindow {
                             onClicked: {
                                 if (tile.modelData.action) {
                                     tile.modelData.action();
+                                } else if (tile.modelData.pick) {
+                                    // Opening the launcher closes this panel by itself.
+                                    ShellState.toggleLauncher("pick:" + tile.modelData.pick);
                                 } else {
                                     ShellState.closeControlCenter();
                                     Utils.run(tile.modelData.cmd);

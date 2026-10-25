@@ -2,8 +2,8 @@ import QtQuick
 import QtQuick.Effects
 import qs.island.config
 import qs.island.icons
-import qs.island.services
 import qs.island.theme
+import qs.shared.services
 
 // Media subview: a card with the blurred cover as background (a dark veil on top so the text reads;
 // without a cover, a theme background), a thumbnail cover, title, artist, previous/play/next, a

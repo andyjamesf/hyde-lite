@@ -12,7 +12,9 @@ BarItem {
 
     icon: "schedule"
     iconColor: Theme.primary
-    text: Utils.formatDate(clock.date, cfg.format) + (cfg.showDate ? "  ·  " + Utils.formatDate(clock.date, cfg.dateFormat) : "")
+    // Whether the day is shown belongs to the bar in charge (BarLayout.clockShowDate), not to this
+    // widget: the minimal bar has layouts that want the clock with and without it.
+    text: Utils.formatDate(clock.date, cfg.format) + (BarLayout.clockShowDate ? "  ·  " + Utils.formatDate(clock.date, cfg.dateFormat) : "")
     tooltip: Utils.formatDate(clock.date, "dddd, d MMMM")
     popoutName: "calendar"
     popout: Component {

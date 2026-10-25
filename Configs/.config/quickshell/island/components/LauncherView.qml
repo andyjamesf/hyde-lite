@@ -6,6 +6,7 @@ import qs.island.core
 import qs.island.services
 import qs.island.theme
 import qs.island.icons
+import qs.shared.services
 
 // The island's launcher (mode "launcher"): a search field on top and the result list below.
 // The prefix picks the mode (config/Launcher.qml `prefixes`): "=" calculator, ":" clipboard,
@@ -437,7 +438,7 @@ FocusScope {
         } else {
             // Close first (focus goes back to the target window), then paste.
             IslandController.close();
-            Clipboard.paste(e);
+            Launch.pasteWith(Clipboard.copyScript(e), String(e.id));
         }
     }
 

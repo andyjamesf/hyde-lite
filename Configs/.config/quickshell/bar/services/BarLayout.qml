@@ -2,6 +2,8 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.bar.modules.minibar.model
+import qs.bar.modules.minibar.controller
 
 // Effective bar layout. The presets live in config/layouts.json (more can be added), and the owner's own
 // in ~/.config/quickshell/layouts.json, which replaces a shipped one of the same name. The owner's file is
@@ -27,16 +29,31 @@ Singleton {
     readonly property string current: presets[Prefs.layout] ? Prefs.layout : presets[Config.bar.layout] ? Config.bar.layout : names[0] ?? ""
     readonly property var preset: presets[current] ?? ({})
 
+    // The minimal bar (modules/minibar) can stand in for this one, and while it does, the values
+    // below are its own: every widget reads its size and shape from here, so this is the one place
+    // that has to know which bar is in charge. The dependency only points this way — that module's
+    // model reads nothing from the services layer.
+    readonly property bool mini: MiniBarState.replacesMainBar
+    // The panels (control centre, notifications) open in the middle rather than in the corner the
+    // normal bar's buttons sit in. Read by modules/controlcenter and modules/notifications.
+    readonly property bool centerPanels: mini && MiniBarConfig.centerPanels
+    // The clock's day. A layout of the minimal bar can ask for it or refuse it (clockDate);
+    // otherwise it is the owner's setting in config.json, which is what the normal bar follows.
+    // widgets/ClockWidget.qml reads this rather than the setting, so one clock serves both bars.
+    readonly property bool clockShowDate: mini && MiniBarState.layout.clockDate !== undefined ? MiniBarState.layout.clockDate : Config.widgets.clock.showDate
+
     property string hydeTheme: ""
     property int hyprRounding: 10
 
-    readonly property string style: preset.style ?? "islands"
+    // The minimal bar's "none" style is a continuous bar whose strip is not drawn (its window
+    // draws the strip, not this), so only "islands" differs here.
+    readonly property string style: mini ? (MiniBarConfig.style === "islands" ? "islands" : "continuous") : preset.style ?? "islands"
     readonly property bool islands: style === "islands"
-    readonly property string position: preset.position ?? Config.bar.position
+    readonly property string position: mini ? MiniBarConfig.position : preset.position ?? Config.bar.position
     readonly property bool atTop: position !== "bottom"
     // Height picked in the menu/IPC, or the layout's. Text, icons and radius follow it.
     readonly property int layoutHeight: preset.height ?? 28
-    readonly property int height: Prefs.barHeight > 0 ? Prefs.barHeight : layoutHeight
+    readonly property int height: mini && MiniBarConfig.height > 0 ? Math.max(minHeight, Math.min(maxHeight, MiniBarConfig.height)) : Prefs.barHeight > 0 ? Prefs.barHeight : layoutHeight
     readonly property int minHeight: 16
     readonly property int maxHeight: 40
     readonly property var heights: [
@@ -57,10 +74,10 @@ Singleton {
             value: 32
         }
     ]
-    readonly property int margin: islands ? (preset.margin ?? 4) : 0
-    readonly property int spacing: preset.spacing ?? 4
-    readonly property int radius: Math.min(preset.radius ?? hyprRounding, Math.floor(height / 2))
-    readonly property real opacity: Prefs.pillOpacity >= 0 ? Prefs.pillOpacity : preset.opacity ?? Config.bar.opacity
+    readonly property int margin: islands ? (mini ? MiniBarConfig.margin : preset.margin ?? 4) : 0
+    readonly property int spacing: mini ? MiniBarConfig.spacing : preset.spacing ?? 4
+    readonly property int radius: Math.min(mini ? (MiniBarConfig.radius >= 0 ? MiniBarConfig.radius : hyprRounding) : preset.radius ?? hyprRounding, Math.floor(height / 2))
+    readonly property real opacity: mini && MiniBarConfig.opacity >= 0 ? MiniBarConfig.opacity : Prefs.pillOpacity >= 0 ? Prefs.pillOpacity : preset.opacity ?? Config.bar.opacity
 
     // Island background. All options derive from the theme colors, so they change with it.
     readonly property var pillStyles: [
@@ -92,6 +109,9 @@ Singleton {
     readonly property string pillStyle: Prefs.pillStyle || preset.pillStyle || Config.bar.pillStyle
     readonly property color pillColor: {
         const a = opacity;
+        // A fixed colour asked for by the minimal bar ("" there: follow the theme, as this bar does).
+        if (mini && MiniBarConfig.color !== "")
+            return Theme.alpha(MiniBarConfig.color, a);
         switch (pillStyle) {
         case "surface":
             return Theme.alpha(Theme.surface, a);
@@ -144,8 +164,8 @@ Singleton {
         Prefs.save();
     }
     // Text and icons follow the height, but never become unreadable.
-    readonly property int fontSize: preset.fontSize ?? Math.max(11, Math.min(Config.appearance.fontSize, Math.round(height * 0.46)))
-    readonly property int iconSize: preset.iconSize ?? Math.max(14, Math.min(Config.appearance.iconSize, Math.round(height * 0.64)))
+    readonly property int fontSize: mini && MiniBarConfig.fontSize > 0 ? MiniBarConfig.fontSize : preset.fontSize ?? Math.max(11, Math.min(Config.appearance.fontSize, Math.round(height * 0.46)))
+    readonly property int iconSize: mini && MiniBarConfig.iconSize > 0 ? MiniBarConfig.iconSize : preset.iconSize ?? Math.max(14, Math.min(Config.appearance.iconSize, Math.round(height * 0.64)))
     readonly property var left: preset.left ?? []
     readonly property var center: preset.center ?? []
     readonly property var right: preset.right ?? []
@@ -161,6 +181,12 @@ Singleton {
     }
 
     function cycle(step) {
+        // "Next bar layout" and `qs ipc call bar next|prev` drive whichever bar is in charge: the
+        // minimal bar keeps its own layouts (modules/minibar/model/MiniBarConfig.qml).
+        if (mini) {
+            MiniBarController.cycleLayout(step);
+            return;
+        }
         const i = names.indexOf(current);
         select(names[(i + step + names.length) % names.length]);
     }

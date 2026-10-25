@@ -5,6 +5,7 @@ import qs.island.core
 import qs.island.config
 import qs.island.services
 import qs.island.theme
+import qs.shared.services
 
 // Morphing Island: a single floating island at the top of each screen that turns into a clock,
 // an expanded bar, OSDs, notifications, the launcher, the control center, etc.
@@ -28,6 +29,97 @@ Scope {
         target: SddmTheme
         property: "islandOpacity"
         value: Theme.islandOpacity
+    }
+    // The brightness service is shared with the bar and has no settings of its own, so this shell
+    // hands it the two values it reads from config/OsdConfig.qml.
+    Binding {
+        target: Brightness
+        property: "step"
+        value: OsdConfig.brightnessStep
+    }
+    Binding {
+        target: Brightness
+        property: "dimmingThreshold"
+        value: OsdConfig.dimmingThreshold
+    }
+    Binding {
+        target: Audio
+        property: "armDelay"
+        value: OsdConfig.audioArmDelay
+    }
+    Binding {
+        target: Audio
+        property: "micMinDelta"
+        value: OsdConfig.micMinDelta
+    }
+    Binding {
+        target: Audio
+        property: "micMinIntervalMs"
+        value: OsdConfig.micMinIntervalMs
+    }
+    Binding {
+        target: Bluetooth
+        property: "discoveryMs"
+        value: ControlCenter.btDiscoveryMs
+    }
+    Binding {
+        target: Media
+        property: "ignoredPlayers"
+        value: MediaConfig.ignoredPlayers
+    }
+    Binding {
+        target: NightLight
+        property: "temperature"
+        value: ControlCenter.nightLightTemperature
+    }
+
+    // A picture chosen in the control centre is saved as it is (the bar positions it in an editor
+    // first), and the login screen, which reads the same file, is told to pick it up.
+    // The keybindings service is shared and cannot reach this shell's Errors; it says so instead.
+    // The lock is shared with the bar now; this shell's settings reach it here.
+    Binding {
+        target: Lock
+        property: "pamService"
+        value: LockScreenConfig.pamService
+    }
+    Binding {
+        target: Lock
+        property: "releaseMs"
+        value: LockScreenConfig.releaseMs
+    }
+    Binding {
+        target: Lock
+        property: "errorMs"
+        value: LockScreenConfig.errorMs
+    }
+    Binding {
+        target: Lock
+        property: "animated"
+        value: Animations.enabled
+    }
+
+    Connections {
+        target: Keybinds
+        function onReadFailed(message) {
+            Errors.report("keybindings", message);
+        }
+    }
+
+    Connections {
+        target: Clipboard
+        function onReadFailed(message) {
+            Errors.report("clipboard", message);
+        }
+    }
+
+    Connections {
+        target: SysInfo
+        function onAvatarFilePicked(path) {
+            SysInfo.applyAvatar(path);
+        }
+        function onAvatarFileChanged() {
+            SddmTheme.sync();
+        }
     }
 
     Variants {

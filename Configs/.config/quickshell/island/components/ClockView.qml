@@ -1,6 +1,7 @@
 import QtQuick
 import qs.island.config
 import qs.island.services
+import qs.shared.services
 
 // Base mode: the small pill with the time and, when music is playing, an equalizer next to it
 // ("13:37 ▂▅▇"). The equalizer shrinks to 0 when playback stops, so the pill grows/shrinks smoothly.

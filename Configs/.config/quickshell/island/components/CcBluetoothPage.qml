@@ -6,6 +6,7 @@ import qs.island.core
 import qs.island.icons
 import qs.island.services
 import qs.island.theme
+import qs.shared.services
 
 // Bluetooth subview: switch, scan button (starts/stops discovery) and the device list (connected
 // first, then paired, then discovered ones). Clicking a paired device connects/disconnects it; the

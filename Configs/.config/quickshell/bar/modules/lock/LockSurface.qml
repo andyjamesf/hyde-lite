@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Widgets
 import qs.bar.components
 import qs.bar.services
+import qs.shared.services
 
 // Lock screen contents (one per monitor): HyDE's blurred wallpaper, clock, user,
 // password and, at the bottom, battery and what's playing.
@@ -97,7 +98,7 @@ Item {
             Image {
                 id: avatar
                 anchors.fill: parent
-                source: SysInfo.avatar
+                source: SysInfo.avatarUrl
                 fillMode: Image.PreserveAspectCrop
                 sourceSize.width: 168
                 sourceSize.height: 168
@@ -251,7 +252,7 @@ Item {
         }
 
         Rectangle {
-            visible: Media.active !== null && Media.title !== ""
+            visible: Media.active && Media.title !== ""
             implicitWidth: Math.min(420, mediaRow.implicitWidth + 28)
             implicitHeight: 44
             radius: height / 2

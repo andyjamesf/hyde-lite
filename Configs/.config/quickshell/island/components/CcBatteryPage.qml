@@ -1,8 +1,8 @@
 import QtQuick
 import qs.island.config
 import qs.island.icons
-import qs.island.services
 import qs.island.theme
+import qs.shared.services
 
 // Battery page of the control center ("battery" mode; a click on the battery in the header or the
 // status pill): charge and time left, battery health and the power profile (Power saver ·

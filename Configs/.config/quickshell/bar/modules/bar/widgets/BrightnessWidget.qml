@@ -2,6 +2,7 @@ import QtQuick
 import qs.bar.components
 import qs.bar.services
 import qs.bar.modules.controls
+import qs.shared.services
 
 BarItem {
     readonly property var cfg: Config.widgets.brightness

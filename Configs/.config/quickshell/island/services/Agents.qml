@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Io
 import qs.island.config
 import qs.island.core
+import qs.shared.services
 
 // Wi-Fi and Bluetooth requests (config/AgentsConfig.qml). scripts/agents.py is NetworkManager's
 // secret agent and BlueZ's pairing agent; each request it prints opens the island's "agent" mode

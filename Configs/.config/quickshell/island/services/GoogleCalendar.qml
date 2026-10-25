@@ -230,7 +230,7 @@ Singleton {
 
     Process {
         id: picker
-        command: ["python3", Quickshell.shellPath("island/scripts/pick_file.py"), "Google OAuth client file (client_secret_….json)", "JSON:*.json"]
+        command: ["python3", Quickshell.shellPath("shared/scripts/pick_file.py"), "Google OAuth client file (client_secret_….json)", "JSON:*.json"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const path = text.trim();

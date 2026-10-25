@@ -15,6 +15,9 @@ import qs.bar.modules.powermenu
 import qs.bar.modules.barbuilder
 import qs.bar.modules.lock
 import qs.bar.modules.avatar
+import qs.bar.modules.minibar.controller
+import qs.bar.modules.minibar.view
+import qs.shared.services
 
 Scope {
     // Singletons are only created when something uses them; these must exist from startup
@@ -42,6 +45,10 @@ Scope {
 
         Bar {}
     }
+
+    // The minimal bar (modules/minibar): a slimmer bar that takes the one above's place while it
+    // is switched on. It creates its own windows, one per screen, and none while it is off.
+    MiniBarWindows {}
 
     Variants {
         model: Quickshell.screens
@@ -152,6 +159,38 @@ Scope {
             ShellState.launcherOpen = false;
             ShellState.toggleLauncher("apps", screen);
         }
+    }
+
+    // A picture chosen in the control centre opens in the editor, to be positioned in the circle
+    // before it is saved to ~/.face. The island saves it as it is; the shared service only picks
+    // the file and leaves the rest to whichever shell is running.
+    Connections {
+        target: SysInfo
+        function onAvatarFilePicked(path) {
+            ShellState.avatarScreen = Hyprland.focusedMonitor?.name ?? "";
+            ShellState.avatarSource = path;
+        }
+    }
+
+    // The battery service is shared with the island and has no settings of its own, so the shell
+    // that does have them hands over the one value it needs (services/Config.qml -> config.json).
+    Binding {
+        target: Battery
+        property: "lowLevel"
+        value: Config.widgets.battery.lowLevel
+    }
+
+    Binding {
+        target: Brightness
+        property: "step"
+        value: Config.widgets.brightness.step
+    }
+
+    // With this off, locking hands over to HyDE's hyprlock instead of the shell's own lock screen.
+    Binding {
+        target: Lock
+        property: "enabled"
+        value: Config.widgets.lock.enabled
     }
 
     LockScreen {}
@@ -282,6 +321,26 @@ Scope {
         }
     }
 
+    // Which of the two bars is in use; what the minimal one shows is
+    // modules/minibar/model/MiniBarConfig.qml. The behaviour lives in its controller, so these are
+    // one line each.
+    IpcHandler {
+        target: "minibar"
+
+        function toggle(): void {
+            MiniBarController.toggle();
+        }
+        function on(): void {
+            MiniBarController.on();
+        }
+        function off(): void {
+            MiniBarController.off();
+        }
+        function status(): string {
+            return MiniBarController.status();
+        }
+    }
+
     IpcHandler {
         target: "colors"
 
@@ -309,10 +368,10 @@ Scope {
         target: "brightness"
 
         function up(): void {
-            Brightness.change(Config.widgets.brightness.step);
+            Brightness.up();
         }
         function down(): void {
-            Brightness.change(-Config.widgets.brightness.step);
+            Brightness.down();
         }
         function set(percent: int): void {
             Brightness.set(percent);

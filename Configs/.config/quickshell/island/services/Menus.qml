@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import qs.island.config
 import qs.island.core
+import qs.shared.services
 
 // Right-click menus of the island's buttons (status pill, shortcut buttons, control center tiles):
 // the quick choices each one has. items(id) is read again while the menu is open, so ticks follow

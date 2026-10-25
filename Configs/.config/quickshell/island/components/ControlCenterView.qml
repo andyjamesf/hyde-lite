@@ -1,7 +1,12 @@
 import QtQuick
 import qs.island.config
 import qs.island.core
+// Media and Notifications are only read inside a template literal below (the debug line),
+// which qmllint does not look into, so it reports this import as unused. It is not.
+// qmllint disable unused-imports
 import qs.island.services
+// qmllint enable unused-imports
+import qs.shared.services
 
 // Control center: a single island content for the "controlcenter", "wifi", "bluetooth", "audio"
 // and "media" modes. Inside it is a stack of pages: when the page changes, the new one slides in

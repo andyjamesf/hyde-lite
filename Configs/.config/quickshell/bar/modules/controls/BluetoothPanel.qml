@@ -1,8 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
-import Quickshell.Bluetooth as QsBluetooth
 import qs.bar.components
 import qs.bar.services
+import qs.shared.services
 
 // Bluetooth: on/off, paired devices (connect/disconnect/forget) and discovery of
 // new devices to pair.
@@ -16,7 +16,7 @@ ColumnLayout {
     spacing: 8
 
     // Discovery drains battery: it stops when the panel closes.
-    Component.onDestruction: Bluetooth.setScanning(false)
+    Component.onDestruction: Bluetooth.stopDiscovery()
 
     PanelHeader {
         backButton: root.backButton
@@ -43,10 +43,10 @@ ColumnLayout {
             icon: Bluetooth.iconFor(modelData)
             iconFill: modelData.connected ? 1 : 0
             title: modelData.name
-            subtitle: modelData.state === QsBluetooth.BluetoothDeviceState.Connecting ? "Connecting…" : modelData.connected ? "Connected" + (modelData.batteryAvailable ? ` · ${Math.round(modelData.battery * 100)}% bateria` : "") : "Disconnected"
+            subtitle: modelData.connecting ? "Connecting…" : modelData.connected ? "Connected" + (modelData.battery >= 0 ? ` · ${modelData.battery}% battery` : "") : "Disconnected"
             highlighted: modelData.connected
-            busy: modelData.state === QsBluetooth.BluetoothDeviceState.Connecting || modelData.state === QsBluetooth.BluetoothDeviceState.Disconnecting
-            onClicked: Bluetooth.activate(modelData)
+            busy: modelData.connecting
+            onClicked: Bluetooth.toggle(modelData)
 
             IconButton {
                 visible: !modelData.connected
@@ -63,14 +63,14 @@ ColumnLayout {
         Layout.fillWidth: true
 
         SectionLabel {
-            text: Bluetooth.scanning ? "Searching…" : "Other devices"
+            text: Bluetooth.discovering ? "Searching…" : "Other devices"
         }
 
         IconButton {
-            icon: Bluetooth.scanning ? "stop" : "search"
+            icon: Bluetooth.discovering ? "stop" : "search"
             size: 30
-            checked: Bluetooth.scanning
-            onClicked: Bluetooth.setScanning(!Bluetooth.scanning)
+            checked: Bluetooth.discovering
+            onClicked: Bluetooth.discovering ? Bluetooth.stopDiscovery() : Bluetooth.startDiscovery()
         }
     }
 
@@ -96,14 +96,14 @@ ColumnLayout {
                     title: modelData.name
                     subtitle: modelData.pairing ? "Pairing…" : "Click to pair"
                     busy: modelData.pairing
-                    onClicked: Bluetooth.activate(modelData)
+                    onClicked: Bluetooth.toggle(modelData)
                 }
             }
         }
     }
 
     StyledText {
-        visible: Bluetooth.enabled && !Bluetooth.scanning && Bluetooth.discovered.length === 0
+        visible: Bluetooth.enabled && !Bluetooth.discovering && Bluetooth.discovered.length === 0
         Layout.fillWidth: true
         text: "Tap the magnifier to search for new devices."
         font.pixelSize: Theme.labelSmall

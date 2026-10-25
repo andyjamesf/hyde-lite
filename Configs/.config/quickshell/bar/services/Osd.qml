@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import qs.shared.services
 
 // Volume, microphone and brightness OSD. Reacts to changes in the services (Pipewire and the
 // backlight uevent), so it shows up wherever the change comes from: HyDE keys, the bar, apps.
@@ -17,7 +18,6 @@ Singleton {
     readonly property bool needed: visible || fadeOut.running
     // During startup and when switching devices the values "change" without anyone touching them.
     property bool armed: false
-    property int lastBrightness: -1
 
     readonly property real value: kind === "brightness" ? Brightness.percent / 100 : kind === "mic" ? (Audio.micMuted ? 0 : Audio.micVolume) : (Audio.muted ? 0 : Audio.volume)
     readonly property string icon: kind === "brightness" ? Brightness.icon : kind === "mic" ? Audio.micIcon : Audio.icon
@@ -32,11 +32,6 @@ Singleton {
         kind = k;
         visible = true;
         hideTimer.restart();
-    }
-
-    function disarmBriefly() {
-        armed = false;
-        arm.restart();
     }
 
     // Idle for 20 s: well before hypridle's dimming (60 s). Ignores the inhibitors
@@ -78,34 +73,26 @@ Singleton {
         onTriggered: root.armed = true
     }
 
+    // The service already tells a change by the owner from the values settling during startup or a
+    // device switch, and filters the microphone's jitter (shared/services/Audio.qml), so there is
+    // nothing to arm or disarm here. The microphone OSD now also follows its volume, not only its
+    // mute, which is what the island had.
     Connections {
         target: Audio
-        function onVolumeChanged() {
+        function onChangedByUser() {
             root.show("volume");
         }
-        function onMutedChanged() {
-            root.show("volume");
-        }
-        function onMicMutedChanged() {
+        function onMicChangedByUser() {
             root.show("mic");
-        }
-        function onSinkChanged() {
-            root.disarmBriefly();
-        }
-        function onSourceChanged() {
-            root.disarmBriefly();
         }
     }
 
+    // The service tells the difference between the owner changing the brightness and hypridle
+    // dimming the screen (shared/services/Brightness.qml, dimmingThreshold), so there is nothing to
+    // filter here any more.
     Connections {
         target: Brightness
-        function onPercentChanged() {
-            const previous = root.lastBrightness;
-            root.lastBrightness = Brightness.percent;
-            if (previous >= 0 && (previous <= 2 || Brightness.percent <= 2)) {
-                console.debug("osd: brightness", previous, "→", Brightness.percent, "ignored (dimming)");
-                return;
-            }
+        function onChangedByUser() {
             root.show("brightness");
         }
     }
