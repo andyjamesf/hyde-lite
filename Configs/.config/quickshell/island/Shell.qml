@@ -75,6 +75,21 @@ Scope {
 
     // A picture chosen in the control centre is saved as it is (the bar positions it in an editor
     // first), and the login screen, which reads the same file, is told to pick it up.
+    // The keybindings service is shared and cannot reach this shell's Errors; it says so instead.
+    Connections {
+        target: Keybinds
+        function onReadFailed(message) {
+            Errors.report("keybindings", message);
+        }
+    }
+
+    Connections {
+        target: Clipboard
+        function onReadFailed(message) {
+            Errors.report("clipboard", message);
+        }
+    }
+
     Connections {
         target: SysInfo
         function onAvatarFilePicked(path) {

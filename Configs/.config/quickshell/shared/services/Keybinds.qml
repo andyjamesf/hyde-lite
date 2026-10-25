@@ -3,11 +3,20 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Hyprland keybindings for the launcher's "Keys" mode (replaces HyDE's keybinds_hint, which opened
-// in rofi). Read from `hyprctl binds -j`; only those with a description. HyDE's description carries the
-// category in square brackets: "[Launcher|Apps] browser" → category "Launcher · Apps".
+// Hyprland keybindings for the launcher's keybindings mode, shared by every UI of this
+// configuration. It replaced HyDE's keybinds_hint (a rofi menu).
+//
+// The two shells had a copy each, and they differed in nothing but the wording of the comments and
+// one line: the island reported a failure to read the list through its own Errors service, which a
+// shared service cannot reach. It emits `readFailed` instead, and the shell that has somewhere to
+// show it connects to that (island/Shell.qml). Read from `hyprctl binds -j`; only bindings with a description.
+// HyDE's description carries the category in square brackets: "[Launcher|Apps] browser" →
+// category "Launcher · Apps".
 Singleton {
     id: root
+
+    // Reading the bindings failed. The island shows these; the bar logs and carries on.
+    signal readFailed(string message)
 
     property var entries: []
     property bool loading: false
@@ -79,12 +88,12 @@ Singleton {
         return parts;
     }
 
-    // Keys that are only modifiers (e.g. releasing Alt at the end of Alt+Tab): they are part of another
-    // binding and aren't pressed on their own, so they don't appear in the list.
+    // Keys that are only modifiers (e.g. releasing Alt at the end of Alt+Tab): they belong to
+    // another binding and are never pressed alone, so they are left out of the list.
     readonly property var modifierKeys: ["alt_l", "alt_r", "super_l", "super_r", "control_l", "control_r", "shift_l", "shift_r"]
 
-    // One entry per action: different combinations for the same thing (Super+Q and Alt+F4 to close the
-    // window) go on the same row, in `combos`.
+    // One entry per action: different combos for the same thing (Super+Q and Alt+F4 to close the
+    // window) share one row, in `combos`.
     function parse(json) {
         const byAction = {};
         const out = [];
@@ -116,15 +125,15 @@ Singleton {
         return out;
     }
 
-    // Every word of the query must appear (in the description, the category or the keys).
+    // Every search word must appear (in the description, the category or the keys).
     function search(query) {
         const words = query.trim().toLowerCase().split(/\s+/).filter(w => w);
         return words.length ? entries.filter(e => words.every(w => e.haystack.includes(w))) : entries;
     }
 
-    // With the Lua config, each binding is the "__lua" dispatcher with the function's number in the
-    // Lua registry (HyDE's `hyprctl dispatch __lua N` no longer works: dispatch now
-    // takes Lua code). Only a number is accepted, so arbitrary text is never evaluated.
+    // With the Lua config, every binding is the "__lua" dispatcher with the function's index in the
+    // Lua registry (HyDE's `hyprctl dispatch __lua N` no longer works: dispatch now takes Lua code).
+    // Only a number is accepted, so arbitrary text is never evaluated.
     function run(entry) {
         if (entry.dispatcher === "__lua") {
             if (/^\d+$/.test(entry.arg))
@@ -148,6 +157,7 @@ Singleton {
                     root.entries = root.parse(text);
                 } catch (e) {
                     console.warn("keybinds:", e);
+                    root.readFailed(`the list could not be read: ${e}`);
                 }
                 root.loading = false;
             }

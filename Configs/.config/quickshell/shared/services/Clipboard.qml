@@ -3,6 +3,14 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
+// Clipboard history, shared by every UI of this configuration.
+//
+// This is the island's, which was the safer of the two: it passes the entry id to the shell as an
+// argument instead of pasting it into the command text, and it keeps an image's type when putting
+// it back (the bar's copied every entry as plain text). The bar's wipe() came along. Pasting into
+// the focused window stays with each shell, which has its own Launch for it; copyScript() hands
+// over the part that belongs here.
+//
 // Clipboard history via cliphist (HyDE already records it with `wl-paste --watch cliphist store`).
 // There is no native API: the list is read with `cliphist list` only when refresh() is called (no
 // polling).
@@ -11,6 +19,10 @@ import Quickshell.Io
 // launcher's "paste directly" feature, not a testing shortcut.
 Singleton {
     id: root
+
+    // cliphist could not be read (it is not installed, or it failed). The island shows these; the
+    // bar logs and carries on. A shared service cannot reach either shell's error reporting.
+    signal readFailed(string message)
 
     property var entries: []   // [{ id, text, image }], most recent first
     property bool loading: false
@@ -36,10 +48,16 @@ Singleton {
     }
 
     // Copies, then (once the launcher has closed and focus is back) pastes; see Launch.pasteWith.
-    function paste(entry) {
-        if (!entry)
-            return;
-        Launch.pasteWith(_copyScript(entry), String(entry.id));
+    // The script that puts an entry back on the clipboard, for a shell that wants to paste it
+    // itself: each one has its own Launch.pasteWith, which a shared service cannot reach.
+    function copyScript(entry): string {
+        return entry ? _copyScript(entry) : "";
+    }
+
+    // Empties the history.
+    function wipe(): void {
+        Quickshell.execDetached(["cliphist", "wipe"]);
+        entries = [];
     }
 
     function remove(entry) {
@@ -67,7 +85,12 @@ Singleton {
                 root.loading = false;
             }
         }
-        onExited: root.loading = false
-        Component.onCompleted: Errors.watch(lister, "clipboard", "cliphist")
+        onExited: code => {
+            root.loading = false;
+            if (code !== 0) {
+                console.warn("clipboard: cliphist list exited with", code);
+                root.readFailed(`cliphist exited with ${code}`);
+            }
+        }
     }
 }
