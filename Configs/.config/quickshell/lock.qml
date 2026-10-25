@@ -3,7 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.island.core
-import qs.island.services
+import qs.shared.services
 
 // The island's lock screen on its own, for the bar shell. `island lock lock` starts this when the
 // island is not running (`qs -p ~/.config/quickshell/lock.qml`, with ISLAND_LOCK_ENTRY=fade so

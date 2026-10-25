@@ -4,12 +4,22 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Services.Pam
-import qs.island.config
+
 import qs.shared.services
 
-// The island's session lock (ext-session-lock) with PAM authentication. Uses hyprlock's PAM
-// configuration (/etc/pam.d/hyprlock, see LockScreenConfig.pamService), the same as HyDE's lock, so
-// it accepts the same password.
+// The session lock (ext-session-lock) with PAM authentication, shared by every UI of this
+// configuration. It uses hyprlock's PAM configuration (/etc/pam.d/hyprlock by default), the same as
+// HyDE's lock, so it accepts the same password.
+//
+// This is the island's service, kept as it was. It is the one that actually locks this machine —
+// hypridle and $mod+L both go through `island lock`, which runs the island's lock screen whichever
+// shell is up — so the code that takes a password was not the place to be clever. The bar's own was
+// the same flow with fewer features (no release animation, no card screen, no crash recovery, no
+// real name) and one thing of its own, the fallback to HyDE's hyprlock when the shell's lock is
+// switched off in config.json; that is `enabled` and `fallbackCommand` below.
+//
+// Everything the bar's lock screen reads — locked, authenticating, error, failures, lock(),
+// unlock(), submit() — is here under the same names, so its surface did not have to change.
 //
 // Entry points (IPC in shell.qml): `lock lock` (hypridle, `loginctl lock-session`) and `lock unlock`
 // (`loginctl unlock-session`; it is the emergency exit and has the same trust level: any process of
@@ -19,6 +29,17 @@ import qs.shared.services
 // PAM asks for it (it is cleared right after). It is never logged nor written anywhere.
 Singleton {
     id: root
+
+    // What a shell configures. A shared service has no settings file of its own: the island binds
+    // these from config/LockScreenConfig.qml and config/Animations.qml, the bar `enabled` from
+    // config.json (widgets.lock.enabled).
+    property string pamService: "hyprlock"
+    property int releaseMs: 560
+    property int errorMs: 3500
+    property bool animated: true
+    // false: this lock is not used at all and lock() hands over to the command below.
+    property bool enabled: true
+    property string fallbackCommand: "hyde-shell lockscreen.sh"
 
     // The state survives a shell reload: the new WlSessionLock resumes the lock. Without this, a
     // reload with the screen locked dropped the lock and Hyprland showed "lockscreen app died".
@@ -44,6 +65,10 @@ Singleton {
     property var _pamMessages: []
 
     function lock() {
+        if (!enabled) {
+            Quickshell.execDetached(["sh", "-c", fallbackCommand]);
+            return;
+        }
         if (persist.locked)
             return;
         releaseTimer.stop();
@@ -64,7 +89,7 @@ Singleton {
         error = "";
         failures = 0;
         unlocking = true;
-        releaseTimer.interval = Animations.enabled ? LockScreenConfig.releaseMs : 0;
+        releaseTimer.interval = animated ? releaseMs : 0;
         releaseTimer.restart();
     }
 
@@ -116,12 +141,12 @@ Singleton {
     // misc:allow_session_lock_restore, lets a new client take the lock over. `island run` starts
     // the island again; this file tells the new process to lock at once. It lives in the runtime
     // directory, so a logout or reboot clears it.
-    readonly property string lockMarker: `${Paths.runtimeDir}/morphing-island-locked`
+    readonly property string lockMarker: `${Quickshell.env("XDG_RUNTIME_DIR") || "/tmp"}/morphing-island-locked`
     FileView {
         path: root.lockMarker
         printErrors: false
         onLoaded: if (!persist.locked) {
-            console.warn("lock: the island restarted while the screen was locked; locking again");
+            console.warn("lock: the shell restarted while the screen was locked; locking again");
             root.lock();
         }
     }
@@ -134,13 +159,13 @@ Singleton {
     // The error message disappears by itself after a while.
     Timer {
         id: errorTimer
-        interval: LockScreenConfig.errorMs
+        interval: root.errorMs
         onTriggered: root.error = ""
     }
 
     PamContext {
         id: pam
-        config: LockScreenConfig.pamService
+        config: root.pamService
 
         onPamMessage: {
             if (responseRequired) {

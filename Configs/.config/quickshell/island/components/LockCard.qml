@@ -3,6 +3,7 @@ import Quickshell.Widgets
 import qs.island.config
 import qs.island.theme
 import qs.island.services
+import qs.shared.services
 
 // Content of the lock card (the island open at the centre of the screen): large time and date,
 // avatar (LockScreenConfig.avatarPath, circular, or the name's initial), user name, password field

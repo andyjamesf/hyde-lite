@@ -186,6 +186,13 @@ Scope {
         value: Config.widgets.brightness.step
     }
 
+    // With this off, locking hands over to HyDE's hyprlock instead of the shell's own lock screen.
+    Binding {
+        target: Lock
+        property: "enabled"
+        value: Config.widgets.lock.enabled
+    }
+
     LockScreen {}
 
     IpcHandler {

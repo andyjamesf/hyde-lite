@@ -76,6 +76,28 @@ Scope {
     // A picture chosen in the control centre is saved as it is (the bar positions it in an editor
     // first), and the login screen, which reads the same file, is told to pick it up.
     // The keybindings service is shared and cannot reach this shell's Errors; it says so instead.
+    // The lock is shared with the bar now; this shell's settings reach it here.
+    Binding {
+        target: Lock
+        property: "pamService"
+        value: LockScreenConfig.pamService
+    }
+    Binding {
+        target: Lock
+        property: "releaseMs"
+        value: LockScreenConfig.releaseMs
+    }
+    Binding {
+        target: Lock
+        property: "errorMs"
+        value: LockScreenConfig.errorMs
+    }
+    Binding {
+        target: Lock
+        property: "animated"
+        value: Animations.enabled
+    }
+
     Connections {
         target: Keybinds
         function onReadFailed(message) {
