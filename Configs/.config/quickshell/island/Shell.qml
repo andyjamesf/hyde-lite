@@ -57,6 +57,11 @@ Scope {
         property: "micMinIntervalMs"
         value: OsdConfig.micMinIntervalMs
     }
+    Binding {
+        target: Bluetooth
+        property: "discoveryMs"
+        value: ControlCenter.btDiscoveryMs
+    }
 
     Variants {
         model: Quickshell.screens
