@@ -3,9 +3,18 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Services.Mpris
-import qs.island.config
 
-// Media players (native MPRIS). The chosen player is, in this order: the one the user selected
+// Media players (native MPRIS), shared by every UI of this configuration.
+//
+// This is the island's service, which was the fuller of the two by a long way: the bar's knew only
+// the active player, the title, the artist and the art. Everything else here — choosing a player
+// by hand, the position and seeking, canNext/canPrevious, the player's identity — the bar simply
+// did not have, and its control centre now can.
+//
+// One name had to give: `active` was the player object in the bar and a boolean in the island. It
+// is the boolean, and `player` is the object, which is what the island already called it.
+//
+// The chosen player is, in this order: the one the user selected
 // (selectPlayer) while it exists; the one playing; the last one that played; the first in the list.
 // The manual selection is dropped when another player starts playing.
 // Position: MPRIS does not notify the continuous progress of the position, so whoever shows it
@@ -13,9 +22,13 @@ import qs.island.config
 Singleton {
     id: root
 
-    // Players whose D-Bus name contains an entry of MediaConfig.ignoredPlayers are skipped (playerctld is
+    // D-Bus names to skip. playerctld is a proxy for the others, so counting it would show the
+    // playing track twice. The island binds this from config/MediaConfig.qml.
+    property var ignoredPlayers: ["playerctld"]
+
+    // Players whose D-Bus name contains an entry of root.ignoredPlayers are skipped (playerctld is
     // a proxy for the other players; counting it would duplicate the active one).
-    readonly property var players: Mpris.players.values.filter(p => !MediaConfig.ignoredPlayers.some(i => (p.dbusName ?? "").includes(i)))
+    readonly property var players: Mpris.players.values.filter(p => !root.ignoredPlayers.some(i => (p.dbusName ?? "").includes(i)))
     property var _lastPlaying: null
     property var _selected: null
     readonly property var player: players.includes(_selected) ? _selected : players.find(p => p.isPlaying) ?? (players.includes(_lastPlaying) ? _lastPlaying : players[0] ?? null)

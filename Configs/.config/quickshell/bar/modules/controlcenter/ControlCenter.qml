@@ -258,7 +258,7 @@ PanelWindow {
     component MediaStrip: Card {
         id: strip
 
-        readonly property var player: Media.active
+        readonly property var player: Media.player
 
         padding: Theme.space3
 
@@ -547,7 +547,7 @@ PanelWindow {
             }
 
             MediaStrip {
-                visible: Media.active !== null
+                visible: Media.active
                 Layout.fillWidth: true
             }
 
@@ -555,7 +555,7 @@ PanelWindow {
             ColumnLayout {
                 id: notifSection
 
-                readonly property int limit: Media.active !== null ? 1 : 2
+                readonly property int limit: Media.active ? 1 : 2
 
                 Layout.fillWidth: true
                 spacing: Theme.space2

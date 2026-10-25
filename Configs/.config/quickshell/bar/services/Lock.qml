@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Services.Pam
+import qs.shared.services
 
 // The shell's session lock (ext-session-lock) with PAM authentication — the same configuration as
 // hyprlock (/etc/pam.d/hyprlock), so it accepts the same credentials.

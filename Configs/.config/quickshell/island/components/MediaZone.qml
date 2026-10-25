@@ -2,8 +2,8 @@ import QtQuick
 import QtQuick.Effects
 import qs.island.config
 import qs.island.icons
-import qs.island.services
 import qs.island.theme
+import qs.shared.services
 
 // Left zone of the expanded island: album art + previous / play-pause / next.
 // No titles (they do not fit in the zone). Without a player: nothing (the zone takes no width).

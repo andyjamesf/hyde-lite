@@ -3,7 +3,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Hyprland
 import qs.island.config
-import qs.island.services
 // Brightness is only read inside a template literal below, which qmllint does not look into,
 // so it reports this import as unused. It is not.
 // qmllint disable unused-imports

@@ -62,6 +62,16 @@ Scope {
         property: "discoveryMs"
         value: ControlCenter.btDiscoveryMs
     }
+    Binding {
+        target: Media
+        property: "ignoredPlayers"
+        value: MediaConfig.ignoredPlayers
+    }
+    Binding {
+        target: NightLight
+        property: "temperature"
+        value: ControlCenter.nightLightTemperature
+    }
 
     Variants {
         model: Quickshell.screens

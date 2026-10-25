@@ -252,7 +252,7 @@ Item {
         }
 
         Rectangle {
-            visible: Media.active !== null && Media.title !== ""
+            visible: Media.active && Media.title !== ""
             implicitWidth: Math.min(420, mediaRow.implicitWidth + 28)
             implicitHeight: 44
             radius: height / 2

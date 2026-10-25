@@ -3,6 +3,7 @@ import qs.island.config
 import qs.island.core
 import qs.island.services
 import qs.island.theme
+import qs.shared.services
 
 // Polkit authentication request in the island ("auth" mode): shield, title, the requested action's
 // message and id, the user (a selector if there are several), PAM's prompt and the answer field,

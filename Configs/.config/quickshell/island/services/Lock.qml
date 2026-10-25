@@ -5,6 +5,7 @@ import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Services.Pam
 import qs.island.config
+import qs.shared.services
 
 // The island's session lock (ext-session-lock) with PAM authentication. Uses hyprlock's PAM
 // configuration (/etc/pam.d/hyprlock, see LockScreenConfig.pamService), the same as HyDE's lock, so

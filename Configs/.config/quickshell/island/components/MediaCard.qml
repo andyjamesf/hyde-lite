@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Effects
 import qs.island.config
 import qs.island.icons
-import qs.island.services
 import qs.island.theme
 import qs.shared.services
 

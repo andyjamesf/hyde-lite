@@ -2,6 +2,7 @@ import QtQuick
 import qs.bar.components
 import qs.bar.services
 import qs.bar.modules.controls
+import qs.shared.services
 
 // Media (MPRIS): title and artist, with the optional cava visualizer while playing.
 // Click: player panel; middle: play/pause; scroll: next/previous track.
@@ -10,13 +11,13 @@ BarItem {
 
     readonly property var cfg: Config.widgets.media
 
-    shown: Media.active !== null && Media.title !== ""
+    shown: Media.active && Media.title !== ""
     icon: Media.playing ? "music_note" : "pause"
     iconFill: Media.playing ? 1 : 0
     iconColor: Theme.primary
     text: Media.artist ? `${Media.title}  ·  ${Media.artist}` : Media.title
     maxTextWidth: cfg.maxWidth
-    tooltip: `<b>${Media.title}</b>` + (Media.artist ? `\n${Media.artist}` : "") + (Media.active?.trackAlbum ? `\n<i>${Media.active.trackAlbum}</i>` : "") + `\n\n${Media.active?.identity ?? ""}`
+    tooltip: `<b>${Media.title}</b>` + (Media.artist ? `\n${Media.artist}` : "") + (Media.player?.trackAlbum ? `\n<i>${Media.player.trackAlbum}</i>` : "") + `\n\n${Media.identity}`
 
     onMiddleClicked: Media.togglePlaying()
     popoutName: "media"
