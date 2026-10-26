@@ -45,7 +45,12 @@ local function k(spec)
 	return (spec:gsub("%$mod", mod))
 end
 
-local keys = dofile(home .. "/.config/hypr/keybinds.lua")
+-- pcall: a missing or broken list must cost the keys, not the lines below that start the shell at login.
+local okKeys, keys = pcall(dofile, home .. "/.config/hypr/keybinds.lua")
+if not okKeys or type(keys) ~= "table" then
+	io.stderr:write("keybinds.lua: " .. tostring(keys) .. "\n")
+	keys = {}
+end
 
 -- HyDE binds the keys reassign or drop: removed first, or both would fire.
 for _, spec in ipairs(keys.unbind or {}) do
@@ -58,7 +63,14 @@ end
 
 -- `cmd` runs as written; `dsp` builds a Hyprland dispatcher (for what is not a command).
 for _, b in ipairs(keys.binds or {}) do
-	hl.bind(k(b.keys), b.dsp and b.dsp() or hl.dsp.exec_cmd(b.cmd), { description = b.desc })
+	local ok, action = pcall(function()
+		return b.dsp and b.dsp() or hl.dsp.exec_cmd(b.cmd)
+	end)
+	if ok then
+		hl.bind(k(b.keys), action, { description = b.desc })
+	else
+		io.stderr:write("keybinds.lua " .. b.keys .. ": " .. tostring(action) .. "\n")
+	end
 end
 
 -- Personal program keys, if the machine has a desktop model. pcall: a missing or broken model must
