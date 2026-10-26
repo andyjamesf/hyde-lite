@@ -151,6 +151,12 @@ M.unbind = {
 	"$mod + L", -- lock: reassigned above (goes through hypridle)
 	-- HyDE's next/previous global wallpaper only walk the current theme's folder: its keys are freed
 	-- here and the wallpaper-library ones sit on $mod+CTRL+Left/Right (M.binds above).
+	-- HyDE's relative-workspace and empty-workspace keys sit on $mod+CTRL+arrows; the layers give that
+	-- family to stepping through wallpapers and palettes (workspaces stay on $mod+1..9 and $mod+S).
+	"$mod + CTRL + Right",
+	"$mod + CTRL + Left",
+	"$mod + CTRL + Down",
+	"$mod + CTRL + Up",
 	"$mod + ALT + Right",
 	"$mod + ALT + Left",
 	-- HyDE's screenshot keys: reassigned above (routed to the island).

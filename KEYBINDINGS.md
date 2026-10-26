@@ -171,7 +171,6 @@ Keys that exist in only one of the two shells (the island or the HyDE bar) do no
 | <kbd>Super</kbd> + <kbd>Shift</kbd> + <kbd>9</kbd> | Move window to workspace: move focused window to workspace 9 |
 | <kbd>Super</kbd> + <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>RIGHT</kbd> | Move window to workspace / Relative workspace: move focused window to next workspace |
 | <kbd>Super</kbd> + <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>LEFT</kbd> | Move window to workspace / Relative workspace: move focused window to previous workspace |
-| <kbd>Super</kbd> + <kbd>Ctrl</kbd> + <kbd>DOWN</kbd> | Navigation: navigate to the nearest empty workspace |
 | <kbd>Super</kbd> + <kbd>1</kbd> | Navigation: navigate to workspace 1 |
 | <kbd>Super</kbd> + <kbd>2</kbd> | Navigation: navigate to workspace 2 |
 | <kbd>Super</kbd> + <kbd>3</kbd> | Navigation: navigate to workspace 3 |
@@ -183,8 +182,6 @@ Keys that exist in only one of the two shells (the island or the HyDE bar) do no
 | <kbd>Super</kbd> + <kbd>9</kbd> | Navigation: navigate to workspace 9 |
 | <kbd>Super</kbd> + <kbd>mouse_down</kbd> | Navigation / Mouse: next workspace |
 | <kbd>Super</kbd> + <kbd>mouse_up</kbd> | Navigation / Mouse: previous workspace |
-| <kbd>Super</kbd> + <kbd>Ctrl</kbd> + <kbd>LEFT</kbd> | Navigation / Relative workspace: change active workspace backwards |
-| <kbd>Super</kbd> + <kbd>Ctrl</kbd> + <kbd>RIGHT</kbd> | Navigation / Relative workspace: change active workspace forwards |
 | <kbd>Super</kbd> + <kbd>Alt</kbd> + <kbd>S</kbd> | Navigation / Special workspace: move focused window silently to scratchpad |
 | <kbd>Super</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd> | Navigation / Special workspace: move focused window to scratchpad |
 | <kbd>Super</kbd> + <kbd>S</kbd> | Navigation / Special workspace: toggle scratchpad |

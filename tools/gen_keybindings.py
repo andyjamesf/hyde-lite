@@ -72,13 +72,15 @@ def record():
 
 
 def final(log):
+    """{(mods, key): description} after the unbinds. Hyprland compares key names without case
+    ("RIGHT" and "Right" are one key), so the later bind replaces the earlier whichever way it is spelt."""
     live = {}
     for e in log:
-        c = combo(e["keys"])
-        if e["op"] == "unbind":
-            live.pop(c, None)
-        else:
-            live[c] = e["desc"]
+        mods, key = combo(e["keys"])
+        for old in [c for c in live if c[0] == mods and c[1].lower() == key.lower()]:
+            del live[old]
+        if e["op"] == "bind":
+            live[(mods, key)] = e["desc"]
     return live
 
 
