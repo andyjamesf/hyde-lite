@@ -1,13 +1,13 @@
 import QtQuick
 import QtQuick.Shapes
-import qs.island.theme
+import qs.shared.controlcenter
 
 // Media control icon: "play" (rounded triangle), "pause" (two rounded bars), "next" and "prev"
 // (triangle + bar). Switching between "play" and "pause" cross-fades.
 Item {
     id: root
 
-    property color color: Theme.icon
+    property color color: CcTheme.icon
     property real size: 18
     // "play", "pause", "next" or "prev"
     property string kind: "play"

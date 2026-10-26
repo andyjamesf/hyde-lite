@@ -2,14 +2,14 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Shapes
-import qs.island.theme
+import qs.shared.controlcenter
 
 // Volume icon: a speaker (box + cone) with sound waves.
 // Level 0 → no waves lit, up to 50% → one wave, above → two. Muted: an "X" instead of the waves.
 Item {
     id: root
 
-    property color color: Theme.icon
+    property color color: CcTheme.icon
     property real size: 18
     property real level: 1
     property bool muted: false

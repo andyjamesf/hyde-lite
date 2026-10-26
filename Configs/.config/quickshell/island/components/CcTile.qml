@@ -1,6 +1,6 @@
 import QtQuick
 import qs.island.config
-import qs.island.icons
+import qs.shared.icons
 import qs.island.theme
 
 // Control center tile with two click zones:
