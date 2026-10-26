@@ -2,11 +2,11 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import qs.island.config
 import qs.shared.services
 
-// HyDE wallpapers (current theme + extra folders), for the island's picker. Folders, extensions
-// and polling: config/WallpapersConfig.qml.
+// HyDE wallpapers (current theme + extra folders), for both shells' pickers. The folders, extensions
+// and polling are `settings`: each shell hands over its own (island: config/WallpapersConfig.qml,
+// bar: Config.pickers.wallpapers), the defaults here are the same.
 //
 // Everything goes through HyDE's script: `hyde-shell wallpaper --global -s <file>` links
 // ~/.cache/hyde/wall.set, generates the thumbnails, regenerates the wallbash palette (wall.dcol)
@@ -37,10 +37,21 @@ Singleton {
     // Current HyDE theme (HYDE_THEME in staterc).
     readonly property string theme: _theme
 
-    // Folders to search (missing ones are ignored), in grid order: WallpapersConfig.dirs with
+    // What to list and how often to look, bound by the shell (see the header). Keys: dirs (with the
+    // placeholders below), extensions, minBytes, pollMs, busyPollMs, busyTimeoutMs.
+    property var settings: ({
+            "dirs": ["{pictures}/Wallpapers", "{pictures}/Wallpapers/{theme}"],
+            "extensions": ["jpg", "jpeg", "png", "gif", "webp"],
+            "minBytes": 4096,
+            "pollMs": 2000,
+            "busyPollMs": 400,
+            "busyTimeoutMs": 45000
+        })
+
+    // Folders to search (missing ones are ignored), in grid order: settings.dirs with
     // {theme}, {pictures} and {hydeConfig} filled in (entries using {theme} are skipped while the theme
     // is unknown).
-    property var dirs: WallpapersConfig.dirs.filter(d => _theme !== "" || !d.includes("{theme}")).map(d => Paths.expand(d.replace(/\{theme\}/g, _theme).replace(/\{pictures\}/g, Paths.picturesDir).replace(/\{hydeConfig\}/g, hydeConfig)))
+    property var dirs: settings.dirs.filter(d => _theme !== "" || !d.includes("{theme}")).map(d => Paths.expand(d.replace(/\{theme\}/g, _theme).replace(/\{pictures\}/g, Paths.picturesDir).replace(/\{hydeConfig\}/g, hydeConfig)))
     // Set to true while the picker is visible: enables polling of wall.set.
     property bool active: false
 
@@ -76,7 +87,7 @@ Singleton {
         if (!path || busy || path === current)
             return false;
         _pending = path;
-        // Detached: if the island reloads midway, HyDE still finishes the job.
+        // Detached: if the shell reloads midway, HyDE still finishes the job.
         Quickshell.execDetached(["hyde-shell", "wallpaper", "--global", "-s", path]);
         busyTimeout.restart();
         return true;
@@ -105,7 +116,7 @@ Singleton {
     function _scan() {
         _again = false;
         _loading = true;
-        lister.command = ["sh", "-c", _listScript, "sh", String(WallpapersConfig.minBytes), WallpapersConfig.extensions.map(e => `*.${e}`).join(" ")].concat(dirs);
+        lister.command = ["sh", "-c", _listScript, "sh", String(settings.minBytes), settings.extensions.map(e => `*.${e}`).join(" ")].concat(dirs);
         lister.running = true;
     }
 
@@ -228,7 +239,7 @@ done`
 
     // While the picker is open, read the current one now and then; during a change, faster.
     Timer {
-        interval: root.busy ? WallpapersConfig.busyPollMs : WallpapersConfig.pollMs
+        interval: root.busy ? settings.busyPollMs : settings.pollMs
         repeat: true
         running: root.busy || root.active
         onTriggered: root.readCurrent()
@@ -237,7 +248,7 @@ done`
     // HyDE may fail (invalid file, colour error): do not stay busy forever.
     Timer {
         id: busyTimeout
-        interval: WallpapersConfig.busyTimeoutMs
+        interval: settings.busyTimeoutMs
         onTriggered: {
             root._pending = "";
             root.readCurrent();

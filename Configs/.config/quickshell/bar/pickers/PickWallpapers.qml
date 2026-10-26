@@ -6,7 +6,7 @@ import qs.shared.services
 // Wallpaper picker: the current theme's wallpapers (plus the extra folders in
 // "pickers.wallpapers.dirs"), as a grid of thumbnails. Choosing one applies it globally through HyDE
 // (`hyde-shell wallpaper --global -s`), which also regenerates the wallbash colours. The list and the
-// thumbnails come from WallpaperStore.
+// thumbnails come from Wallpapers.
 Singleton {
     id: root
 
@@ -14,7 +14,7 @@ Singleton {
     readonly property string title: "Wallpapers"
     readonly property string placeholder: "Search wallpapers…"
     readonly property string glyph: "wallpaper"
-    readonly property bool loading: WallpaperStore.loading && WallpaperStore.list.length === 0
+    readonly property bool loading: Wallpapers.loading && Wallpapers.list.length === 0
     readonly property bool grid: true
     // Wide tiles (16:10) instead of the square ones used for emoji and glyphs.
     readonly property size tile: Qt.size(144, 90)
@@ -22,13 +22,13 @@ Singleton {
     readonly property string emptyText: "No wallpapers in this theme"
 
     function refresh() {
-        WallpaperStore.refresh();
+        Wallpapers.refresh();
     }
 
     function items(query) {
         const q = String(query ?? "").trim().toLowerCase();
-        const cur = WallpaperStore.current;
-        const list = q === "" ? WallpaperStore.list : WallpaperStore.list.filter(w => w.name.toLowerCase().includes(q));
+        const cur = Wallpapers.current;
+        const list = q === "" ? Wallpapers.list : Wallpapers.list.filter(w => w.name.toLowerCase().includes(q));
         return list.map(w => ({
                     "key": w.path,
                     "title": w.name,
@@ -42,6 +42,6 @@ Singleton {
 
     function activate(item) {
         if (item && item.key)
-            WallpaperStore.set(item.key);
+            Wallpapers.set(item.key);
     }
 }

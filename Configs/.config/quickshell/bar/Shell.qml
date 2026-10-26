@@ -190,6 +190,14 @@ Scope {
         value: Config.widgets.brightness.step
     }
 
+    // The wallpaper list is shared with the island: the folders and polling are this shell's
+    // (services/Config.qml, pickers.wallpapers).
+    Binding {
+        target: Wallpapers
+        property: "settings"
+        value: Config.pickers.wallpapers
+    }
+
     // With this off, locking hands over to HyDE's hyprlock instead of the shell's own lock screen.
     Binding {
         target: Lock
