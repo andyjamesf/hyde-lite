@@ -391,7 +391,7 @@ wheels = [
 [[package]]
 name = "deez-dots"
 version = "0.2.0"
-source = { git = "https://github.com/HyDE-Project/deez-dots.git?branch=main#f797e860bdccd7fbe188deac7e4dbabd9035786e" }
+source = { git = "https://github.com/andyjamesf/deez-dots.git?rev=f797e860bdccd7fbe188deac7e4dbabd9035786e#f797e860bdccd7fbe188deac7e4dbabd9035786e" }
 
 [[package]]
 name = "distlib"
@@ -558,7 +558,7 @@ wayland = [
 
 [package.metadata]
 requires-dist = [
-    { name = "deez-dots", git = "https://github.com/HyDE-Project/deez-dots.git?branch=main" },
+    { name = "deez-dots", git = "https://github.com/andyjamesf/deez-dots.git?rev=f797e860bdccd7fbe188deac7e4dbabd9035786e" },
     { name = "hererocks", specifier = ">=0.25.1" },
     { name = "inotify-simple" },
     { name = "loguru", specifier = "==0.7.3" },

@@ -26,4 +26,6 @@ indent-width = 4
 
 [tool.uv.sources]
 xdg-prefs = { git = "https://github.com/rchaput/xdg-prefs" }
-deez-dots = { git = "https://github.com/HyDE-Project/deez-dots.git", branch = "main" }
+# Our fork of the dots manager the installer depends on. Pinned by commit, not a branch: the
+# installer must not change under us because somebody else pushed.
+deez-dots = { git = "https://github.com/andyjamesf/deez-dots.git", rev = "f797e860bdccd7fbe188deac7e4dbabd9035786e" }
