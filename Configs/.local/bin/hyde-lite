@@ -6,6 +6,10 @@
 #   hyde-lite update --check     only say whether there is something to install
 #   hyde-lite update --restart   also reload Hyprland and restart the shell when the update changed them
 #   hyde-lite where              the checkout it works on
+#   hyde-lite sync-shell         copy the bar and the island from the checkout as it is now (whatever branch,
+#                                edits and all) into ~/.config/quickshell, the way tools/sync_shell.py does; the
+#                                running shell loads the changed files by itself. --notify says the result in a
+#                                notification (what the control centre button and its key use)
 #
 # The checkout is the one install.sh ran from (recorded in ~/.local/state/hyde-lite/repo), else $HYDE_LITE_DIR,
 # else ~/hyde-lite. install.sh also records the commit it last installed completely (.../installed), so an
@@ -107,9 +111,27 @@ update() {
     return 0
 }
 
+sync_shell() {
+    local notify=0 dir out rc=0 branch
+    [[ ${1:-} == --notify ]] && notify=1
+    dir=$(checkout)
+    [[ -f $dir/tools/sync_shell.py ]] || die "no tools/sync_shell.py in $dir (set HYDE_LITE_DIR)"
+    branch=$(git -C "$dir" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "?")
+    out=$(python3 "$dir/tools/sync_shell.py" --apply 2>&1) || rc=$?
+    echo "$out"
+    if ((notify)); then
+        local summary
+        if ((rc)); then summary="failed (exit $rc), see: hyde-lite sync-shell"
+        else summary=$(grep -m1 -E '^(done:|quickshell: )|identical' <<<"$out" || echo "done"); fi
+        notify-send -a hyde-lite "Shell updated from $branch" "$summary" 2>/dev/null || true
+    fi
+    return "$rc"
+}
+
 main() {
     case "${1:-}" in
     update) shift; update "$@" ;;
+    sync-shell) shift; sync_shell "$@" ;;
     where) checkout ;;
     *) sed -n '2,/^set -euo/p' "$0" | sed '$d; s/^# \{0,1\}//'; [[ -z ${1:-} || ${1:-} == -h || ${1:-} == --help ]] || return 2 ;;
     esac
