@@ -29,7 +29,7 @@ Item {
     // Rows that fit under everything above the list inside the island's window (its height is
     // capped by the screen): the list scrolls past them.
     readonly property int windowHeight: QsWindow.window?.height ?? 760
-    readonly property int fitRows: Math.max(1, Math.floor((windowHeight - Pill.topMargin - 12 - 2 * pad - notifList.y) / notifRowHeight))
+    readonly property int fitRows: Math.max(1, Math.floor((windowHeight - Pill.topMargin - 12 - 2 * pad - (notifCentre.y + notifCentre.listY)) / notifRowHeight))
     readonly property int visibleRows: Math.min(notifCount, maxRows, fitRows)
 
     readonly property string outputName: (Audio.sinks ?? []).find(s => s.isDefault)?.name ?? ""
@@ -57,18 +57,6 @@ Item {
     // Switches pages inside the control center, on the same screen.
     function go(p) {
         IslandController.mode = p;
-    }
-
-    // "now", "5m", "2h", "3d" (Time.now ticks every second, which is plenty for this).
-    function ago(d) {
-        const s = Math.max(0, (Time.now.getTime() - new Date(d).getTime()) / 1000);
-        if (s < 60)
-            return "now";
-        if (s < 3600)
-            return `${Math.floor(s / 60)}m`;
-        if (s < 86400)
-            return `${Math.floor(s / 3600)}h`;
-        return `${Math.floor(s / 86400)}d`;
     }
 
     Column {
@@ -525,232 +513,22 @@ Item {
             }
         }
 
-        // Notifications: header + "Clear All".
-        Item {
+        // Notifications: the shared centre (shared/controlcenter/NotificationCentre.qml), the same one
+        // the bar draws.
+        NotificationCentre {
+            id: notifCentre
             width: parent.width
-            height: 26
-
-            Label {
-                anchors.left: parent.left
-                anchors.leftMargin: 4
-                anchors.verticalCenter: parent.verticalCenter
-                text: root.notifCount > 0 ? `Notifications  ·  ${root.notifCount}` : "Notifications"
-                color: Theme.dim
-                font.pixelSize: Appearance.fontSize - 1
-                font.weight: Font.DemiBold
-            }
-
-            Rectangle {
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                width: clearLabel.implicitWidth + 20
-                height: 24
-                radius: height / 2
-                visible: root.notifCount > 0
-                color: clearMouse.pressed ? Theme.pressed : clearMouse.containsMouse ? Theme.hover : "transparent"
-
-                Label {
-                    id: clearLabel
-                    anchors.centerIn: parent
-                    text: "Clear All"
-                    color: clearMouse.containsMouse ? Theme.foreground : Theme.dim
-                    font.pixelSize: Appearance.fontSize - 1
-                }
-
-                MouseArea {
-                    id: clearMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: Notifications.clear()
-                }
-            }
-        }
-
-        // No notifications
-        Column {
-            width: parent.width
-            visible: root.notifCount === 0
-            topPadding: 4
-            bottomPadding: 8
-            spacing: 2
-
-            Label {
-                width: parent.width
-                horizontalAlignment: Text.AlignHCenter
-                text: "No notifications"
-                color: Theme.faint
-            }
-
-            Label {
-                width: parent.width
-                visible: Notifications.peaceMode
-                horizontalAlignment: Text.AlignHCenter
-                text: "Peace Mode is on"
-                color: Theme.faint
-                font.pixelSize: Appearance.fontSize - 2
-            }
-        }
-
-        ListView {
-            id: notifList
-            width: parent.width
-            height: root.visibleRows * root.notifRowHeight
-            visible: root.notifCount > 0
-            clip: true
-            interactive: root.notifCount > root.visibleRows
-            boundsBehavior: Flickable.StopAtBounds
-            model: ScriptModel {
-                values: Notifications.list
-            }
-
-            remove: Transition {
-                NumberAnimation {
-                    property: "opacity"
-                    to: 0
-                    duration: Animations.duration(140)
-                }
-            }
-            add: Transition {
-                NumberAnimation {
-                    property: "opacity"
-                    from: 0
-                    to: 1
-                    duration: Animations.duration(180)
-                }
-            }
-            displaced: Transition {
-                NumberAnimation {
-                    property: "y"
-                    duration: Animations.duration(180)
-                    easing.type: Easing.OutCubic
-                }
-                NumberAnimation {
-                    property: "opacity"
-                    to: 1
-                    duration: Animations.duration(120)
-                }
-            }
-
-            delegate: Item {
-                id: notifRow
-
-                required property var modelData
-                readonly property var n: modelData
-
-                width: ListView.view.width
-                height: root.notifRowHeight
-
-                MouseArea {
-                    id: rowMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: Notifications.dismiss(notifRow.n)
-                }
-
-                Rectangle {
-                    anchors.fill: parent
-                    anchors.topMargin: 2
-                    anchors.bottomMargin: 2
-                    radius: 14
-                    color: rowMouse.pressed ? Theme.pressed : rowMouse.containsMouse ? Theme.hover : "transparent"
-
-                    Behavior on color {
-                        ColorAnimation {
-                            duration: Animations.duration(120)
-                        }
-                    }
-                }
-
-                // App icon (or its initial, if there is none).
-                Item {
-                    id: lead
-                    anchors.left: parent.left
-                    anchors.leftMargin: 8
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: 28
-                    height: 28
-
-                    IconImage {
-                        id: appIcon
-                        anchors.fill: parent
-                        source: Notifications.imageOf(notifRow.n)
-                        visible: status === Image.Ready
-                        asynchronous: true
-                        mipmap: true
-                    }
-
-                    Rectangle {
-                        anchors.fill: parent
-                        visible: appIcon.status !== Image.Ready
-                        radius: width / 2
-                        color: Qt.alpha(Theme.accent, 0.18)
-
-                        Label {
-                            anchors.centerIn: parent
-                            text: (notifRow.n?.appName || "?").charAt(0).toUpperCase()
-                            color: Theme.accent
-                            font.pixelSize: 13
-                            font.weight: Font.DemiBold
-                        }
-                    }
-                }
-
-                Column {
-                    anchors.left: lead.right
-                    anchors.leftMargin: 10
-                    anchors.right: trail.left
-                    anchors.rightMargin: 8
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: 0
-
-                    Label {
-                        width: parent.width
-                        text: notifRow.n?.summary || notifRow.n?.appName || ""
-                        textFormat: Text.PlainText
-                        font.pixelSize: Appearance.fontSize - 1
-                        font.weight: Font.Medium
-                    }
-
-                    Label {
-                        width: parent.width
-                        text: notifRow.n?.appName || "Notification"
-                        textFormat: Text.PlainText
-                        color: Theme.dim
-                        font.pixelSize: Appearance.fontSize - 3
-                    }
-                }
-
-                // Relative time; with the pointer over it, a "×" (clicking dismisses).
-                Item {
-                    id: trail
-                    anchors.right: parent.right
-                    anchors.rightMargin: 10
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: Math.max(timeLabel.implicitWidth, 16)
-                    height: 20
-
-                    Label {
-                        id: timeLabel
-                        anchors.right: parent.right
-                        anchors.verticalCenter: parent.verticalCenter
-                        visible: !rowMouse.containsMouse
-                        text: root.ago(Notifications.timeOf(notifRow.n))
-                        color: Theme.faint
-                        font.pixelSize: Appearance.fontSize - 2
-                    }
-
-                    Glyph {
-                        anchors.right: parent.right
-                        anchors.verticalCenter: parent.verticalCenter
-                        visible: rowMouse.containsMouse
-                        kind: "close"
-                        size: 14
-                        color: Theme.dim
-                    }
-                }
-            }
+            foreground: Theme.foreground
+            accent: Theme.accent
+            dim: Theme.dim
+            faint: Theme.faint
+            hover: Theme.hover
+            pressed: Theme.pressed
+            fontFamily: Appearance.font
+            fontSize: Appearance.fontSize
+            rowHeight: root.notifRowHeight
+            visibleRows: root.visibleRows
+            duration: ms => Animations.duration(ms)
         }
     }
 

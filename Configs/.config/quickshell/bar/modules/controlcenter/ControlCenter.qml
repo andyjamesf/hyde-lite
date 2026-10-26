@@ -7,7 +7,6 @@ import Quickshell.Widgets
 import qs.bar.components
 import qs.bar.services
 import qs.bar.modules.controls
-import qs.bar.modules.notifications
 import qs.shared.services
 import qs.shared.controlcenter
 
@@ -429,9 +428,36 @@ PanelWindow {
     Component {
         id: notificationsPage
 
-        NotificationList {
-            backButton: true
-            onBack: ShellState.controlCenterPage = ""
+        ColumnLayout {
+            spacing: Theme.space2
+
+            PanelHeader {
+                backButton: true
+                onBack: ShellState.controlCenterPage = ""
+                icon: Notifications.dnd ? "notifications_off" : "notifications"
+                title: "Notifications"
+                subtitle: Notifications.dnd ? "Do not disturb is on" : ""
+
+                IconButton {
+                    icon: "do_not_disturb_on"
+                    size: 32
+                    checked: Notifications.dnd
+                    onClicked: Notifications.toggleDnd()
+                }
+            }
+
+            NotificationCentre {
+                Layout.fillWidth: true
+                foreground: Theme.text
+                accent: Theme.primary
+                dim: Theme.textDim
+                faint: Theme.textFaint
+                hover: Theme.hover
+                pressed: Theme.pressed
+                fontFamily: Config.appearance.font
+                fontSize: Theme.bodyMedium
+                visibleRows: Math.min(Notifications.count, 8)
+            }
         }
     }
 
@@ -534,76 +560,19 @@ PanelWindow {
                 Layout.fillWidth: true
             }
 
-            // Notifications: the most recent ones (fewer when music is playing, so it fits on screen).
-            ColumnLayout {
-                id: notifSection
-
-                readonly property int limit: Media.active ? 1 : 2
-
+            // Notifications: the same centre the island draws (shared/controlcenter/NotificationCentre.qml).
+            // Fewer rows while music is playing, so it fits on screen.
+            NotificationCentre {
                 Layout.fillWidth: true
-                spacing: Theme.space2
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: Theme.space2
-
-                    StyledText {
-                        text: "Notifications"
-                        font.pixelSize: Theme.titleSmall
-                        font.weight: Font.DemiBold
-                    }
-
-                    Rectangle {
-                        visible: Notifications.count > 0
-                        implicitWidth: Math.max(implicitHeight, countText.implicitWidth + Theme.space3)
-                        implicitHeight: 20
-                        radius: height / 2
-                        color: Theme.primaryContainer
-
-                        StyledText {
-                            id: countText
-                            anchors.centerIn: parent
-                            text: Notifications.count
-                            font.pixelSize: Theme.labelSmall
-                            font.weight: Font.DemiBold
-                            color: Theme.onPrimaryContainer
-                        }
-                    }
-
-                    Item {
-                        Layout.fillWidth: true
-                    }
-
-                    TextButton {
-                        visible: Notifications.count > notifSection.limit
-                        text: "See all"
-                        onClicked: ShellState.controlCenterPage = "notifications"
-                    }
-
-                    TextButton {
-                        visible: Notifications.count > 0
-                        text: "Clear"
-                        onClicked: Notifications.clear()
-                    }
-                }
-
-                StyledText {
-                    visible: Notifications.count === 0
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 48
-                    horizontalAlignment: Text.AlignHCenter
-                    text: Notifications.dnd ? "Silent mode on" : "No notifications"
-                    font.pixelSize: Theme.bodyMedium
-                    color: Theme.textFaint
-                }
-
-                NotificationList {
-                    Layout.fillWidth: true
-                    visible: Notifications.count > 0
-                    showHeader: false
-                    compact: true
-                    limit: notifSection.limit
-                }
+                foreground: Theme.text
+                accent: Theme.primary
+                dim: Theme.textDim
+                faint: Theme.textFaint
+                hover: Theme.hover
+                pressed: Theme.pressed
+                fontFamily: Config.appearance.font
+                fontSize: Theme.bodyMedium
+                visibleRows: Math.min(Notifications.count, Media.active ? 2 : 4)
             }
 
             // The shortcut row is shared with the island (shared/controlcenter/CcShortcuts.qml):

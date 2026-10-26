@@ -50,6 +50,14 @@ class ControlCentreParity(unittest.TestCase):
             for fn in ("onColorSourceToggleRequested", "onOpenRequested"):
                 self.assertIn(fn, text, "%s/Shell.qml does not answer %s" % (shell, fn))
 
+    def test_both_shells_draw_the_one_notification_centre(self):
+        """The island's notification list was the complete one; the bar draws the same component, and
+        neither keeps a list of its own."""
+        for path in ("island/components/CcMainPage.qml", "bar/modules/controlcenter/ControlCenter.qml"):
+            text = (SHELL / path).read_text(encoding="utf-8")
+            self.assertIn("NotificationCentre {", text, "%s does not draw the shared centre" % path)
+            self.assertNotIn("Notifications.list", text, "%s keeps a notification list of its own" % path)
+
     def test_the_diagnostic_exists_in_both(self):
         """It is how the two are compared; losing it loses the only check there is."""
         for shell in ("bar", "island"):
