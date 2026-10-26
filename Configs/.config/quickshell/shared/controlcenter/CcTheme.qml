@@ -34,7 +34,8 @@ Singleton {
     property string nerdFont: ""
     property real fontSize: 13
 
-    // Layout.
+    // Layout. `panelWidth` is the width of a window that holds the main page (the bar opens a panel).
+    property int panelWidth: 440
     property int tileHeight: 56
     // At most one brightness change per this many milliseconds (every change is a process).
     property int sliderThrottleMs: 80

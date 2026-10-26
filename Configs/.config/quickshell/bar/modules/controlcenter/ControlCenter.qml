@@ -3,7 +3,6 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
-import Quickshell.Widgets
 import qs.bar.components
 import qs.bar.services
 import qs.bar.modules.controls
@@ -47,8 +46,8 @@ PanelWindow {
         bottom: BarLayout.atTop ? 0 : 6
         right: BarLayout.centerPanels ? 0 : 6
     }
-    implicitWidth: 360
-    implicitHeight: Math.min(content.implicitHeight + 2 * Theme.space5, modelData.height - BarLayout.height - BarLayout.margin - Theme.space6)
+    implicitWidth: CcTheme.panelWidth
+    implicitHeight: Math.min(content.implicitHeight + 2 * 16, modelData.height - BarLayout.height - BarLayout.margin - Theme.space6)
     exclusiveZone: 0
     color: "transparent"
 
@@ -104,7 +103,7 @@ PanelWindow {
         Flickable {
             id: flick
             anchors.fill: parent
-            anchors.margins: Theme.space5
+            anchors.margins: 16
             contentHeight: content.implicitHeight
             clip: true
             boundsBehavior: Flickable.StopAtBounds
@@ -151,221 +150,6 @@ PanelWindow {
                             easing.bezierCurve: Anim.emphasized
                         }
                     }
-                }
-            }
-        }
-    }
-
-    component Header: RowLayout {
-        Layout.fillWidth: true
-        spacing: Theme.space3
-
-        ClippingRectangle {
-            implicitWidth: 40
-            implicitHeight: 40
-            radius: height / 2
-            color: Theme.primaryContainer
-
-            MaterialIcon {
-                anchors.centerIn: parent
-                visible: avatar.status !== Image.Ready
-                icon: "person"
-                size: 22
-                fill: 1
-                color: Theme.onPrimaryContainer
-            }
-
-            Image {
-                id: avatar
-                anchors.fill: parent
-                source: SysInfo.avatarUrl
-                fillMode: Image.PreserveAspectCrop
-                sourceSize.width: 80
-                sourceSize.height: 80
-                cache: false
-            }
-
-            // Click the picture: choose another one.
-            StateLayer {
-                anchors.fill: parent
-                onClicked: {
-                    ShellState.closeControlCenter();
-                    SysInfo.chooseAvatar();
-                }
-            }
-        }
-
-        ColumnLayout {
-            Layout.fillWidth: true
-            spacing: 0
-
-            StyledText {
-                Layout.fillWidth: true
-                text: SysInfo.user
-                font.pixelSize: Theme.titleMedium
-                font.weight: Font.DemiBold
-            }
-
-            StyledText {
-                Layout.fillWidth: true
-                // Only hours once it is past one hour (the minutes didn't fit).
-                text: `Up for ${SysInfo.uptime.replace(/^(\d+ h) \d+ min$/, "$1")}`
-                font.pixelSize: Theme.bodySmall
-                color: Theme.textDim
-            }
-        }
-
-        Row {
-            spacing: Theme.space2
-
-            IconButton {
-                icon: "settings"
-                size: 40
-                tonal: true
-                tooltip: "Shell settings"
-                onClicked: {
-                    ShellState.closeControlCenter();
-                    // The shell folder and config.json in a code editor (the first one that exists).
-                    const dir = Quickshell.shellPath("bar");
-                    const cfg = Quickshell.shellPath("bar/config/config.json");
-                    Utils.run(`for e in code codium zeditor; do command -v $e >/dev/null && exec $e "${dir}" "${cfg}"; done; exec kitty nvim "${cfg}"`);
-                }
-            }
-
-            IconButton {
-                icon: "lock"
-                size: 40
-                tonal: true
-                tooltip: "Lock"
-                onClicked: {
-                    ShellState.closeControlCenter();
-                    Utils.run("loginctl lock-session");
-                }
-            }
-
-            IconButton {
-                icon: "power_settings_new"
-                size: 40
-                background: Theme.alpha(Theme.error, 0.16)
-                color: Theme.error
-                tooltip: "Session"
-                onClicked: ShellState.togglePowerMenu()
-            }
-        }
-    }
-
-    // Compact player: cover, title/artist and the controls on the right; progress at the bottom.
-    component MediaStrip: Card {
-        id: strip
-
-        readonly property var player: Media.player
-
-        padding: Theme.space3
-
-        // MPRIS doesn't signal when the position advances; an update is requested every second.
-        Timer {
-            interval: 1000
-            repeat: true
-            running: strip.visible && Media.playing && panel.open
-            onTriggered: strip.player?.positionChanged()
-        }
-
-        ColumnLayout {
-            width: parent.width
-            spacing: Theme.space3
-
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: Theme.space3
-
-                ClippingRectangle {
-                    implicitWidth: 56
-                    implicitHeight: 56
-                    radius: Theme.shapeMedium
-                    color: Theme.surfaceContainerHighest
-
-                    MaterialIcon {
-                        anchors.centerIn: parent
-                        visible: art.status !== Image.Ready
-                        icon: "music_note"
-                        size: 26
-                        fill: 1
-                        color: Theme.primary
-                    }
-
-                    Image {
-                        id: art
-                        anchors.fill: parent
-                        source: Media.artUrl
-                        fillMode: Image.PreserveAspectCrop
-                        asynchronous: true
-                        sourceSize.width: 112
-                        sourceSize.height: 112
-                    }
-                }
-
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 0
-
-                    StyledText {
-                        Layout.fillWidth: true
-                        text: Media.title || "Untitled"
-                        font.pixelSize: Theme.titleSmall
-                        font.weight: Font.DemiBold
-                    }
-
-                    StyledText {
-                        Layout.fillWidth: true
-                        text: Media.artist || (strip.player?.identity ?? "")
-                        font.pixelSize: Theme.bodySmall
-                        color: Theme.textDim
-                    }
-                }
-
-                IconButton {
-                    icon: "skip_previous"
-                    size: 36
-                    enabled: strip.player?.canGoPrevious ?? false
-                    onClicked: Media.previous()
-                }
-
-                IconButton {
-                    icon: Media.playing ? "pause" : "play_arrow"
-                    size: 40
-                    checked: true
-                    onClicked: Media.togglePlaying()
-                }
-
-                IconButton {
-                    icon: "skip_next"
-                    size: 36
-                    enabled: strip.player?.canGoNext ?? false
-                    onClicked: Media.next()
-                }
-            }
-
-            Rectangle {
-                visible: (strip.player?.lengthSupported ?? false) && strip.player.length > 0
-                Layout.fillWidth: true
-                implicitHeight: 4
-                radius: 2
-                color: Theme.surfaceContainerHighest
-
-                Rectangle {
-                    width: strip.player && strip.player.length > 0 ? parent.width * Math.min(1, strip.player.position / strip.player.length) : 0
-                    height: parent.height
-                    radius: 2
-                    color: Theme.primary
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    anchors.topMargin: -Theme.space2
-                    anchors.bottomMargin: -Theme.space2
-                    enabled: strip.player?.canSeek ?? false
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: mouse => strip.player.position = mouse.x / width * strip.player.length
                 }
             }
         }
@@ -470,167 +254,42 @@ PanelWindow {
         }
     }
 
+    // The main page is the island's, shared (shared/controlcenter/CcMainView.qml); this panel only
+    // says what a click leads to.
     Component {
         id: mainPage
 
-        ColumnLayout {
-            spacing: Theme.space4
+        CcMainView {
+            width: parent?.width ?? 0
+            // The bar has one more button: cycle its layout.
+            shortcuts: ["nextwallpaper", "wallpaper", "hydetheme", "animations", "keybindings", "syncshell", "barlayout"]
+            visibleRows: Math.min(Notifications.count, Media.active ? 3 : 4)
 
-            Header {}
-
-            // Quick toggles: 4 per row. Click toggles; right click, press and hold
-            // or the badge opens the detail page (Wi-Fi, Bluetooth).
-            GridLayout {
-                Layout.fillWidth: true
-                columns: 4
-                columnSpacing: 0
-                rowSpacing: Theme.space3
-
-                // What the control centre offers is shared with the island
-                // (shared/controlcenter/CcToggles.qml): the same entries, in the same order, with
-                // the same labels and the same behaviour. This draws them the bar's way.
-                Repeater {
-                    model: CcToggles.shown
-
-                    QuickToggle {
-                        required property var modelData
-
-                        Layout.fillWidth: true
-                        icon: modelData.icon
-                        label: modelData.label
-                        checked: modelData.active
-                        expandable: modelData.page !== ""
-                        onToggled: CcToggles.toggle(modelData.id)
-                        onExpand: ShellState.controlCenterPage = modelData.page
-                    }
-                }
+            onPageRequested: page => {
+                // The island has a player page; the bar has none, so the row only shows what plays.
+                if (page !== "media")
+                    ShellState.controlCenterPage = page;
             }
-
-            Card {
-                Layout.fillWidth: true
-                padding: Theme.space3
-
-                ColumnLayout {
-                    width: parent.width
-                    spacing: Theme.space2
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: Theme.space1
-
-                        StyledSlider {
-                            Layout.fillWidth: true
-                            icon: Audio.icon
-                            value: Audio.muted ? 0 : Audio.volume
-                            onMoved: v => Audio.setVolume(v)
-                            onIconClicked: Audio.toggleMute()
-                        }
-
-                        IconButton {
-                            icon: "chevron_right"
-                            size: 32
-                            color: Theme.textDim
-                            tooltip: "Outputs and apps"
-                            onClicked: ShellState.controlCenterPage = "audio"
-                        }
-                    }
-
-                    StyledSlider {
-                        Layout.fillWidth: true
-                        Layout.rightMargin: 32 + Theme.space1
-                        icon: Audio.micIcon
-                        value: Audio.micMuted ? 0 : Audio.micVolume
-                        onMoved: v => Audio.setMicVolume(v)
-                        onIconClicked: Audio.toggleMicMute()
-                    }
-
-                    StyledSlider {
-                        Layout.fillWidth: true
-                        Layout.rightMargin: 32 + Theme.space1
-                        visible: Brightness.available
-                        icon: Brightness.icon
-                        value: Brightness.percent / 100
-                        onMoved: v => Brightness.set(v * 100)
-                    }
-                }
-            }
-
-            MediaStrip {
-                visible: Media.active
-                Layout.fillWidth: true
-            }
-
-            // Notifications: the same centre the island draws (shared/controlcenter/NotificationCentre.qml).
-            // Fewer rows while music is playing, so it fits on screen.
-            NotificationCentre {
-                Layout.fillWidth: true
-                foreground: Theme.text
-                accent: Theme.primary
-                dim: Theme.textDim
-                faint: Theme.textFaint
-                hover: Theme.hover
-                pressed: Theme.pressed
-                fontFamily: Config.appearance.font
-                fontSize: Theme.bodyMedium
-                visibleRows: Math.min(Notifications.count, Media.active ? 2 : 4)
-            }
-
-            // The shortcut row is shared with the island (shared/controlcenter/CcShortcuts.qml):
-            // the same buttons, the same names, the same actions. The bar's own one — cycling the
-            // bar layout, which the island has nothing to cycle for — goes in through `extra`,
-            // bound in Shell.qml.
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 0
-
-                Repeater {
-                    model: CcShortcuts.shown
-
-                    Item {
-                        required property var modelData
-
-                        Layout.fillWidth: true
-                        implicitHeight: 44
-
-                        IconButton {
-                            anchors.centerIn: parent
-                            icon: modelData.icon
-                            size: 44
-                            iconSize: 22
-                            tonal: true
-                            tooltip: modelData.label
-                            tooltipBelow: false
-                            onClicked: CcShortcuts.run(modelData.id)
-                        }
-                    }
+            onHeaderAction: id => {
+                if (id === "system") {
+                    ShellState.controlCenterPage = "system";
+                } else if (id === "power") {
+                    ShellState.togglePowerMenu();
+                } else if (id === "lock") {
+                    ShellState.closeControlCenter();
+                    Utils.run("loginctl lock-session");
+                } else if (id === "avatar") {
+                    ShellState.closeControlCenter();
+                    SysInfo.chooseAvatar();
+                } else if (id === "settings") {
+                    ShellState.closeControlCenter();
+                    // The shell folder and config.json in a code editor (the first one that exists).
+                    const dir = Quickshell.shellPath("bar");
+                    const cfg = Quickshell.shellPath("bar/config/config.json");
+                    Utils.run(`for e in code codium zeditor; do command -v $e >/dev/null && exec $e "${dir}" "${cfg}"; done; exec kitty nvim "${cfg}"`);
                 }
             }
         }
     }
 
-    // Text-only button in the accent color (secondary actions of a section).
-    component TextButton: Item {
-        id: tb
-
-        property string text
-
-        signal clicked
-
-        implicitWidth: tbText.implicitWidth + 2 * Theme.space3
-        implicitHeight: 28
-
-        StateLayer {
-            anchors.fill: parent
-            onClicked: tb.clicked()
-        }
-
-        StyledText {
-            id: tbText
-            anchors.centerIn: parent
-            text: tb.text
-            font.pixelSize: Theme.labelLarge
-            font.weight: Font.Medium
-            color: Theme.primary
-        }
-    }
 }

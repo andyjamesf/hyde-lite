@@ -15,17 +15,17 @@ import qs.shared.services
 Column {
     id: root
 
-    // Style, bound by the shell.
-    property color foreground: "white"
-    property color accent: "steelblue"
-    property color dim: "#aaaaaa"
-    property color faint: "#808080"
-    property color hover: Qt.rgba(1, 1, 1, 0.08)
-    property color pressed: Qt.rgba(1, 1, 1, 0.12)
-    property string fontFamily: ""
-    property real fontSize: 13
+    // Style: the shell's, from CcTheme.
+    property color foreground: CcTheme.foreground
+    property color accent: CcTheme.accent
+    property color dim: CcTheme.dim
+    property color faint: CcTheme.faint
+    property color hover: CcTheme.hover
+    property color pressed: CcTheme.pressed
+    property string fontFamily: CcTheme.fontFamily
+    property real fontSize: CcTheme.fontSize
     // Milliseconds -> milliseconds, so a shell can scale or switch off its animations.
-    property var duration: ms => ms
+    property var duration: ms => CcTheme.duration(ms)
 
     // Layout.
     property int rowHeight: 46
