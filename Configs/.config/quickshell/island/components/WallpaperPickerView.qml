@@ -4,6 +4,7 @@ import qs.island.config
 import qs.island.core
 import qs.island.icons
 import qs.island.services
+import qs.shared.services
 import qs.island.theme
 
 // Wallpaper picker in the island ("wallpaper" mode): title + count + refresh at the top and, below,

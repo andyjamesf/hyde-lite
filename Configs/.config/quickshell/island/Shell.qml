@@ -35,6 +35,20 @@ Scope {
         property: "islandOpacity"
         value: Theme.islandOpacity
     }
+    // The wallpaper list is shared with the bar: this shell hands it the folders and polling it reads
+    // from config/WallpapersConfig.qml.
+    Binding {
+        target: Wallpapers
+        property: "settings"
+        value: ({
+                "dirs": WallpapersConfig.dirs,
+                "extensions": WallpapersConfig.extensions,
+                "minBytes": WallpapersConfig.minBytes,
+                "pollMs": WallpapersConfig.pollMs,
+                "busyPollMs": WallpapersConfig.busyPollMs,
+                "busyTimeoutMs": WallpapersConfig.busyTimeoutMs
+            })
+    }
     // The brightness service is shared with the bar and has no settings of its own, so this shell
     // hands it the two values it reads from config/OsdConfig.qml.
     Binding {
