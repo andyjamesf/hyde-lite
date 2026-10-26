@@ -122,7 +122,9 @@ PanelWindow {
                             "wifi": wifiPage,
                             "bluetooth": bluetoothPage,
                             "audio": audioPage,
-                            "notifications": notificationsPage
+                            "notifications": notificationsPage,
+                            "battery": batteryPage,
+                            "system": systemPage
                         })[ShellState.controlCenterPage] ?? mainPage
 
                     // Page change: shared axis (the new content slides in from the side
@@ -384,6 +386,41 @@ PanelWindow {
         id: bluetoothPage
 
         BluetoothPanel {
+            backButton: true
+            onBack: ShellState.controlCenterPage = ""
+        }
+    }
+
+    // Power profiles: where the arrow on the Power profile tile goes. The panel was only ever a
+    // popout from the bar's battery widget, so in the control centre that arrow led nowhere.
+    Component {
+        id: batteryPage
+
+        ColumnLayout {
+            width: 320
+            spacing: Theme.space3
+
+            // The panel itself is the one the bar's battery widget pops out, unchanged; here it
+            // just gets a header to come back from.
+            PanelHeader {
+                backButton: true
+                onBack: ShellState.controlCenterPage = ""
+                icon: Battery.icon
+                title: "Battery"
+                subtitle: Battery.profileName
+            }
+
+            BatteryPanel {
+                Layout.fillWidth: true
+            }
+        }
+    }
+
+    // The PC's statistics, which until now only the island had.
+    Component {
+        id: systemPage
+
+        SystemPanel {
             backButton: true
             onBack: ShellState.controlCenterPage = ""
         }

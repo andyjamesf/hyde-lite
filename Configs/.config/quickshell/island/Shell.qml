@@ -109,6 +109,22 @@ Scope {
     }
 
 
+    // The statistics are shared with the bar; this shell can also float them over the apps, and
+    // while that window is out the readings must go on with the control centre closed.
+    Binding {
+        target: SysStats
+        property: "keepRunning"
+        value: StatsWindowPrefs.detached
+    }
+
+    Connections {
+        target: SysStats
+
+        function onReadFailed(message: string): void {
+            Errors.report("system stats", message);
+        }
+    }
+
     // Where the colours come from, this shell's way: "Wallpaper" and "HyDE" are two of its schemes
     // (theme/Palettes.qml), so the toggle moves between them. A fixed scheme reads as off, and the
     // first click picks the wallpaper's colours; the theme picker takes it back.
@@ -465,12 +481,12 @@ Scope {
         // The PC statistics window: "detach" (floating, on the focused screen), "attach" (closes it),
         // "toggle", "compact" (switches the compact view).
         function stats(action: string): void {
-            if (action === "detach" || (action === "toggle" && !SysStats.detached))
-                SysStats.detach(IslandController.focusedScreen);
+            if (action === "detach" || (action === "toggle" && !StatsWindowPrefs.detached))
+                StatsWindowPrefs.detach(IslandController.focusedScreen);
             else if (action === "attach" || action === "toggle")
-                SysStats.attach();
+                StatsWindowPrefs.attach();
             else if (action === "compact")
-                SysStats.setCompact(!SysStats.compact);
+                StatsWindowPrefs.setCompact(!StatsWindowPrefs.compact);
         }
         // Brings the login screen (SDDM theme) up to date with the island now; returns the result.
         // Normally automatic (services/SddmTheme.qml).
