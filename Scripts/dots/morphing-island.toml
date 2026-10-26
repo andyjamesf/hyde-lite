@@ -2,7 +2,7 @@
 # code (Configs/.config/quickshell/island) is deployed with the rest of the configuration by
 # quickshell.toml, which also supplies the runtime and fonts; this file has what only the island
 # needs: plugins, the `island` switch script and the Hyprland key routing.
-# `island on|off|toggle` (~/.local/bin/island) switches; hypr/island.lua routes the shell keys and
+# `island on|off|toggle` (~/.local/bin/island) switches; hypr/island.lua registers the keys of hypr/keybinds.lua and
 # starts the active shell at login (loaded from hyprland.lua).
 [morphing-island]
 description = "Morphing Island: plugins, switch script and key routing"
@@ -14,17 +14,18 @@ source_root = "Configs/.local/share/morphing-island"
 target_root = "${XDG_DATA_HOME}/morphing-island"
 paths = ["plugins"]
 
-# The switch script.
+# The switch scripts: `island` (island <-> bar) and `shell-cycle` (island -> bar -> minimal bar).
 [[morphing-island.files]]
 action = "sync"
 source_root = "Configs/.local/bin"
 target_root = "${HOME}/.local/bin"
-paths = ["island"]
-post_command = "chmod +x ${HOME}/.local/bin/island"
+paths = ["island", "shell-cycle"]
+post_command = "chmod +x ${HOME}/.local/bin/island ${HOME}/.local/bin/shell-cycle"
 
-# Shell key routing and the island's window animations.
+# The keys (data, one list for every machine), the code that registers them, and the island's window
+# animations.
 [[morphing-island.files]]
 action = "sync"
 source_root = "Configs/.config/hypr"
 target_root = "${XDG_CONFIG_HOME}/hypr/"
-paths = ["island.lua", "lua/animations"]
+paths = ["island.lua", "keybinds.lua", "lua/animations"]
