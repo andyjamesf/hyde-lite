@@ -47,9 +47,12 @@ PanelWindow {
         bottom: BarLayout.atTop ? 0 : 6
         right: BarLayout.centerPanels ? 0 : 6
     }
-    // Wide for the main page (three tiles to a row, so it is not so tall); the detail pages keep
-    // the narrow panel they were made for.
-    implicitWidth: ShellState.controlCenterPage === "" ? 600 : 360
+    // The main page is drawn at `compact` of the island's size (this is a desktop, not a tablet):
+    // laid out `pageWidth` wide with three tiles to a row, then scaled down, so the panel is both
+    // narrower and lower than the island's. The detail pages keep the narrow panel they were made for.
+    readonly property real compact: 0.7
+    readonly property int pageWidth: 568
+    implicitWidth: ShellState.controlCenterPage === "" ? Math.round(pageWidth * compact) + 2 * 16 : 360
     implicitHeight: Math.min(content.implicitHeight + 2 * 16, modelData.height - BarLayout.height - BarLayout.margin - Theme.space6)
     exclusiveZone: 0
     color: "transparent"
@@ -379,43 +382,53 @@ PanelWindow {
     Component {
         id: mainPage
 
-        CcMainView {
+        // Scaled with a transform, which does not change the layout size: the wrapper reports the scaled one.
+        Item {
             width: parent?.width ?? 0
-            // Wide, so three tiles fit in a row and the panel is not so tall.
-            columns: 3
-            // The bar keeps its own player (progress, previous and next).
-            media: Component {
-                MediaStrip {
-                    width: parent?.width ?? 0
-                    visible: Media.active
-                }
-            }
-            // The bar has one more button: cycle its layout.
-            shortcuts: ["nextwallpaper", "wallpaper", "hydetheme", "animations", "keybindings", "syncshell", "barlayout"]
-            visibleRows: Math.min(Notifications.count, Media.active ? 3 : 4)
+            implicitHeight: view.implicitHeight * panel.compact
+            height: implicitHeight
 
-            onPageRequested: page => {
-                // The island has a player page; the bar has none, so the row only shows what plays.
-                if (page !== "media")
-                    ShellState.controlCenterPage = page;
-            }
-            onHeaderAction: id => {
-                if (id === "system") {
-                    ShellState.controlCenterPage = "system";
-                } else if (id === "power") {
-                    ShellState.togglePowerMenu();
-                } else if (id === "lock") {
-                    ShellState.closeControlCenter();
-                    Utils.run("loginctl lock-session");
-                } else if (id === "avatar") {
-                    ShellState.closeControlCenter();
-                    SysInfo.chooseAvatar();
-                } else if (id === "settings") {
-                    ShellState.closeControlCenter();
-                    // The shell folder and config.json in a code editor (the first one that exists).
-                    const dir = Quickshell.shellPath("bar");
-                    const cfg = Quickshell.shellPath("bar/config/config.json");
-                    Utils.run(`for e in code codium zeditor; do command -v $e >/dev/null && exec $e "${dir}" "${cfg}"; done; exec kitty nvim "${cfg}"`);
+            CcMainView {
+                id: view
+                width: panel.pageWidth
+                scale: panel.compact
+                transformOrigin: Item.TopLeft
+                // Wide, so three tiles fit in a row and the panel is not so tall.
+                columns: 3
+                // The bar keeps its own player (progress, previous and next).
+                media: Component {
+                    MediaStrip {
+                        width: parent?.width ?? 0
+                        visible: Media.active
+                    }
+                }
+                // The bar has one more button: cycle its layout.
+                shortcuts: ["nextwallpaper", "wallpaper", "hydetheme", "animations", "keybindings", "syncshell", "barlayout"]
+                visibleRows: Math.min(Notifications.count, Media.active ? 3 : 4)
+
+                onPageRequested: page => {
+                    // The island has a player page; the bar has none, so the row only shows what plays.
+                    if (page !== "media")
+                        ShellState.controlCenterPage = page;
+                }
+                onHeaderAction: id => {
+                    if (id === "system") {
+                        ShellState.controlCenterPage = "system";
+                    } else if (id === "power") {
+                        ShellState.togglePowerMenu();
+                    } else if (id === "lock") {
+                        ShellState.closeControlCenter();
+                        Utils.run("loginctl lock-session");
+                    } else if (id === "avatar") {
+                        ShellState.closeControlCenter();
+                        SysInfo.chooseAvatar();
+                    } else if (id === "settings") {
+                        ShellState.closeControlCenter();
+                        // The shell folder and config.json in a code editor (the first one that exists).
+                        const dir = Quickshell.shellPath("bar");
+                        const cfg = Quickshell.shellPath("bar/config/config.json");
+                        Utils.run(`for e in code codium zeditor; do command -v $e >/dev/null && exec $e "${dir}" "${cfg}"; done; exec kitty nvim "${cfg}"`);
+                    }
                 }
             }
         }
