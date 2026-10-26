@@ -7,6 +7,7 @@ import qs.island.services
 import qs.island.theme
 import qs.shared.services
 import qs.shared.pickers
+import qs.shared.controlcenter
 
 // Morphing Island: a single floating island at the top of each screen that turns into a clock,
 // an expanded bar, OSDs, notifications, the launcher, the control center, etc.
@@ -107,6 +108,98 @@ Scope {
         value: Animations.enabled
     }
 
+
+    // The statistics are shared with the bar; this shell can also float them over the apps, and
+    // while that window is out the readings must go on with the control centre closed.
+    Binding {
+        target: SysStats
+        property: "keepRunning"
+        value: StatsWindowPrefs.detached
+    }
+
+    Connections {
+        target: SysStats
+
+        function onReadFailed(message: string): void {
+            Errors.report("system stats", message);
+        }
+    }
+
+    // Where the colours come from, this shell's way: "Wallpaper" and "HyDE" are two of its schemes
+    // (theme/Palettes.qml), so the toggle moves between them. A fixed scheme reads as off, and the
+    // first click picks the wallpaper's colours; the theme picker takes it back.
+    Binding {
+        target: CcToggles
+        property: "colorSourceName"
+        value: ThemeConfig.name === "Wallpaper" ? "From the wallpaper" : ThemeConfig.name === "HyDE" ? "From HyDE" : ThemeConfig.name
+    }
+
+    Binding {
+        target: CcToggles
+        property: "colorFromWallpaper"
+        value: ThemeConfig.name === "Wallpaper"
+    }
+
+    Connections {
+        target: CcToggles
+
+        function onColorSourceToggleRequested(): void {
+            ThemeConfig.setTheme(ThemeConfig.name === "Wallpaper" ? "HyDE" : "Wallpaper");
+        }
+    }
+
+    // The control centre's shortcut row is shared with the bar; opening the launcher is this
+    // shell's own business, so the shared list asks and this answers.
+    Connections {
+        target: CcShortcuts
+
+        function onOpenRequested(what: string): void {
+            if (what === "keys") {
+                IslandController.open(IslandState.launcher);
+                LauncherState.query = "?";
+                return;
+            }
+            // This shell has a wallpaper page of its own, where the bar has a picker.
+            if (what === "pick:wallpapers") {
+                IslandController.open(IslandState.wallpaper);
+                return;
+            }
+            LauncherState.provider = what.slice(5);
+            if (IslandController.mode !== IslandState.launcher)
+                IslandController.open(IslandState.launcher);
+            else
+                LauncherState.query = "";
+        }
+    }
+
+    // The calendar is shared with the bar; this shell's options and what its Google integration
+    // knows reach it here (the bar has no Google integration, so it leaves those alone).
+    Binding {
+        target: Calendar
+        property: "colors"
+        value: CalendarConfig.colors
+    }
+    Binding {
+        target: Calendar
+        property: "refreshMinutes"
+        value: CalendarConfig.refreshMinutes
+    }
+    Binding {
+        target: Calendar
+        property: "googleConnected"
+        value: GoogleCalendar.connected
+    }
+    Binding {
+        target: Calendar
+        property: "googleCalendarIds"
+        value: GoogleCalendar.calendars.map(c => c.id)
+    }
+    Connections {
+        target: Calendar
+        function onReadFailed(message) {
+            Errors.report("calendar", message);
+        }
+    }
 
     // The workspace service is shared with the bar; this shell's options reach it here.
     Binding {
@@ -388,12 +481,12 @@ Scope {
         // The PC statistics window: "detach" (floating, on the focused screen), "attach" (closes it),
         // "toggle", "compact" (switches the compact view).
         function stats(action: string): void {
-            if (action === "detach" || (action === "toggle" && !SysStats.detached))
-                SysStats.detach(IslandController.focusedScreen);
+            if (action === "detach" || (action === "toggle" && !StatsWindowPrefs.detached))
+                StatsWindowPrefs.detach(IslandController.focusedScreen);
             else if (action === "attach" || action === "toggle")
-                SysStats.attach();
+                StatsWindowPrefs.attach();
             else if (action === "compact")
-                SysStats.setCompact(!SysStats.compact);
+                StatsWindowPrefs.setCompact(!StatsWindowPrefs.compact);
         }
         // Brings the login screen (SDDM theme) up to date with the island now; returns the result.
         // Normally automatic (services/SddmTheme.qml).
@@ -537,6 +630,16 @@ Scope {
         // The latest notifications in the history (app · title · icon).
         function recentNotifications(): string {
             return Notifications.list.slice(0, 10).map(n => `${n.appName} · ${n.summary} · ${n.appIcon}`).join("\n");
+        }
+        // What this shell actually draws from the shared model, for checking that both offer the
+        // same things: "toggles=<ids> shortcuts=<ids>". The control centre cannot be held open for
+        // a screenshot (it closes as soon as a scripted call returns), so this is how the two are
+        // compared — see tools/tests/test_cc_parity.py.
+        function ccItems(): string {
+            // What this shell draws is the owner's order, filtered by the shared list.
+            const t = ControlCenter.tiles.filter(id => CcToggles.shown.some(x => x.id === id));
+            const sc = ControlCenter.shortcuts.filter(id => CcShortcuts.shown.some(x => x.id === id));
+            return "toggles=" + t.join(",") + " shortcuts=" + sc.join(",");
         }
         // Control center: "page=<page> sliding=0|1 height=<px> wifi=… networks=<n>
         // bluetooth=… devices=<n> sinks=<n> sources=<n> media=0|1 notifications=<n>", or "closed".

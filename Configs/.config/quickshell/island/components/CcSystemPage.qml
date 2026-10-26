@@ -3,6 +3,8 @@ import Quickshell
 import qs.island.config
 import qs.island.core
 import qs.island.services
+import qs.shared.services
+import qs.shared.controlcenter
 import qs.island.theme
 
 // System page of the control center ("system" mode; the chip button in the header): the PC's
@@ -32,7 +34,7 @@ Item {
             id: detachButton
             size: 32
             onClicked: {
-                SysStats.detach(QsWindow.window?.screen?.name ?? "");
+                StatsWindowPrefs.detach(QsWindow.window?.screen?.name ?? "");
                 IslandController.close();
             }
             onHoveredChanged: {
@@ -74,6 +76,18 @@ Item {
 
         SysStatsView {
             id: view
+
+            accent: Theme.accent
+            accentContent: Theme.accentContent
+            border: Theme.border
+            danger: Theme.danger
+            dim: Theme.dim
+            faint: Theme.faint
+            foreground: Theme.foreground
+            hover: Theme.hover
+            fontFamily: Appearance.font
+            fontSize: Appearance.fontSize
+            animationDuration: Animations.duration(300)
             width: parent.width
             sortBy: SysStats.sortBy
             onSortByChanged: SysStats.sortBy = sortBy

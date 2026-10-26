@@ -19,11 +19,12 @@ import qs.bar.modules.minibar.controller
 import qs.bar.modules.minibar.view
 import qs.shared.services
 import qs.shared.pickers
+import qs.shared.controlcenter
 
 Scope {
     // Singletons are only created when something uses them; these must exist from startup
     // (the calendar events, which must be ready before it is opened).
-    readonly property var agenda: Agenda
+    readonly property var agenda: Calendar
     readonly property var notifs: Notifications
     // The popup policy must exist from startup too, or the first notification has nowhere to go.
     readonly property var popups: Popups
@@ -196,6 +197,60 @@ Scope {
         value: Config.widgets.lock.enabled
     }
 
+    // The shortcut row is shared too. Opening a picker or the keybindings list is the launcher's
+    // business and each shell drives its own, so the shared list asks and this answers.
+    Connections {
+        target: CcShortcuts
+
+        function onOpenRequested(what: string): void {
+            ShellState.toggleLauncher(what);
+        }
+    }
+
+    // Here a shortcut that chooses something opens a picker, so one whose picker is not
+    // registered is a button that would do nothing.
+    Binding {
+        target: CcShortcuts
+        property: "hidden"
+        value: CcShortcuts.items.filter(s => s.pick && Pickers.get(s.pick) === null).map(s => s.id)
+    }
+
+    // Cycling the bar layout only means something where there is a bar to cycle.
+    Binding {
+        target: CcShortcuts
+        property: "extra"
+        value: [
+            {
+                id: "barlayout",
+                label: "Next bar layout",
+                icon: "view_week",
+                glyph: "\u{F0309}",
+                run: () => BarLayout.cycle()
+            }
+        ]
+    }
+
+    // Where the colours come from, the bar's way: a source in its preferences.
+    Binding {
+        target: CcToggles
+        property: "colorSourceName"
+        value: Prefs.colorSource === "wallpaper" ? "From the wallpaper" : "From HyDE"
+    }
+
+    Binding {
+        target: CcToggles
+        property: "colorFromWallpaper"
+        value: Prefs.colorSource === "wallpaper"
+    }
+
+    Connections {
+        target: CcToggles
+
+        function onColorSourceToggleRequested(): void {
+            Theme.setColorSource(Prefs.colorSource === "wallpaper" ? "hyde" : "wallpaper");
+        }
+    }
+
     // The notification server is shared with the island; this shell's settings reach it here, and
     // how many popups it stacks is its own (the island shows one at a time instead).
     Binding {
@@ -361,6 +416,19 @@ Scope {
         // "wifi", "bluetooth" or "audio"
         function page(name: string): void {
             ShellState.openControlCenter(name);
+        }
+    }
+
+    // Test/diagnostic hooks (read-only): qs ipc call bar-debug <function>
+    IpcHandler {
+        target: "bar-debug"
+
+        // What this shell actually draws from the shared model, for checking that both offer the
+        // same things: "toggles=<ids> shortcuts=<ids>". The control centre cannot be held open for
+        // a screenshot (it closes as soon as a scripted call returns), so this is how the two are
+        // compared — see tools/tests/test_cc_parity.py.
+        function ccItems(): string {
+            return "toggles=" + CcToggles.shown.map(t => t.id).join(",") + " shortcuts=" + CcShortcuts.shown.map(s => s.id).join(",");
         }
     }
 

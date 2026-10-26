@@ -1,7 +1,4 @@
 import QtQuick
-import qs.island.config
-import qs.island.services
-import qs.island.theme
 import qs.shared.services
 
 // PC statistics (services/SysStats.qml), shown by the control center's System page and by the
@@ -10,6 +7,40 @@ import qs.shared.services
 // sorted by CPU or by memory.
 Column {
     id: root
+
+    // The colours come from the shell that shows this, which is why they are properties and not a
+    // Theme: the two shells name their palettes differently (the island's accent is the bar's
+    // primary, its foreground the bar's text) and both draw these numbers.
+    required property color accent
+    required property color accentContent
+    required property color border
+    required property color danger
+    required property color dim
+    required property color faint
+    required property color foreground
+    required property color hover
+
+    // The text style comes from the shell too, so the numbers look like the rest of its control
+    // centre. Label was the island's own text component; carrying it here keeps the fourteen call
+    // sites below unchanged and stops this file depending on one shell's components.
+    required property string fontFamily
+    required property int fontSize
+
+    // How long the bars take to move. Each shell has its own animation settings (and its own way
+    // of turning them off), so it passes the number; 0 means no animation at all.
+    property int animationDuration: 300
+
+    component Label: Text {
+        color: root.foreground
+        font.family: root.fontFamily
+        font.pixelSize: root.fontSize
+        font.features: ({
+                "tnum": 1
+            })
+        verticalAlignment: Text.AlignVCenter
+        elide: Text.ElideRight
+        renderType: Text.NativeRendering
+    }
 
     // "cpu" or "memory": how the process list is sorted.
     property string sortBy: "cpu"
@@ -22,7 +53,7 @@ Column {
         return total > 0 ? used / total : 0;
     }
     function tempColor(c) {
-        return c >= 85 ? Theme.danger : c >= 70 ? Theme.accent : Theme.foreground;
+        return c >= 85 ? root.danger : c >= 70 ? root.accent : root.foreground;
     }
 
     spacing: 14
@@ -56,16 +87,16 @@ Column {
                     width: (coreGrid.width - coreGrid.spacing * (coreGrid.columns - 1)) / coreGrid.columns
                     height: 44
                     radius: 6
-                    color: Qt.alpha(Theme.foreground, 0.07)
+                    color: Qt.alpha(root.foreground, 0.07)
                     clip: true
                     Rectangle {
                         anchors.bottom: parent.bottom
                         width: parent.width
                         height: Math.max(3, parent.height * modelData / 100)
-                        color: modelData > 90 ? Theme.danger : Qt.alpha(Theme.accent, 0.85)
+                        color: modelData > 90 ? root.danger : Qt.alpha(root.accent, 0.85)
                         Behavior on height {
                             NumberAnimation {
-                                duration: Animations.duration(300)
+                                duration: root.animationDuration
                                 easing.type: Easing.OutCubic
                             }
                         }
@@ -75,16 +106,16 @@ Column {
                         anchors.topMargin: 3
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: String(index)
-                        color: Theme.faint
-                        font.pixelSize: Appearance.fontSize - 4
+                        color: root.faint
+                        font.pixelSize: root.fontSize - 4
                     }
                     Label {
                         anchors.bottom: parent.bottom
                         anchors.bottomMargin: 3
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: `${Math.round(modelData)}`
-                        color: modelData > 45 ? Theme.accentContent : Theme.foreground
-                        font.pixelSize: Appearance.fontSize - 3
+                        color: modelData > 45 ? root.accentContent : root.foreground
+                        font.pixelSize: root.fontSize - 3
                         font.weight: Font.DemiBold
                     }
                 }
@@ -111,19 +142,19 @@ Column {
             width: parent.width
             height: 8
             radius: 4
-            color: Qt.alpha(Theme.foreground, 0.08)
+            color: Qt.alpha(root.foreground, 0.08)
             clip: true
             Row {
                 anchors.fill: parent
                 Rectangle {
                     width: parent.width * root.pct(root.d?.memory.apps ?? 0, root.d?.memory.total ?? 0)
                     height: parent.height
-                    color: Theme.accent
+                    color: root.accent
                 }
                 Rectangle {
                     width: parent.width * root.pct(root.d?.memory.cache ?? 0, root.d?.memory.total ?? 0)
                     height: parent.height
-                    color: Qt.alpha(Theme.accent, 0.4)
+                    color: Qt.alpha(root.accent, 0.4)
                 }
             }
         }
@@ -135,17 +166,17 @@ Column {
                     {
                         k: "Apps",
                         v: root.d.memory.apps,
-                        c: Theme.accent
+                        c: root.accent
                     },
                     {
                         k: "Cache",
                         v: root.d.memory.cache,
-                        c: Qt.alpha(Theme.accent, 0.4)
+                        c: Qt.alpha(root.accent, 0.4)
                     },
                     {
                         k: "Free",
                         v: root.d.memory.free,
-                        c: Qt.alpha(Theme.foreground, 0.12)
+                        c: Qt.alpha(root.foreground, 0.12)
                     },
                     {
                         k: "Available",
@@ -163,7 +194,7 @@ Column {
                         radius: 4
                         color: modelData.c
                         border.width: modelData.c === "transparent" ? 1 : 0
-                        border.color: Theme.faint
+                        border.color: root.faint
                     }
                     Small {
                         text: `${modelData.k} ${SysStats.bytes(modelData.v)}`
@@ -209,23 +240,23 @@ Column {
                     width: tempRow.implicitWidth + 20
                     height: 30
                     radius: 15
-                    color: Qt.alpha(Theme.foreground, 0.05)
+                    color: Qt.alpha(root.foreground, 0.05)
                     border.width: 1
-                    border.color: Theme.border
+                    border.color: root.border
                     Row {
                         id: tempRow
                         anchors.centerIn: parent
                         spacing: 6
                         Label {
                             text: modelData.name
-                            color: Theme.dim
-                            font.pixelSize: Appearance.fontSize - 1
+                            color: root.dim
+                            font.pixelSize: root.fontSize - 1
                         }
                         Label {
                             text: `${Math.round(modelData.celsius)}°C`
                             color: root.tempColor(modelData.celsius)
                             font.weight: Font.DemiBold
-                            font.pixelSize: Appearance.fontSize - 1
+                            font.pixelSize: root.fontSize - 1
                         }
                     }
                 }
@@ -298,9 +329,9 @@ Column {
                 width: (parent.width - 6) / 2
                 height: 44
                 radius: 14
-                color: Qt.alpha(Theme.foreground, 0.05)
+                color: Qt.alpha(root.foreground, 0.05)
                 border.width: 1
-                border.color: Theme.border
+                border.color: root.border
                 Column {
                     anchors.left: parent.left
                     anchors.leftMargin: 12
@@ -353,15 +384,15 @@ Column {
                         width: sortLabel.implicitWidth + 18
                         height: 24
                         radius: 12
-                        color: chosen ? Theme.accent : sortMouse.containsMouse ? Theme.hover : "transparent"
+                        color: chosen ? root.accent : sortMouse.containsMouse ? root.hover : "transparent"
                         border.width: chosen ? 0 : 1
-                        border.color: Theme.border
+                        border.color: root.border
                         Label {
                             id: sortLabel
                             anchors.centerIn: parent
                             text: sortChip.modelData.l
-                            color: sortChip.chosen ? Theme.accentContent : Theme.foreground
-                            font.pixelSize: Appearance.fontSize - 2
+                            color: sortChip.chosen ? root.accentContent : root.foreground
+                            font.pixelSize: root.fontSize - 2
                         }
                         MouseArea {
                             id: sortMouse
@@ -407,35 +438,35 @@ Column {
                 Label {
                     width: parent.width - 196
                     text: modelData.threads > 1 ? `${modelData.name}  ·  ${modelData.threads}` : modelData.name
-                    font.pixelSize: Appearance.fontSize - 1
+                    font.pixelSize: root.fontSize - 1
                 }
                 Label {
                     width: 56
                     horizontalAlignment: Text.AlignRight
                     text: String(modelData.pid)
-                    color: Theme.faint
-                    font.pixelSize: Appearance.fontSize - 2
+                    color: root.faint
+                    font.pixelSize: root.fontSize - 2
                 }
                 Label {
                     width: 60
                     horizontalAlignment: Text.AlignRight
                     text: `${modelData.cpu.toFixed(1)}%`
                     font.weight: root.sortBy === "cpu" ? Font.DemiBold : Font.Normal
-                    font.pixelSize: Appearance.fontSize - 1
+                    font.pixelSize: root.fontSize - 1
                 }
                 Label {
                     width: 80
                     horizontalAlignment: Text.AlignRight
                     text: SysStats.bytes(modelData.memory)
-                    color: root.sortBy === "memory" ? Theme.foreground : Theme.dim
+                    color: root.sortBy === "memory" ? root.foreground : root.dim
                     font.weight: root.sortBy === "memory" ? Font.DemiBold : Font.Normal
-                    font.pixelSize: Appearance.fontSize - 1
+                    font.pixelSize: root.fontSize - 1
                 }
             }
         }
         Small {
             text: "Name  ·  threads"
-            color: Theme.faint
+            color: root.faint
         }
     }
 
@@ -454,22 +485,22 @@ Column {
             anchors.rightMargin: 8
             text: parent.title
             font.weight: parent.small ? Font.Normal : Font.DemiBold
-            font.pixelSize: parent.small ? Appearance.fontSize - 1 : Appearance.fontSize
+            font.pixelSize: parent.small ? root.fontSize - 1 : root.fontSize
         }
         Label {
             id: valueLabel
             anchors.right: parent.right
             text: parent.value
-            color: parent.strong ? Theme.foreground : Theme.dim
+            color: parent.strong ? root.foreground : root.dim
             font.weight: parent.strong ? Font.DemiBold : Font.Normal
-            font.pixelSize: parent.small ? Appearance.fontSize - 1 : Appearance.fontSize
+            font.pixelSize: parent.small ? root.fontSize - 1 : root.fontSize
         }
     }
 
     // Secondary line.
     component Small: Label {
-        color: Theme.dim
-        font.pixelSize: Appearance.fontSize - 2
+        color: root.dim
+        font.pixelSize: root.fontSize - 2
     }
 
     // A thin rounded level bar.
@@ -478,15 +509,15 @@ Column {
         width: parent ? parent.width : 0
         height: 8
         radius: 4
-        color: Qt.alpha(Theme.foreground, 0.08)
+        color: Qt.alpha(root.foreground, 0.08)
         Rectangle {
             width: Math.max(parent.height, parent.width * Math.max(0, Math.min(1, parent.value)))
             height: parent.height
             radius: 4
-            color: parent.value > 0.9 ? Theme.danger : Theme.accent
+            color: parent.value > 0.9 ? root.danger : root.accent
             Behavior on width {
                 NumberAnimation {
-                    duration: Animations.duration(300)
+                    duration: root.animationDuration
                     easing.type: Easing.OutCubic
                 }
             }

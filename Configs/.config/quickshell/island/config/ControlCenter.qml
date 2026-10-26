@@ -16,11 +16,13 @@ Singleton {
     readonly property int slideMs: 340
 
     // Quick-toggle tiles, in order, two per row (an odd last tile takes the whole row). Known ids:
-    // "wifi", "bluetooth", "sound", "mic" (microphone on/off), "peace" (peace mode: no popups),
-    // "nightlight", "caffeine" (keep the session awake), "profile" (power profile: saver, balanced,
+    // "wifi", "bluetooth", "sound", "mic" (microphone on/off), "dnd" (peace mode: no popups),
+    // "nightlight", "caffeine" (keep the session awake), "powerProfile" (power profile: saver, balanced,
     // performance; the arrow opens the battery page). Remove an id to hide that tile.
-    // Default ["wifi", "bluetooth", "sound", "mic", "peace", "nightlight", "caffeine", "profile"].
-    readonly property var tiles: ["wifi", "bluetooth", "sound", "mic", "peace", "nightlight", "caffeine", "profile"]
+    // "colors" (palette from the wallpaper or from the HyDE theme).
+    // Default ["wifi", "bluetooth", "sound", "mic", "dnd", "nightlight", "caffeine", "powerProfile",
+    // "colors"].
+    readonly property var tiles: ["wifi", "bluetooth", "sound", "mic", "dnd", "nightlight", "caffeine", "powerProfile", "colors"]
     // HyDE shortcuts under the media row, in order: "nextwallpaper", "wallpaper" (the picker),
     // "hydetheme" (HyDE themes), "animations", "keybindings". [] hides the row.
     readonly property var shortcuts: ["nextwallpaper", "wallpaper", "hydetheme", "animations", "keybindings"]

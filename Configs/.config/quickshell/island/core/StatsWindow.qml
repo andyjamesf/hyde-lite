@@ -4,6 +4,8 @@ import Quickshell.Wayland
 import qs.island.config
 import qs.island.components
 import qs.island.services
+import qs.shared.services
+import qs.shared.controlcenter
 import qs.island.theme
 
 // The PC statistics detached from the control center (the button on the System page): a small
@@ -17,11 +19,11 @@ PanelWindow {
     required property var modelData
 
     // On the screen it was detached on (or the first one, if that screen is gone).
-    readonly property bool here: SysStats.detached && (SysStats.screen === modelData?.name || (!Quickshell.screens.some(s => s.name === SysStats.screen) && modelData === Quickshell.screens[0]))
+    readonly property bool here: StatsWindowPrefs.detached && (StatsWindowPrefs.screen === modelData?.name || (!Quickshell.screens.some(s => s.name === StatsWindowPrefs.screen) && modelData === Quickshell.screens[0]))
 
     // Top-left corner (logical pixels); dragging moves it, the release saves it.
-    property real px: SysStats.x >= 0 ? SysStats.x : modelData?.width - implicitWidth - 24
-    property real py: SysStats.y >= 0 ? SysStats.y : 64
+    property real px: StatsWindowPrefs.x >= 0 ? StatsWindowPrefs.x : modelData?.width - implicitWidth - 24
+    property real py: StatsWindowPrefs.y >= 0 ? StatsWindowPrefs.y : 64
 
     screen: modelData
     visible: here
@@ -33,7 +35,7 @@ PanelWindow {
         left: Math.round(Math.max(0, Math.min(modelData?.width - implicitWidth, px)))
         top: Math.round(Math.max(0, Math.min(modelData?.height - implicitHeight, py)))
     }
-    implicitWidth: SysStats.compact ? 320 : 400
+    implicitWidth: StatsWindowPrefs.compact ? 320 : 400
     // At most three quarters of the screen tall (the rest scrolls).
     implicitHeight: Math.min(card.contentHeight + 2, Math.round(modelData?.height * 0.75))
     exclusiveZone: 0
@@ -81,7 +83,7 @@ PanelWindow {
                     win.px = Math.max(0, Math.min(win.modelData?.width - win.implicitWidth, win.margins.left + event.x - sx));
                     win.py = Math.max(0, Math.min(win.modelData?.height - win.implicitHeight, win.margins.top + event.y - sy));
                 }
-                onReleased: SysStats.moveTo(win.px, win.py)
+                onReleased: StatsWindowPrefs.moveTo(win.px, win.py)
             }
 
             Row {
@@ -111,19 +113,19 @@ PanelWindow {
                 Repeater {
                     model: [
                         {
-                            glyph: SysStats.compact ? "\u{F0616}" : "\u{F0615}",
-                            run: () => SysStats.setCompact(!SysStats.compact)
+                            glyph: StatsWindowPrefs.compact ? "\u{F0616}" : "\u{F0615}",
+                            run: () => StatsWindowPrefs.setCompact(!StatsWindowPrefs.compact)
                         },
                         {
                             glyph: "\u{F10AC}",
                             run: () => {
-                                SysStats.attach();
+                                StatsWindowPrefs.attach();
                                 IslandController.open(IslandState.system);
                             }
                         },
                         {
                             glyph: "\u{F0156}",
-                            run: () => SysStats.attach()
+                            run: () => StatsWindowPrefs.attach()
                         }
                     ]
                     IconButton {
@@ -154,8 +156,20 @@ PanelWindow {
 
             SysStatsView {
                 id: view
+
+                accent: Theme.accent
+                accentContent: Theme.accentContent
+                border: Theme.border
+                danger: Theme.danger
+                dim: Theme.dim
+                faint: Theme.faint
+                foreground: Theme.foreground
+                hover: Theme.hover
+                fontFamily: Appearance.font
+                fontSize: Appearance.fontSize
+                animationDuration: Animations.duration(300)
                 width: parent.width
-                compact: SysStats.compact
+                compact: StatsWindowPrefs.compact
                 sortBy: SysStats.sortBy
                 onSortByChanged: SysStats.sortBy = sortBy
             }

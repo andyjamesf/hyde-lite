@@ -4,6 +4,7 @@ import qs.island.core
 import qs.island.icons
 import qs.island.services
 import qs.island.theme
+import qs.shared.services
 
 // Calendar (island mode "calendar"): the month, the chosen day's events and your calendars.
 // A click on a day shows its events; ‹ › change month, the month name goes back to today.
