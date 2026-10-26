@@ -215,12 +215,12 @@ Singleton {
             right: [],
         },
         // A fuller one, for when the minimal bar is the only bar in use. Drop the "//" to get it.
-        // {
-        //     label: "Everything",
-        //     clockDate: true,
-        //     left: [["workspaces"], ["activeWindow"]],
-        //     center: [["clock"]],
-        //     right: [["tray"], ["audio", "network", "battery"], ["notifications", "controlCenter", "power"]],
-        // },
+         {
+             label: "Everything",
+             clockDate: true,
+             left: [["workspaces"], ["activeWindow"]],
+             center: [["clock"]],
+             right: [ ["idle"],["tray"], ["audio", "network", "battery"], ["notifications", "controlCenter", "power"]],
+         },
     ]
 }

@@ -1,8 +1,6 @@
 import QtQuick
-import qs.island.config
-import qs.island.theme
 
-// Large rounded slider (volume, brightness): a track filled with Theme.accent and the icon inside,
+// Large rounded slider (volume, brightness): a track filled with CcTheme.accent and the icon inside,
 // on the left. Dragging, clicking the track or using the wheel emits moved(v) with v in 0..1.
 // While dragging it shows the hand's value (does not wait for the service); otherwise it follows
 // `value` with an animation. `throttle` (ms) limits how often moved() fires while dragging (the
@@ -26,7 +24,7 @@ Item {
     readonly property bool dragging: drag.pressed
     readonly property real shown: dragging ? dragValue : Math.max(0, Math.min(1, value))
     // Colour the icon should use (over the fill).
-    readonly property color iconColor: muted ? Theme.foreground : Theme.accentContent
+    readonly property color iconColor: muted ? CcTheme.foreground : CcTheme.accentContent
 
     property real dragValue: 0
     property real _pending: -1
@@ -72,9 +70,9 @@ Item {
         id: track
         anchors.fill: parent
         radius: height / 2
-        color: Theme.hover
+        color: CcTheme.hover
         border.width: 1
-        border.color: Theme.border
+        border.color: CcTheme.border
 
         // Fill: never narrower than the icon square (the icon always sits on it).
         Rectangle {
@@ -84,18 +82,18 @@ Item {
             anchors.bottom: parent.bottom
             width: root.height + (parent.width - root.height) * root.shown
             radius: height / 2
-            color: root.muted ? Theme.pressed : Theme.accent
+            color: root.muted ? CcTheme.pressed : CcTheme.accent
 
             Behavior on width {
                 enabled: !root.dragging
                 NumberAnimation {
-                    duration: Animations.duration(180)
+                    duration: CcTheme.duration(180)
                     easing.type: Easing.OutCubic
                 }
             }
             Behavior on color {
                 ColorAnimation {
-                    duration: Animations.duration(150)
+                    duration: CcTheme.duration(150)
                 }
             }
         }
@@ -108,25 +106,25 @@ Item {
             height: Math.round(root.height * 0.5)
             radius: width / 2
             visible: root.shown > 0.02
-            color: root.muted ? Theme.dim : Theme.accentContent
+            color: root.muted ? CcTheme.dim : CcTheme.accentContent
             opacity: drag.containsMouse || root.dragging ? 0.9 : 0.5
 
             Behavior on opacity {
                 NumberAnimation {
-                    duration: Animations.duration(120)
+                    duration: CcTheme.duration(120)
                 }
             }
         }
     }
 
-    Label {
+    CcLabel {
         anchors.right: parent.right
         anchors.rightMargin: Math.round(root.height * 0.45)
         anchors.verticalCenter: parent.verticalCenter
         visible: root.label !== ""
         text: root.label
-        color: fill.width > root.width - width - root.height * 0.6 ? root.iconColor : Theme.dim
-        font.pixelSize: Appearance.fontSize - 1
+        color: fill.width > root.width - width - root.height * 0.6 ? root.iconColor : CcTheme.dim
+        font.pixelSize: CcTheme.fontSize - 1
     }
 
     MouseArea {
@@ -177,7 +175,7 @@ Item {
 
             Behavior on color {
                 ColorAnimation {
-                    duration: Animations.duration(120)
+                    duration: CcTheme.duration(120)
                 }
             }
         }

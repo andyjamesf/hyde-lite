@@ -37,10 +37,10 @@ class ControlCentreParity(unittest.TestCase):
         self.assertEqual(sorted(ids_of("island/config/ControlCenter.qml", "shortcuts")),
                          sorted(model_ids("CcShortcuts")))
 
-    def test_island_has_a_tile_for_each(self):
-        """Every id in the shared list needs a component in the island's map."""
-        text = (SHELL / "island/components/CcMainPage.qml").read_text(encoding="utf-8")
-        mapped = re.findall(r"\n            (\w+): \w+TileComponent", text)
+    def test_every_toggle_has_an_icon_in_the_shared_tile(self):
+        """The tile is drawn once (CcToggleTile), so each id in the shared list needs its icon there."""
+        text = (SHELL / "shared/controlcenter/CcToggleTile.qml").read_text(encoding="utf-8")
+        mapped = re.findall(r"\n                (\w+): \w+Icon,?", text)
         self.assertEqual(sorted(mapped), sorted(model_ids("CcToggles")))
 
     def test_both_shells_answer_what_the_model_asks(self):
@@ -49,6 +49,17 @@ class ControlCentreParity(unittest.TestCase):
             text = (SHELL / ("%s/Shell.qml" % shell)).read_text(encoding="utf-8")
             for fn in ("onColorSourceToggleRequested", "onOpenRequested"):
                 self.assertIn(fn, text, "%s/Shell.qml does not answer %s" % (shell, fn))
+
+    def test_both_shells_draw_the_one_main_page(self):
+        """The island's main page is the complete one; the bar draws the same component (the minimal bar
+        draws the bar's panels), and neither keeps tiles, sliders or a notification list of its own."""
+        for path in ("island/components/CcMainPage.qml", "bar/modules/controlcenter/ControlCenter.qml"):
+            text = (SHELL / path).read_text(encoding="utf-8")
+            self.assertIn("CcMainView {", text, "%s does not draw the shared main page" % path)
+            for own in ("Notifications.list", "BigSlider {", "CcTile {"):
+                self.assertNotIn(own, text, "%s keeps its own %s" % (path, own))
+        view = (SHELL / "shared/controlcenter/CcMainView.qml").read_text(encoding="utf-8")
+        self.assertIn("NotificationCentre {", view)
 
     def test_the_diagnostic_exists_in_both(self):
         """It is how the two are compared; losing it loses the only check there is."""

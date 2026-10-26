@@ -24,6 +24,8 @@ Scope {
     readonly property bool polkitRegistered: Polkit.registered
     // Wi-Fi and Bluetooth agent (scripts/agents.py) from startup.
     readonly property var agentRequests: Agents.queue
+    // The shared control centre components read their look from CcTheme; this binds the island's.
+    CcThemeBindings {}
     // The login screen (SDDM) follows the island's colours and wallpaper from startup.
     Binding {
         target: SddmTheme

@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Shapes
-import qs.island.theme
+import qs.shared.controlcenter
 
 // Small vector glyphs used across the UI (same 24×24 grid as the other icons, outline only):
 // "back" (‹), "chevron" (›), "lock", "check", "bell", "bellOff", "refresh", "mic", "micOff",
@@ -9,7 +9,7 @@ Item {
     id: root
 
     property string kind: "chevron"
-    property color color: Theme.icon
+    property color color: CcTheme.icon
     property real size: 18
 
     // Outline of each glyph (SVG paths on the 24×24 grid).

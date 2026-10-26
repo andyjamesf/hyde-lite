@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Shapes
-import qs.island.theme
+import qs.shared.controlcenter
 
 // Wi‑Fi icon: a dot and three concentric arcs fanning upwards.
 // The level (0..4) lights the parts from the bottom up; the rest stay faded.
@@ -10,7 +10,7 @@ import qs.island.theme
 Item {
     id: root
 
-    property color color: Theme.icon
+    property color color: CcTheme.icon
     property real size: 18
     // 0 = no signal, 1 = dot only, 2 = dot + 1 arc, 3 = + 2 arcs, 4 = all
     property int level: 4

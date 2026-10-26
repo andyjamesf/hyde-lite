@@ -1,7 +1,7 @@
 import QtQuick
 import qs.island.config
 import qs.island.core
-import qs.island.icons
+import qs.shared.icons
 import qs.island.theme
 
 // Header of the control center subviews: a "‹" button (back to the main page), the title and, on

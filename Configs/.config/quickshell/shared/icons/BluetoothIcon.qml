@@ -1,13 +1,13 @@
 import QtQuick
 import QtQuick.Shapes
-import qs.island.theme
+import qs.shared.controlcenter
 
 // Bluetooth icon: the classic rune drawn with strokes.
 // Connected to a device: two small dots on each side. Off: 35% opacity and a diagonal slash.
 Item {
     id: root
 
-    property color color: Theme.icon
+    property color color: CcTheme.icon
     property real size: 18
     override property bool enabled: true
     property bool connected: false
