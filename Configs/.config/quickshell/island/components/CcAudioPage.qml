@@ -4,6 +4,7 @@ import qs.island.config
 import qs.shared.icons
 import qs.island.theme
 import qs.shared.services
+import qs.shared.controlcenter
 
 // Sound subview: outputs (sinks) and inputs (sources). Each device is a radio row (click → it
 // becomes the default device) with its own volume slider below; the slider's icon mutes/unmutes
