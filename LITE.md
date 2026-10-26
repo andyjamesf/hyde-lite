@@ -50,6 +50,7 @@ a shell installed on top (waybar, rofi, dunst, swaync and wlogout are not instal
 | `Configs/.config/hyde/wallbash/scripts/cava.sh` | one comment line removed: a `shellcheck source=` hint naming another author's home directory (the next line already disables SC1091) |
 | `.luacheckrc`, `.gitignore` | new / rewritten (the old `./.*` pattern never matched anything) |
 | colour pipeline | new, additive: `Scripts/dots/colour.toml` deploys `wallpaper-palette`, `wallpaper-library`, `wallbash-matugen`, `Configs/.config/matugen`, a fontconfig rule, and the `matugen.dcol` / `quickshell.dcol` wallbash templates (under `Configs/.config/hyde/wallbash/always`). Copied unchanged from the owner's private dotfiles repository at `213c2a5`, together with that commit range's shell updates (`PickPalette.qml`, `Theme.qml`, `Config.qml`, island `Palettes.qml`). No upstream HyDE file is edited |
+| `Configs/.config/kitty/kitty.conf` | now includes `wallpaper.conf` (the file matugen writes for kitty; nothing included it on a fresh install, only one owner's own copy did) and, last, an optional `user.conf` for the owner's settings (kitty ignores a missing include). `tools/check_ownership.py <dotfiles>` lists every path a dotfiles repository and this one both own (duplicate, pinned, override, conflict); run it after changing a `Scripts/dots` entry |
 
 ## History
 
