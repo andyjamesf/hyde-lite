@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Shapes
-import qs.island.theme
+import qs.shared.controlcenter
 
 // Brightness icon: a sun with a central disc and 8 rays.
 // The rays light up clockwise from the top (at least one lit); the disc grows slightly with the
@@ -10,7 +10,7 @@ import qs.island.theme
 Item {
     id: root
 
-    property color color: Theme.icon
+    property color color: CcTheme.icon
     property real size: 18
     property real level: 1
 

@@ -3,6 +3,7 @@ import Quickshell
 import qs.island.config
 import qs.island.core
 import qs.island.icons
+import qs.shared.icons
 import qs.island.services
 import qs.island.theme
 import qs.shared.services
@@ -45,7 +46,8 @@ Item {
             system: "\u{F061A}",
             nextwallpaper: "\u{F04AD}",
             hydetheme: "\u{F08B5}",
-            keybindings: "\u{F030C}"
+            keybindings: "\u{F030C}",
+            syncshell: "\u{F04E6}"
         })
 
     // Hint under the hovered icon, drawn by the island's window (IslandController.hint).

@@ -2,8 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Shapes
-import qs.island.config
-import qs.island.theme
+import qs.shared.controlcenter
 
 // Battery icon: a horizontal cell with a small terminal on the right and a fill proportional to the
 // charge. The percentage sits inside the cell, drawn twice (once over the empty part, once over the
@@ -12,7 +11,7 @@ import qs.island.theme
 Item {
     id: root
 
-    property color color: Theme.icon
+    property color color: CcTheme.icon
     property real size: 18
     property real percent: 100
     property bool charging: false
@@ -22,8 +21,8 @@ Item {
 
     readonly property real clamped: Math.max(0, Math.min(100, percent))
     readonly property bool low: !charging && clamped <= lowLevel
-    readonly property color fillColor: charging ? Theme.accent : low ? Theme.danger : color
-    readonly property color contrastColor: charging ? Theme.accentContent : Theme.background
+    readonly property color fillColor: charging ? CcTheme.accent : low ? CcTheme.danger : color
+    readonly property color contrastColor: charging ? CcTheme.accentContent : CcTheme.background
 
     // Geometry (in pixels, relative to size)
     readonly property real stroke: size * 0.09
@@ -68,7 +67,7 @@ Item {
     TextMetrics {
         id: metrics
 
-        font.family: Appearance.font
+        font.family: CcTheme.fontFamily
         font.weight: Font.DemiBold
         font.pixelSize: root.basePixelSize
         text: Math.round(root.clamped).toString()
@@ -88,7 +87,7 @@ Item {
             height: parent.height
             text: Math.round(root.clamped)
             color: content.tint
-            font.family: Appearance.font
+            font.family: CcTheme.fontFamily
             font.weight: Font.DemiBold
             font.pixelSize: root.pixelSize
             font.features: ({

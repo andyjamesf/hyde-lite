@@ -1,7 +1,7 @@
 import QtQuick
 import Quickshell.Widgets
 import qs.island.config
-import qs.island.icons
+import qs.shared.icons
 import qs.island.core
 import qs.island.services
 import qs.island.theme
