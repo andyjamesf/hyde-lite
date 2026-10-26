@@ -79,6 +79,18 @@ Scope {
     Binding {
         target: CcTheme
         property: "fontSize"
-        value: Theme.bodyMedium
+        // The main page is drawn at 84% (bar/modules/controlcenter/ControlCenter.qml), which would make the
+        // text smaller than the island's; a fifth more keeps it at about the same size on screen.
+        value: Theme.bodyMedium * 1.2
+    }
+    Binding {
+        target: CcTheme
+        property: "textRendering"
+        value: Text.CurveRendering
+    }
+    Binding {
+        target: CcTheme
+        property: "textPadding"
+        value: 1
     }
 }

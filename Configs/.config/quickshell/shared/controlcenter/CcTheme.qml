@@ -34,8 +34,13 @@ Singleton {
     property string nerdFont: ""
     property real fontSize: 13
 
-    // Layout. `panelWidth` is the width of a window that holds the main page (the bar opens a panel).
-    property int panelWidth: 440
+    // How text is drawn. A shell that scales the page (the bar draws it at 84%) uses curve rendering,
+    // which stays sharp under a transform, and pads a pixel above and below: with `elide` Qt clips to
+    // the line box and, scaled, the descenders of g, p and y were cut off.
+    property int textRendering: Text.NativeRendering
+    property int textPadding: 0
+
+    // Layout.
     property int tileHeight: 56
     // At most one brightness change per this many milliseconds (every change is a process).
     property int sliderThrottleMs: 80

@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
+import Quickshell.Widgets
 import qs.bar.components
 import qs.bar.services
 import qs.bar.modules.controls
@@ -46,7 +47,12 @@ PanelWindow {
         bottom: BarLayout.atTop ? 0 : 6
         right: BarLayout.centerPanels ? 0 : 6
     }
-    implicitWidth: CcTheme.panelWidth
+    // The main page is drawn at `compact` of the island's size (this is a desktop, not a tablet):
+    // laid out `pageWidth` wide with three tiles to a row, then scaled down, so the panel is both
+    // narrower and lower than the island's. The detail pages keep the narrow panel they were made for.
+    readonly property real compact: 0.84
+    readonly property int pageWidth: 620
+    implicitWidth: ShellState.controlCenterPage === "" ? Math.round(pageWidth * compact) + 2 * 16 : 360
     implicitHeight: Math.min(content.implicitHeight + 2 * 16, modelData.height - BarLayout.height - BarLayout.margin - Theme.space6)
     exclusiveZone: 0
     color: "transparent"
@@ -254,39 +260,175 @@ PanelWindow {
         }
     }
 
+    // Compact player: cover, title/artist and the controls on the right; progress at the bottom.
+    component MediaStrip: Card {
+        id: strip
+
+        readonly property var player: Media.player
+
+        padding: Theme.space3
+
+        // MPRIS doesn't signal when the position advances; an update is requested every second.
+        Timer {
+            interval: 1000
+            repeat: true
+            running: strip.visible && Media.playing && panel.open
+            onTriggered: strip.player?.positionChanged()
+        }
+
+        ColumnLayout {
+            width: parent.width
+            spacing: Theme.space3
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Theme.space3
+
+                ClippingRectangle {
+                    implicitWidth: 56
+                    implicitHeight: 56
+                    radius: Theme.shapeMedium
+                    color: Theme.surfaceContainerHighest
+
+                    MaterialIcon {
+                        anchors.centerIn: parent
+                        visible: art.status !== Image.Ready
+                        icon: "music_note"
+                        size: 26
+                        fill: 1
+                        color: Theme.primary
+                    }
+
+                    Image {
+                        id: art
+                        anchors.fill: parent
+                        source: Media.artUrl
+                        fillMode: Image.PreserveAspectCrop
+                        asynchronous: true
+                        sourceSize.width: 112
+                        sourceSize.height: 112
+                    }
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 0
+
+                    StyledText {
+                        Layout.fillWidth: true
+                        text: Media.title || "Untitled"
+                        font.pixelSize: Theme.titleSmall
+                        font.weight: Font.DemiBold
+                    }
+
+                    StyledText {
+                        Layout.fillWidth: true
+                        text: Media.artist || (strip.player?.identity ?? "")
+                        font.pixelSize: Theme.bodySmall
+                        color: Theme.textDim
+                    }
+                }
+
+                IconButton {
+                    icon: "skip_previous"
+                    size: 36
+                    enabled: strip.player?.canGoPrevious ?? false
+                    onClicked: Media.previous()
+                }
+
+                IconButton {
+                    icon: Media.playing ? "pause" : "play_arrow"
+                    size: 40
+                    checked: true
+                    onClicked: Media.togglePlaying()
+                }
+
+                IconButton {
+                    icon: "skip_next"
+                    size: 36
+                    enabled: strip.player?.canGoNext ?? false
+                    onClicked: Media.next()
+                }
+            }
+
+            Rectangle {
+                visible: (strip.player?.lengthSupported ?? false) && strip.player.length > 0
+                Layout.fillWidth: true
+                implicitHeight: 4
+                radius: 2
+                color: Theme.surfaceContainerHighest
+
+                Rectangle {
+                    width: strip.player && strip.player.length > 0 ? parent.width * Math.min(1, strip.player.position / strip.player.length) : 0
+                    height: parent.height
+                    radius: 2
+                    color: Theme.primary
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    anchors.topMargin: -Theme.space2
+                    anchors.bottomMargin: -Theme.space2
+                    enabled: strip.player?.canSeek ?? false
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: mouse => strip.player.position = mouse.x / width * strip.player.length
+                }
+            }
+        }
+    }
+
     // The main page is the island's, shared (shared/controlcenter/CcMainView.qml); this panel only
     // says what a click leads to.
     Component {
         id: mainPage
 
-        CcMainView {
+        // Scaled with a transform, which does not change the layout size: the wrapper reports the scaled one.
+        Item {
             width: parent?.width ?? 0
-            // The bar has one more button: cycle its layout.
-            shortcuts: ["nextwallpaper", "wallpaper", "hydetheme", "animations", "keybindings", "syncshell", "barlayout"]
-            visibleRows: Math.min(Notifications.count, Media.active ? 3 : 4)
+            implicitHeight: view.implicitHeight * panel.compact
+            height: implicitHeight
 
-            onPageRequested: page => {
-                // The island has a player page; the bar has none, so the row only shows what plays.
-                if (page !== "media")
-                    ShellState.controlCenterPage = page;
-            }
-            onHeaderAction: id => {
-                if (id === "system") {
-                    ShellState.controlCenterPage = "system";
-                } else if (id === "power") {
-                    ShellState.togglePowerMenu();
-                } else if (id === "lock") {
-                    ShellState.closeControlCenter();
-                    Utils.run("loginctl lock-session");
-                } else if (id === "avatar") {
-                    ShellState.closeControlCenter();
-                    SysInfo.chooseAvatar();
-                } else if (id === "settings") {
-                    ShellState.closeControlCenter();
-                    // The shell folder and config.json in a code editor (the first one that exists).
-                    const dir = Quickshell.shellPath("bar");
-                    const cfg = Quickshell.shellPath("bar/config/config.json");
-                    Utils.run(`for e in code codium zeditor; do command -v $e >/dev/null && exec $e "${dir}" "${cfg}"; done; exec kitty nvim "${cfg}"`);
+            CcMainView {
+                id: view
+                width: panel.pageWidth
+                scale: panel.compact
+                transformOrigin: Item.TopLeft
+                // Wide, so three tiles fit in a row and the panel is not so tall.
+                columns: 3
+                // The bar keeps its own player (progress, previous and next).
+                media: Component {
+                    MediaStrip {
+                        width: parent?.width ?? 0
+                        visible: Media.active
+                    }
+                }
+                // The bar has one more button: cycle its layout.
+                shortcuts: ["nextwallpaper", "wallpaper", "hydetheme", "animations", "keybindings", "syncshell", "barlayout"]
+                visibleRows: Math.min(Notifications.count, Media.active ? 3 : 4)
+
+                onPageRequested: page => {
+                    // The island has a player page; the bar has none, so the row only shows what plays.
+                    if (page !== "media")
+                        ShellState.controlCenterPage = page;
+                }
+                onHeaderAction: id => {
+                    if (id === "system") {
+                        ShellState.controlCenterPage = "system";
+                    } else if (id === "power") {
+                        ShellState.togglePowerMenu();
+                    } else if (id === "lock") {
+                        ShellState.closeControlCenter();
+                        Utils.run("loginctl lock-session");
+                    } else if (id === "avatar") {
+                        ShellState.closeControlCenter();
+                        SysInfo.chooseAvatar();
+                    } else if (id === "settings") {
+                        ShellState.closeControlCenter();
+                        // The shell folder and config.json in a code editor (the first one that exists).
+                        const dir = Quickshell.shellPath("bar");
+                        const cfg = Quickshell.shellPath("bar/config/config.json");
+                        Utils.run(`for e in code codium zeditor; do command -v $e >/dev/null && exec $e "${dir}" "${cfg}"; done; exec kitty nvim "${cfg}"`);
+                    }
                 }
             }
         }

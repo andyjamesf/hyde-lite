@@ -84,11 +84,6 @@ Scope {
     }
     Binding {
         target: CcTheme
-        property: "panelWidth"
-        value: ControlCenter.width
-    }
-    Binding {
-        target: CcTheme
         property: "tileHeight"
         value: ControlCenter.tileHeight
     }
