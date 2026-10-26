@@ -20,6 +20,12 @@ Column {
     property var tiles: ["wifi", "bluetooth", "sound", "mic", "dnd", "nightlight", "caffeine", "powerProfile", "colors"]
     property var shortcuts: ["nextwallpaper", "wallpaper", "hydetheme", "animations", "keybindings", "syncshell"]
 
+    // Tiles per row (the island has 2; a wide window can take more, so the page is not so tall).
+    property int columns: 2
+    // What draws the media row. A shell with a player of its own puts it here (the bar's, with
+    // progress and controls); the default is the island's compact row.
+    property Component media: defaultMedia
+
     // Notification rows visible before the list scrolls (the host lowers it on a short screen).
     property int visibleRows: Math.min(Notifications.count, 4)
     property int notificationRowHeight: 46
@@ -199,13 +205,13 @@ Column {
         }
     }
 
-    // Tiles: two columns; an odd last tile takes the whole row.
+    // Tiles in `columns` columns; a last tile that would be alone in a row takes the rest of it.
     Flow {
         id: tileFlow
         width: parent.width
         spacing: 10
 
-        readonly property real half: (width - spacing) / 2
+        readonly property real cell: (width - spacing * (root.columns - 1)) / root.columns
         // What is offered is CcToggles', in the order and with the tiles the host asks for; what is
         // not available is left out.
         readonly property var ids: root.tiles.filter(t => CcToggles.shown.some(x => x.id === t))
@@ -218,7 +224,8 @@ Column {
                 required property int index
 
                 toggleId: modelData
-                width: index === tileFlow.ids.length - 1 && index % 2 === 0 ? tileFlow.width : tileFlow.half
+                // In the last, partial row the last tile takes what is left of the row.
+                width: index === tileFlow.ids.length - 1 && tileFlow.ids.length % root.columns !== 0 ? tileFlow.width - (tileFlow.ids.length % root.columns - 1) * (tileFlow.cell + tileFlow.spacing) : tileFlow.cell
                 onPageRequested: page => root.pageRequested(page)
                 onMenuRequested: root.menuRequested(modelData, this)
             }
@@ -286,9 +293,18 @@ Column {
         }
     }
 
-    CcMediaRow {
+    Loader {
         width: parent.width
-        onPageRequested: root.pageRequested("media")
+        visible: Media.active
+        sourceComponent: root.media
+    }
+
+    Component {
+        id: defaultMedia
+
+        CcMediaRow {
+            onPageRequested: root.pageRequested("media")
+        }
     }
 
     // Shortcuts: icon buttons spread over the width; the pointer on one shows what it does.
