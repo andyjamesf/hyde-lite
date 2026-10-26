@@ -1,12 +1,12 @@
 import QtQuick
 import QtQuick.Shapes
-import qs.island.theme
+import qs.shared.controlcenter
 
 // Moon icon: a filled crescent (night light / "do not disturb").
 Item {
     id: root
 
-    property color color: Theme.icon
+    property color color: CcTheme.icon
     property real size: 18
 
     implicitWidth: size

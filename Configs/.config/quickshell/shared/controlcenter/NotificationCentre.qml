@@ -15,17 +15,17 @@ import qs.shared.services
 Column {
     id: root
 
-    // Style, bound by the shell.
-    property color foreground: "white"
-    property color accent: "steelblue"
-    property color dim: "#aaaaaa"
-    property color faint: "#808080"
-    property color hover: Qt.rgba(1, 1, 1, 0.08)
-    property color pressed: Qt.rgba(1, 1, 1, 0.12)
-    property string fontFamily: ""
-    property real fontSize: 13
+    // Style: the shell's, from CcTheme.
+    property color foreground: CcTheme.foreground
+    property color accent: CcTheme.accent
+    property color dim: CcTheme.dim
+    property color faint: CcTheme.faint
+    property color hover: CcTheme.hover
+    property color pressed: CcTheme.pressed
+    property string fontFamily: CcTheme.fontFamily
+    property real fontSize: CcTheme.fontSize
     // Milliseconds -> milliseconds, so a shell can scale or switch off its animations.
-    property var duration: ms => ms
+    property var duration: ms => CcTheme.duration(ms)
 
     // Layout.
     property int rowHeight: 46
@@ -72,6 +72,9 @@ Column {
             text: Notifications.count > 0 ? `Notifications  ·  ${Notifications.count}` : "Notifications"
             color: root.dim
             font.family: root.fontFamily
+            renderType: CcTheme.textRendering
+            topPadding: CcTheme.textPadding
+            bottomPadding: CcTheme.textPadding
             font.pixelSize: root.fontSize - 1
             font.weight: Font.DemiBold
         }
@@ -91,6 +94,9 @@ Column {
                 text: "Clear All"
                 color: clearMouse.containsMouse ? root.foreground : root.dim
                 font.family: root.fontFamily
+                renderType: CcTheme.textRendering
+                topPadding: CcTheme.textPadding
+                bottomPadding: CcTheme.textPadding
                 font.pixelSize: root.fontSize - 1
             }
 
@@ -118,6 +124,9 @@ Column {
             text: "No notifications"
             color: root.faint
             font.family: root.fontFamily
+            renderType: CcTheme.textRendering
+            topPadding: CcTheme.textPadding
+            bottomPadding: CcTheme.textPadding
             font.pixelSize: root.fontSize
         }
 
@@ -128,6 +137,9 @@ Column {
             text: "Peace Mode is on"
             color: root.faint
             font.family: root.fontFamily
+            renderType: CcTheme.textRendering
+            topPadding: CcTheme.textPadding
+            bottomPadding: CcTheme.textPadding
             font.pixelSize: root.fontSize - 2
         }
     }
@@ -232,6 +244,9 @@ Column {
                         text: (row.n?.appName || "?").charAt(0).toUpperCase()
                         color: root.accent
                         font.family: root.fontFamily
+                        renderType: CcTheme.textRendering
+                        topPadding: CcTheme.textPadding
+                        bottomPadding: CcTheme.textPadding
                         font.pixelSize: 13
                         font.weight: Font.DemiBold
                     }
@@ -253,6 +268,9 @@ Column {
                     elide: Text.ElideRight
                     color: root.foreground
                     font.family: root.fontFamily
+                    renderType: CcTheme.textRendering
+                    topPadding: CcTheme.textPadding
+                    bottomPadding: CcTheme.textPadding
                     font.pixelSize: root.fontSize - 1
                     font.weight: Font.Medium
                 }
@@ -264,6 +282,9 @@ Column {
                     elide: Text.ElideRight
                     color: root.dim
                     font.family: root.fontFamily
+                    renderType: CcTheme.textRendering
+                    topPadding: CcTheme.textPadding
+                    bottomPadding: CcTheme.textPadding
                     font.pixelSize: root.fontSize - 3
                 }
             }
@@ -285,6 +306,9 @@ Column {
                     text: root.ago(Notifications.timeOf(row.n))
                     color: root.faint
                     font.family: root.fontFamily
+                    renderType: CcTheme.textRendering
+                    topPadding: CcTheme.textPadding
+                    bottomPadding: CcTheme.textPadding
                     font.pixelSize: root.fontSize - 2
                 }
 

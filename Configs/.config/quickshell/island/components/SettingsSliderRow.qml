@@ -1,4 +1,5 @@
 import QtQuick
+import qs.shared.controlcenter
 
 // A row with a slider (BigSlider) for a value between `from` and `to`, in steps of `step`.
 // Applies live: every movement emits valueEdited(v) with the value already rounded to the step;

@@ -1,13 +1,13 @@
 import QtQuick
 import QtQuick.Shapes
-import qs.island.theme
+import qs.shared.controlcenter
 
 // Ethernet icon: three linked boxes (a small wired network), drawn with strokes like the other
 // status icons. Not connected: 35% opacity.
 Item {
     id: root
 
-    property color color: Theme.icon
+    property color color: CcTheme.icon
     property real size: 18
     property bool connected: true
 

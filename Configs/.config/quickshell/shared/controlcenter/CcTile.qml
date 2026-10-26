@@ -1,12 +1,10 @@
 import QtQuick
-import qs.island.config
-import qs.island.icons
-import qs.island.theme
+import qs.shared.icons
 
 // Control center tile with two click zones:
 //  - the round badge on the left toggles directly (toggled);
 //  - the rest (name + status) opens the subview (opened), if any; otherwise it also toggles.
-// Active: badge in Theme.accent with the icon in Theme.accentContent; inactive: Theme.surface.
+// Active: badge in CcTheme.accent with the icon in CcTheme.accentContent; inactive: CcTheme.surface.
 Item {
     id: root
 
@@ -19,7 +17,7 @@ Item {
 
     // Icon inside the badge (default child); the colour to use is in iconColor.
     default property alias icon: iconHolder.data
-    readonly property color iconColor: active ? Theme.accentContent : Theme.icon
+    readonly property color iconColor: active ? CcTheme.accentContent : CcTheme.icon
 
     signal toggled
     signal opened
@@ -27,12 +25,12 @@ Item {
     signal menuRequested
 
     implicitWidth: 200
-    implicitHeight: ControlCenter.tileHeight
+    implicitHeight: CcTheme.tileHeight
     opacity: enabled ? 1 : 0.45
 
     Behavior on opacity {
         NumberAnimation {
-            duration: Animations.duration(150)
+            duration: CcTheme.duration(150)
         }
     }
 
@@ -41,24 +39,24 @@ Item {
         id: bg
         anchors.fill: parent
         radius: 18
-        color: root.active ? Qt.alpha(Theme.accent, 0.12) : Theme.hover
+        color: root.active ? Qt.alpha(CcTheme.accent, 0.12) : CcTheme.hover
         border.width: 1
-        border.color: root.active ? Qt.alpha(Theme.accent, 0.35) : Theme.border
+        border.color: root.active ? Qt.alpha(CcTheme.accent, 0.35) : CcTheme.border
         scale: body.pressed && root.enabled ? 0.97 : 1
 
         Behavior on color {
             ColorAnimation {
-                duration: Animations.duration(160)
+                duration: CcTheme.duration(160)
             }
         }
         Behavior on border.color {
             ColorAnimation {
-                duration: Animations.duration(160)
+                duration: CcTheme.duration(160)
             }
         }
         Behavior on scale {
             NumberAnimation {
-                duration: Animations.duration(140)
+                duration: CcTheme.duration(140)
                 easing.type: Easing.OutCubic
             }
         }
@@ -67,11 +65,11 @@ Item {
         Rectangle {
             anchors.fill: parent
             radius: parent.radius
-            color: !root.enabled ? "transparent" : body.pressed ? Theme.pressed : body.containsMouse ? Theme.hover : "transparent"
+            color: !root.enabled ? "transparent" : body.pressed ? CcTheme.pressed : body.containsMouse ? CcTheme.hover : "transparent"
 
             Behavior on color {
                 ColorAnimation {
-                    duration: Animations.duration(120)
+                    duration: CcTheme.duration(120)
                 }
             }
         }
@@ -106,19 +104,19 @@ Item {
         width: root.height - 18
         height: width
         radius: width / 2
-        color: root.active ? Theme.accent : Theme.surface
+        color: root.active ? CcTheme.accent : CcTheme.surface
         border.width: root.active ? 0 : 1
-        border.color: Theme.border
+        border.color: CcTheme.border
         scale: badgeMouse.pressed && root.enabled ? 0.9 : 1
 
         Behavior on color {
             ColorAnimation {
-                duration: Animations.duration(160)
+                duration: CcTheme.duration(160)
             }
         }
         Behavior on scale {
             NumberAnimation {
-                duration: Animations.duration(140)
+                duration: CcTheme.duration(140)
                 easing.type: Easing.OutCubic
             }
         }
@@ -131,7 +129,7 @@ Item {
 
             Behavior on color {
                 ColorAnimation {
-                    duration: Animations.duration(120)
+                    duration: CcTheme.duration(120)
                 }
             }
         }
@@ -168,18 +166,18 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         spacing: 1
 
-        Label {
+        CcLabel {
             width: parent.width
             text: root.title
             font.weight: Font.DemiBold
         }
 
-        Label {
+        CcLabel {
             width: parent.width
             text: root.status
             textFormat: Text.PlainText
-            color: root.active ? Theme.foreground : Theme.dim
-            font.pixelSize: Appearance.fontSize - 2
+            color: root.active ? CcTheme.foreground : CcTheme.dim
+            font.pixelSize: CcTheme.fontSize - 2
             opacity: 0.85
         }
     }
@@ -192,6 +190,6 @@ Item {
         kind: "chevron"
         size: root.expandable ? 14 : 0
         visible: root.expandable
-        color: body.containsMouse ? Theme.foreground : Theme.faint
+        color: body.containsMouse ? CcTheme.foreground : CcTheme.faint
     }
 }

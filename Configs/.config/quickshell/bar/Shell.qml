@@ -176,6 +176,9 @@ Scope {
         }
     }
 
+    // The control centre's shared components read their look from CcTheme; this binds the bar's.
+    CcThemeBindings {}
+
     // The battery service is shared with the island and has no settings of its own, so the shell
     // that does have them hands over the one value it needs (services/Config.qml -> config.json).
     Binding {
