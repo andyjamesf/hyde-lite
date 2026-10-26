@@ -16,7 +16,7 @@ documented in the repository's [`docs/`](../../../../docs/) folder (the bar layo
 | `services/` | singletons with the logic (colors, audio, network, Bluetooth, notifications, launcher, keybindings, lock…) |
 | `components/` | reusable visual pieces (buttons, sliders, cards, popouts, menus, tooltips) |
 | `modules/` | bar, control center, notifications, OSD, launcher, power menu, lock screen |
-| `modules/minibar/` | the minimal bar: a slimmer bar that replaces the one above on `qs ipc call minibar toggle` (`$mod+SHIFT+B`), built from the same widgets and reserving no screen space. Split into `model/`, `view/` and `controller/`; what it shows is `model/MiniBarConfig.qml` ([`modules/minibar/README.md`](modules/minibar/README.md)) |
+| `modules/minibar/` | the minimal bar: a slimmer bar that replaces the one above on `qs ipc call minibar toggle` (`$mod+SHIFT+I`, which cycles island, bar and minimal bar), built from the same widgets and reserving no screen space. Split into `model/`, `view/` and `controller/`; what it shows is `model/MiniBarConfig.qml` ([`modules/minibar/README.md`](modules/minibar/README.md)) |
 | `pickers/` | the launcher's pickers, HyDE's rofi menus ported to the shell: windows, files, web, emoji, glyphs, bookmarks, games, HyDE themes, wallpapers, wallbash, animations, lock screen, workflows, shaders, layouts (`qs ipc call launcher pick <name>`; settings in `config.json` → `pickers`) |
 | `config/config.json` | your settings (only what you change; defaults in `services/Config.qml`) |
 | `config/layouts.json` | bar layout presets (add your own) |

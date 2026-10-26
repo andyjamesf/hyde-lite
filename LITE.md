@@ -50,7 +50,7 @@ a shell installed on top (waybar, rofi, dunst, swaync and wlogout are not instal
 | `Configs/.config/hyde/wallbash/scripts/cava.sh` | one comment line removed: a `shellcheck source=` hint naming another author's home directory (the next line already disables SC1091) |
 | `.luacheckrc`, `.gitignore` | new / rewritten (the old `./.*` pattern never matched anything) |
 | colour pipeline | new, additive: `Scripts/dots/colour.toml` deploys `wallpaper-palette`, `wallpaper-library`, `wallbash-matugen`, `Configs/.config/matugen`, a fontconfig rule, and the `matugen.dcol` / `quickshell.dcol` wallbash templates (under `Configs/.config/hyde/wallbash/always`). Copied unchanged from the owner's private dotfiles repository at `213c2a5`, together with that commit range's shell updates (`PickPalette.qml`, `Theme.qml`, `Config.qml`, island `Palettes.qml`). No upstream HyDE file is edited |
-| `Configs/.config/kitty/kitty.conf` | now includes `wallpaper.conf` (the file matugen writes for kitty; nothing included it on a fresh install, only one owner's own copy did) and, last, an optional `user.conf` for the owner's settings (kitty ignores a missing include). `tools/check_ownership.py <dotfiles>` lists every path a dotfiles repository and this one both own (duplicate, pinned, override, conflict); run it after changing a `Scripts/dots` entry |
+| key bindings | `Configs/.config/hypr/keybinds.lua` is the one list of keys (data); `island.lua` is only the code that registers it, so two machines cannot drift apart. Keys follow layers: `$mod+letter` uses something, `$mod+SHIFT` picks or changes, `$mod+CTRL+arrows` steps (wallpaper left/right, palette up/down), `$mod+ALT` is system. `$mod+SHIFT+I` runs `shell-cycle` (island, bar, minimal bar). Dropped as duplicates: `$mod+SHIFT+B`, `$mod+ALT+I`, `$mod+CTRL+B`, `$mod+T`. Wallpaper stepping moved from `$mod+ALT+Left/Right` to `$mod+CTRL+Left/Right`. `$mod+O` family (other screen) is in the list, not in a machine's `host.lua`. Also adopted from the maintainer's list: no bare `F10`-`F12` and no workspaces 10-20 (`M.unbind`). `tools/tests/test_keybinds.py` checks the list, and `KEYBINDINGS.md` is now generated from the keys the configuration registers (`tools/gen_keybindings.py`), not upstream's hand-written table: every upstream change to that file is a conflict to resolve by regenerating |
 
 ## History
 
@@ -101,6 +101,10 @@ A clean install from nothing, run with `tools/vm-test.sh` on the Arch cloud imag
   (`[[ -t 0 ]]`), so the login shell stayed `/bin/bash` in the VM.
 - The 14 byte-identical targets are the ones whose path is a plain file; templates that only run a
   command (the volume icons, the VS Code theme, Spotify, Discord) were not compared.
+- The key list on a real Hyprland: `keybinds.lua` and `island.lua` were loaded under a stub of `hl`
+  and `hyde` (42 binds registered), not by Hyprland; `hyprctl reload`, `hyprctl configerrors` and
+  `hyprctl binds -j` were not run on the result, and deploying over a machine whose `keybinds.lua` is a
+  symlink into a dotfiles checkout was not tried. `luacheck` is not installed locally (CI runs it).
 
 ## Candidates, not cut
 

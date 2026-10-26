@@ -30,13 +30,13 @@ jobs:
       - name: Repository checks and unit tests
         run: bash tools/check.sh
       - name: shellcheck
-        run: shellcheck -S warning install.sh tools/*.sh Configs/.local/bin/island Configs/.local/bin/wallpaper-library
+        run: shellcheck -S warning install.sh tools/*.sh Configs/.local/bin/island Configs/.local/bin/shell-cycle Configs/.local/bin/wallpaper-library
       - name: ruff (bugs only)
         run: |
           mapfile -t files < <(git ls-files 'tools/*.py' 'Configs/.config/quickshell/*/scripts/*.py')
           ruff check --isolated --select F,E9,B,PLE "${files[@]}" Configs/.local/bin/wallpaper-palette Configs/.local/bin/wallbash-matugen
       - name: luacheck
-        run: luacheck --no-color Configs/.config/hypr/hyprland.lua Configs/.config/hypr/island.lua Configs/.config/hypr/lua
+        run: luacheck --no-color Configs/.config/hypr/hyprland.lua Configs/.config/hypr/island.lua Configs/.config/hypr/keybinds.lua Configs/.config/hypr/lua
       - name: markdownlint
         run: markdownlint README.md CONTRIBUTING.md SECURITY.md CODE_OF_CONDUCT.md KEYBINDINGS.md LITE.md docs
 
