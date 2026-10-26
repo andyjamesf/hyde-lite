@@ -69,6 +69,12 @@ Singleton {
             label: "Keybindings",
             icon: "keyboard",
             glyph: "\u{F030C}"
+        },
+        {
+            id: "syncshell",
+            label: "Update shell from the checkout",
+            icon: "sync",
+            glyph: "\u{F04E6}"
         }
     ]
 
@@ -94,6 +100,11 @@ Singleton {
             return;
         case "keybindings":
             openRequested("keys");
+            return;
+        case "syncshell":
+            // Copies the checkout's bar and island into ~/.config/quickshell (hyde-lite sync-shell);
+            // the running shell loads what changed. The same command as $mod+ALT+R.
+            Quickshell.execDetached(["hyde-lite", "sync-shell", "--notify"]);
             return;
         default:
             const own = extra.find(s => s.id === id);

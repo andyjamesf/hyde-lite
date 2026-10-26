@@ -46,7 +46,8 @@ Singleton {
         { id: "system", label: "System" },
         { id: "nextwallpaper", label: "Next wallpaper" },
         { id: "hydetheme", label: "HyDE theme" },
-        { id: "keybindings", label: "Keybindings" }
+        { id: "keybindings", label: "Keybindings" },
+        { id: "syncshell", label: "Update shell" }
     ]
 
     // Slider ranges.

@@ -101,6 +101,10 @@ M.binds = {
 	-- `qs ipc call minibar on|off|toggle` do the single steps from a terminal.
 	{ keys = "$mod + SHIFT + I", cmd = "shell-cycle", desc = "[Theming and Wallpaper] next shell: island, bar, minimal bar" },
 
+	-- Copy the checkout's bar and island into ~/.config/quickshell (the control centre has the same
+	-- button): the running shell loads what changed, nothing to restart.
+	{ keys = "$mod + ALT + R", cmd = "hyde-lite sync-shell --notify", desc = "[Theming and Wallpaper] update the shell from the checkout" },
+
 	-- Layers: $mod+CTRL+arrows step through something. Left/Right the wallpaper, Up/Down the palette.
 	-- Every wallpaper in the library, not only the current theme's folder (HyDE's own keys, unbound below).
 	-- $mod+SHIFT+W opens the grid to pick one; `wallpaper-library random` is a random one.
