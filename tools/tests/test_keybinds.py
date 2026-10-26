@@ -77,8 +77,14 @@ class Keybinds(unittest.TestCase):
 
     def test_the_shell_key_and_the_wallpaper_keys_are_there(self):
         bound = {norm(b["keys"]) for b in self.binds}
-        for want in ("$mod + SHIFT + I", "$mod + CTRL + Right", "$mod + CTRL + Left", "$mod + L"):
+        for want in ("$mod + SHIFT + I", "$mod + CTRL + Right", "$mod + CTRL + Left", "$mod + L", "$mod + Return"):
             self.assertIn(norm(want), bound)
+
+    def test_keybindings_md_is_current(self):
+        """KEYBINDINGS.md is generated from the same files; a key changed without it is a stale list."""
+        r = subprocess.run(["python3", "-I", str(ROOT / "tools/gen_keybindings.py"), "--check"],
+                           capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
 
 
 if __name__ == "__main__":

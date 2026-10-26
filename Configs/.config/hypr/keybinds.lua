@@ -119,6 +119,10 @@ M.binds = {
 		desc = "[Window Management] lock session",
 	},
 
+	-- The terminal. HyDE binds $mod+T; $mod+Return is the one key kept (a machine's desktop.lua may
+	-- rebind it to its own terminal). `hyde.config.app.terminal` is HyDE's choice of program.
+	{ keys = "$mod + Return", dsp = function() return hl.dsp.exec_cmd(hyde.config.app.terminal) end, desc = "[Launcher|Apps] terminal emulator" },
+
 	-- Moving between screens. Machine-independent: with one screen they do nothing. `dsp` builds a
 	-- Hyprland dispatcher instead of running a command. Two screens only, so "+1" is "the other one".
 	{ keys = "$mod + O", dsp = function() return hl.dsp.focus({ monitor = "+1" }) end, desc = "[Window Management|Monitors] focus the other screen" },
