@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# One key for the three faces of the desktop shell, in this order:
+#
+#     Morphing Island  ->  HyDE bar  ->  minimal bar  ->  Morphing Island
+#
+# The island and the bar are two UIs of one Quickshell configuration and only one of them can run
+# at a time, so those steps restart the process (`island on|off`, ~/.local/bin/island). The minimal
+# bar is the bar shell wearing another set of modules, so that step is only an IPC call.
+#
+# Bound to $mod+SHIFT+I. The single-purpose keys still work on their own:
+#     $mod+ALT+I     island <-> bar
+#     $mod+SHIFT+B   normal bar <-> minimal bar
+set -uo pipefail
+
+state="${XDG_STATE_HOME:-$HOME/.local/state}/morphing-island/active"
+
+note() {
+    notify-send -a "Shell" -r 93 -t 1500 -h int:transient:1 -i preferences-desktop "Shell" "$1" 2>/dev/null || true
+}
+
+# `island off` restarts the process, so the bar shell is not there to answer right away.
+minibar() {
+    for _ in $(seq 50); do
+        qs ipc call minibar "$1" >/dev/null 2>&1 && return 0
+        sleep 0.1
+    done
+    return 1
+}
+
+if [[ -e $state ]]; then
+    # The island is up: leave it for the bar, and make sure it is the normal one.
+    island off
+    minibar off
+    note "HyDE bar"
+elif [[ "$(qs ipc call minibar status 2>/dev/null)" == "minimal bar" ]]; then
+    # Round the corner: back to the island.
+    island on
+    note "Morphing Island"
+else
+    minibar on
+    note "Minimal bar"
+fi

@@ -25,12 +25,11 @@ subcommand: `qs ipc call <target> show` never reaches the shell — the CLI prin
 targets and exits, having changed nothing. The shell's own `bar` target has had that hole for as
 long.
 
-The key is **`$mod+SHIFT+B`**. `$mod+CTRL+B` is a different thing: it hides whichever bar is in
-use, this one included.
-
-The key is `$mod+SHIFT+B` (`Configs/.config/hypr/keybinds.lua`, `M.shell`; it does nothing while
-the island is the active shell, like the bar layout keys next to it). The choice is kept in
-`~/.local/state/quickshell/.../minibar.json`, so it survives `qs ipc call shell reload` and a login.
+The key is **`$mod+SHIFT+I`**, which steps island -> HyDE bar -> minimal bar -> island
+(`Configs/.local/bin/shell-cycle`, bound in `Configs/.config/hypr/keybinds.lua`, `M.binds`). There
+is no key for the minimal bar alone; from a terminal `qs ipc call minibar toggle` does it.
+`$mod+comma` is a different thing: it hides whichever bar is in use, this one included. The choice is
+kept in `~/.local/state/quickshell/.../minibar.json`, so it survives `qs ipc call shell reload` and a login.
 
 ## The only file to edit
 
