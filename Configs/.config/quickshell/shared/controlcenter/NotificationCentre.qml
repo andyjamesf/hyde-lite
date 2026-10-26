@@ -72,6 +72,9 @@ Column {
             text: Notifications.count > 0 ? `Notifications  ·  ${Notifications.count}` : "Notifications"
             color: root.dim
             font.family: root.fontFamily
+            renderType: CcTheme.textRendering
+            topPadding: CcTheme.textPadding
+            bottomPadding: CcTheme.textPadding
             font.pixelSize: root.fontSize - 1
             font.weight: Font.DemiBold
         }
@@ -91,6 +94,9 @@ Column {
                 text: "Clear All"
                 color: clearMouse.containsMouse ? root.foreground : root.dim
                 font.family: root.fontFamily
+                renderType: CcTheme.textRendering
+                topPadding: CcTheme.textPadding
+                bottomPadding: CcTheme.textPadding
                 font.pixelSize: root.fontSize - 1
             }
 
@@ -118,6 +124,9 @@ Column {
             text: "No notifications"
             color: root.faint
             font.family: root.fontFamily
+            renderType: CcTheme.textRendering
+            topPadding: CcTheme.textPadding
+            bottomPadding: CcTheme.textPadding
             font.pixelSize: root.fontSize
         }
 
@@ -128,6 +137,9 @@ Column {
             text: "Peace Mode is on"
             color: root.faint
             font.family: root.fontFamily
+            renderType: CcTheme.textRendering
+            topPadding: CcTheme.textPadding
+            bottomPadding: CcTheme.textPadding
             font.pixelSize: root.fontSize - 2
         }
     }
@@ -232,6 +244,9 @@ Column {
                         text: (row.n?.appName || "?").charAt(0).toUpperCase()
                         color: root.accent
                         font.family: root.fontFamily
+                        renderType: CcTheme.textRendering
+                        topPadding: CcTheme.textPadding
+                        bottomPadding: CcTheme.textPadding
                         font.pixelSize: 13
                         font.weight: Font.DemiBold
                     }
@@ -253,6 +268,9 @@ Column {
                     elide: Text.ElideRight
                     color: root.foreground
                     font.family: root.fontFamily
+                    renderType: CcTheme.textRendering
+                    topPadding: CcTheme.textPadding
+                    bottomPadding: CcTheme.textPadding
                     font.pixelSize: root.fontSize - 1
                     font.weight: Font.Medium
                 }
@@ -264,6 +282,9 @@ Column {
                     elide: Text.ElideRight
                     color: root.dim
                     font.family: root.fontFamily
+                    renderType: CcTheme.textRendering
+                    topPadding: CcTheme.textPadding
+                    bottomPadding: CcTheme.textPadding
                     font.pixelSize: root.fontSize - 3
                 }
             }
@@ -285,6 +306,9 @@ Column {
                     text: root.ago(Notifications.timeOf(row.n))
                     color: root.faint
                     font.family: root.fontFamily
+                    renderType: CcTheme.textRendering
+                    topPadding: CcTheme.textPadding
+                    bottomPadding: CcTheme.textPadding
                     font.pixelSize: root.fontSize - 2
                 }
 

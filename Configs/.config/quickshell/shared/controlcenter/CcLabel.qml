@@ -10,5 +10,7 @@ Text {
         })
     verticalAlignment: Text.AlignVCenter
     elide: Text.ElideRight
-    renderType: Text.NativeRendering
+    renderType: CcTheme.textRendering
+    topPadding: CcTheme.textPadding
+    bottomPadding: CcTheme.textPadding
 }

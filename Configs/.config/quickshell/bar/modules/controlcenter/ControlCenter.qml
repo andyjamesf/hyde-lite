@@ -51,7 +51,7 @@ PanelWindow {
     // laid out `pageWidth` wide with three tiles to a row, then scaled down, so the panel is both
     // narrower and lower than the island's. The detail pages keep the narrow panel they were made for.
     readonly property real compact: 0.84
-    readonly property int pageWidth: 568
+    readonly property int pageWidth: 620
     implicitWidth: ShellState.controlCenterPage === "" ? Math.round(pageWidth * compact) + 2 * 16 : 360
     implicitHeight: Math.min(content.implicitHeight + 2 * 16, modelData.height - BarLayout.height - BarLayout.margin - Theme.space6)
     exclusiveZone: 0
