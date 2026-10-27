@@ -9,8 +9,8 @@ Singleton {
     // {hydeConfig} = ~/.config/hyde, {theme} = current HyDE theme (entries with it are skipped while
     // unknown), {pictures} = $XDG_PICTURES_DIR or ~/Pictures; "~/" is expanded.
     readonly property var dirs: ["{pictures}/Wallpapers", "{pictures}/Wallpapers/{theme}"]
-    // File extensions shown (case-insensitive). Default ["jpg", "jpeg", "png", "gif", "webp"].
-    readonly property var extensions: ["jpg", "jpeg", "png", "gif", "webp"]
+    // File extensions shown (case-insensitive). Default ["jpg", "jpeg", "png", "gif", "webp", "heic", "heif"].
+    readonly property var extensions: ["jpg", "jpeg", "png", "gif", "webp", "heic", "heif"]
     // Files at or below this size are skipped (broken placeholders). Bytes, default 4096.
     readonly property int minBytes: 4096
     // While the picker is open, the current wallpaper is re-read this often. Milliseconds,
