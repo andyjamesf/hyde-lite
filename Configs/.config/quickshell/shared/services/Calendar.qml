@@ -271,7 +271,9 @@ Singleton {
         onFileChanged: reload()
         onLoaded: {
             // Every write (ours or the HyDE shell's) may create it world-readable: keep it private.
-            Quickshell.execDetached(["chmod", "600", "--", root.configPath]);
+            // Only when the mode is wrong: chmod always fires a change event on the watched file,
+            // so an unconditional one reloads it, and runs again, without end.
+            Quickshell.execDetached(["sh", "-c", '[ "$(stat -c %a -- "$1")" = 600 ] || chmod 600 -- "$1"', "sh", root.configPath]);
             try {
                 root.calendars = JSON.parse(text()).calendars ?? [];
             } catch (e) {

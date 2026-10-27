@@ -134,12 +134,14 @@ Singleton {
     Connections {
         target: Hyprland
         function onRawEvent(event) {
-            if (["openwindow", "windowtitlev2", "movewindowv2", "closewindow"].includes(event.name))
+            if (["openwindow", "movewindowv2", "closewindow"].includes(event.name))
                 refreshTimer.restart();
         }
     }
 
-    // Several events arrive together (open + move + title): refresh once.
+    // Several events arrive together (open + move): refresh once. Not on title changes: a terminal
+    // that animates its title (a spinner) would trigger a `j/clients` read several times a second,
+    // and Quickshell already tracks titles through the toplevel handle.
     Timer {
         id: refreshTimer
         interval: 60
