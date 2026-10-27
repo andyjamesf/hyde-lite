@@ -92,7 +92,7 @@ PanelWindow {
         if (mode === "keys")
             return Keybinds.search(query);
         if (provider !== null)
-            return (provider.items(query) ?? []).filter(e => e && e.key !== undefined && e.key !== null && e.key !== "").slice(0, Config.pickers.maxShown);
+            return (provider.items(query) ?? []).filter(e => e && e.key !== undefined && e.key !== null && e.key !== "").slice(0, Config.pickers.maxResults[pickName] ?? Config.pickers.maxShown);
         return [];
     }
     // Rows: the calculation result (if any) comes first.
