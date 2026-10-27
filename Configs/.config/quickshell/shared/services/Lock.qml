@@ -8,15 +8,14 @@ import Quickshell.Services.Pam
 import qs.shared.services
 
 // The session lock (ext-session-lock) with PAM authentication, shared by every UI of this
-// configuration. It uses hyprlock's PAM configuration (/etc/pam.d/hyprlock by default), the same as
-// HyDE's lock, so it accepts the same password.
+// configuration. It authenticates against the `login` PAM service (/etc/pam.d/login, part of
+// util-linux/pambase), so it accepts the account password.
 //
 // This is the island's service, kept as it was. It is the one that actually locks this machine —
 // hypridle and $mod+L both go through `island lock`, which runs the island's lock screen whichever
 // shell is up — so the code that takes a password was not the place to be clever. The bar's own was
 // the same flow with fewer features (no release animation, no card screen, no crash recovery, no
-// real name) and one thing of its own, the fallback to HyDE's hyprlock when the shell's lock is
-// switched off in config.json; that is `enabled` and `fallbackCommand` below.
+// real name).
 //
 // Everything the bar's lock screen reads — locked, authenticating, error, failures, lock(),
 // unlock(), submit() — is here under the same names, so its surface did not have to change.
@@ -31,15 +30,11 @@ Singleton {
     id: root
 
     // What a shell configures. A shared service has no settings file of its own: the island binds
-    // these from config/LockScreenConfig.qml and config/Animations.qml, the bar `enabled` from
-    // config.json (widgets.lock.enabled).
-    property string pamService: "hyprlock"
+    // these from config/LockScreenConfig.qml and config/Animations.qml.
+    property string pamService: "login"
     property int releaseMs: 560
     property int errorMs: 3500
     property bool animated: true
-    // false: this lock is not used at all and lock() hands over to the command below.
-    property bool enabled: true
-    property string fallbackCommand: "hyde-shell lockscreen.sh"
     // Take the lock back after a crash (see lockMarker below). Only the process that owns the lock
     // screen may: the island and lock.qml set it. The bar shell must not — it reads the same
     // service now, and on a reload it would find the marker of a lock it does not own and lock the
@@ -70,10 +65,6 @@ Singleton {
     property var _pamMessages: []
 
     function lock() {
-        if (!enabled) {
-            Quickshell.execDetached(["sh", "-c", fallbackCommand]);
-            return;
-        }
         if (persist.locked)
             return;
         releaseTimer.stop();

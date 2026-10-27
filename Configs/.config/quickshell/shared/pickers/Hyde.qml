@@ -3,7 +3,7 @@ import QtQuick
 import Quickshell
 import qs.shared.services
 
-// Small helpers shared by the pickers that drive HyDE (themes, wallbash, hyprlock and the Lua
+// Small helpers shared by the pickers that drive HyDE (themes, wallbash and the Lua
 // selectors: animations, workflows, layouts, shaders). Every action goes through Launch.run, so it
 // finishes in its own unit even if the shell restarts halfway.
 Singleton {

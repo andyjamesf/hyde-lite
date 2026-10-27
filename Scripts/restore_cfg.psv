@@ -139,8 +139,6 @@ P|${HOME}/.config/quickshell|bar/config island/config|quickshell
 
  Lock Screen 
 S|${HOME}/.config|swaylock|swaylock-effects
-P|${HOME}/.config/hypr|hyprlock.conf|hyprlock
-S|${HOME}/.config/hypr|hyprlock|hyprlock
 
  Idle daemon 
 P|${HOME}/.config/hypr|hypridle.conf|hypridle

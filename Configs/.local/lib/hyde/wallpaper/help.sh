@@ -26,10 +26,6 @@ flags:
 
 
 notes:
-       --backend <backend> is also use to cache wallpapers/background images e.g. hyprlock
-           when '--backend hyprlock' is used, the wallpaper will be cached in
-           ~/.cache/hyde/wallpapers/hyprlock.png
-
        --global flag is used to set the wallpaper as global, this means all
          thumbnails will be updated to reflect the new wallpaper
 

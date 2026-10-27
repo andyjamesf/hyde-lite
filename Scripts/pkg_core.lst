@@ -35,7 +35,6 @@ power-profiles-daemon                                  # power profiles (quicksh
 wl-clipboard                                           # clipboard (quickshell launcher)
 python                                                 # quickshell calendar (iCal) reader
 awww                                                   # wallpaper
-hyprlock                                               # lock screen
 grim                                                   # screenshot tool
 hyprpicker                                             # color picker
 slurp                                                  # region select for screenshot/screenshare

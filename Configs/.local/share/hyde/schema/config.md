@@ -59,18 +59,6 @@ Cava visualizer configuration.
 | range | Bar sensitivity | 8 |
 | reverse | Reverse spectrum movement (0 or 1). | 1 |
 
-### [cava.hyprlock]
-
-'cava.sh hyprlock' configuration.
-
-| Key | Description | Default |
-| --- | ----------- | ------- |
-| bar | Bar characters for cava. | ▁▂▃▄▅▆▇█ |
-| bar_array | Bar array for hyprlock preset. | ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"] |
-| range | Number of bars minus one. | 7 |
-| standby | Standby character for cava. | 🎶 |
-| width | Width of the cava output. | 20 |
-
 ### [cava.stdout]
 
 'cava.sh stdout' configuration.
@@ -195,20 +183,6 @@ Float window rules that skip size bounding.
 | initial_title | Initial window titles excluded from float bounds. | [] |
 | title | Window titles excluded from float bounds. | [] |
 
-### [hyprlock]
-
-hyprlock configuration.
-
-| Key | Description | Default |
-| --- | ----------- | ------- |
-| fail_timeout | Milliseconds until the UI resets after a failed auth attempt. | 2000 |
-| fractional_scaling | Whether to use fractional scaling. 0: disabled, 1: enabled, 2: auto. | 2 |
-| hide_cursor | Hides the cursor instead of making it visible. | false |
-| ignore_empty_input | Skips validation when no password is provided. | false |
-| immediate_render | Makes hyprlock immediately start to draw widgets. | false |
-| screencopy_mode | Selects screencopy mode: 0 gpu accelerated, 1 cpu based (slow). | 0 |
-| text_trim | Sets if the text should be trimmed, useful to avoid trailing newline in commands output. | true |
-
 ### [mediaplayer]
 
 mediaplayer.py configuration.
@@ -305,14 +279,6 @@ glyph-picker.sh configuration.
 | --- | ----------- | ------- |
 | args | Additional arguments for glyph picker. | ["-multi-select"] |
 | scale | Scaling for glyph picker. | 10 |
-
-### [rofi.hyprlock]
-
-'hyde-shell hyprlock select' configuration.
-
-| Key | Description | Default |
-| --- | ----------- | ------- |
-| scale | Scaling for hyprlock. | 10 |
 
 ### [rofi.launch]
 

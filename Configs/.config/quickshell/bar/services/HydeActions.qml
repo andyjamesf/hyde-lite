@@ -168,15 +168,6 @@ Singleton {
             ]
         },
         {
-            "label": "  Lockscreen",
-            "items": [
-                {
-                    "label": "  Select Lockscreen",
-                    "cmd": "qs ipc call launcher pick hyprlock"
-                }
-            ]
-        },
-        {
             "label": "󰛨  Eye Care",
             "items": [
                 {

@@ -37,8 +37,8 @@ Singleton {
     // island uses "rise"; `island lock` starts the lock-only shell of the bar with ISLAND_LOCK_ENTRY=fade.
     readonly property string entry: Quickshell.env("ISLAND_LOCK_ENTRY") === "fade" ? "fade" : "rise"
 
-    // PAM service (/etc/pam.d/<name>). Default "hyprlock" (same password rules as HyDE's lock).
-    readonly property string pamService: "hyprlock"
+    // PAM service (/etc/pam.d/<name>). Default "login" (the account password).
+    readonly property string pamService: "login"
     // Error messages disappear after this long. Milliseconds, default 3500.
     readonly property int errorMs: 3500
     // After a successful unlock, the lock is released after the exit animation. Milliseconds,

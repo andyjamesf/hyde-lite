@@ -17,7 +17,7 @@ import Quickshell
 Singleton {
     // Pickers that can be opened (by IPC or from the HyDE menu). Removing a name disables it: `pick`
     // falls back to the normal launcher and the HyDE menu hides it. Default: all of them.
-    readonly property var enabled: ["themes", "themeimport", "windows", "files", "web", "emoji", "glyph", "bookmarks", "quickapps", "games", "wallbash", "palette", "animations", "hyprlock", "workflows", "shaders", "layouts", "menu"]
+    readonly property var enabled: ["themes", "themeimport", "windows", "files", "web", "emoji", "glyph", "bookmarks", "quickapps", "games", "wallbash", "palette", "animations", "workflows", "shaders", "layouts", "menu"]
 
     // The HyDE menu picker ("menu"), in display order. Each entry: `name` (a picker from `enabled`),
     // `description` (row subtitle, also searched) and `glyph` (a Nerd Font character shown as the
@@ -87,11 +87,6 @@ Singleton {
             "name": "animations",
             "description": "Window animations",
             "glyph": ""
-        },
-        {
-            "name": "hyprlock",
-            "description": "Lock screen layout (hyprlock)",
-            "glyph": ""
         },
         {
             "name": "workflows",

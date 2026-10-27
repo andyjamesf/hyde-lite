@@ -150,7 +150,7 @@ Scope {
             ShellState.toggleLauncher("keys");
         }
         // Opens a picker (pickers/Pickers.qml): themes, wallpapers, windows, files, web, emoji, glyph,
-        // bookmarks, quickapps, games, wallbash, animations, hyprlock, workflows, shaders, layouts,
+        // bookmarks, quickapps, games, wallbash, animations, workflows, shaders, layouts,
         // menu. Pressing the same key again closes it; an unknown or disabled name opens the apps.
         function pick(name: string): void {
             ShellState.toggleLauncher(Pickers.get(name) !== null ? "pick:" + name : "apps");
@@ -199,13 +199,6 @@ Scope {
         target: Wallpapers
         property: "settings"
         value: Config.pickers.wallpapers
-    }
-
-    // With this off, locking hands over to HyDE's hyprlock instead of the shell's own lock screen.
-    Binding {
-        target: Lock
-        property: "enabled"
-        value: Config.widgets.lock.enabled
     }
 
     // The shortcut row is shared too. Opening a picker or the keybindings list is the launcher's

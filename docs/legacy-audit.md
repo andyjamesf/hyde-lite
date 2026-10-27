@@ -59,7 +59,7 @@ So the earlier estimate of "dead at runtime" for all of group B was too generous
 
 ## C. Keep: shared helpers that only have a rofi/waybar branch
 
-`wallbash.sh`, `globalcontrol.sh`, `hyprlock.sh`, `cliphist.sh`, `session.py`, `notifications.py`,
+`wallbash.sh`, `globalcontrol.sh`, `cliphist.sh`, `session.py`, `notifications.py`,
 `weather.py`, `wallpaper/*.sh`, `animations.lua`, `layouts.lua`, `shaders.lua`, `workflows.lua`,
 `bookmarks.py`, `cava.py`, `hyprsunset.sh`, `completions.py`. They mention the removed apps in one branch or
 a usage text; the shells and HyDE's own hooks call them for other reasons.

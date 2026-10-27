@@ -63,7 +63,6 @@ M.shell = {
 	{ keys = "$mod + SHIFT + R", island = "pick wallbash", hyde = "qs ipc call launcher pick wallbash", desc = "[Theming and Wallpaper] wallbash mode selector" },
 	{ keys = "$mod + SHIFT + C", island = "pick palette", hyde = "qs ipc call launcher pick palette", desc = "[Theming and Wallpaper] wallpaper palette (colour scheme)" },
 	{ keys = "$mod + SHIFT + Y", island = "pick animations", hyde = "qs ipc call launcher pick animations", desc = "[Theming and Wallpaper] select animations" },
-	{ keys = "$mod + SHIFT + U", island = "pick hyprlock", hyde = "qs ipc call launcher pick hyprlock", desc = "[Theming and Wallpaper] select Hyprlock layout" },
 	{ keys = "$mod + SHIFT + G", island = "pick games", hyde = "qs ipc call launcher pick games", desc = "[Utilities] game launcher" },
 	-- Every picker in one list (workflows, shaders, layouts, HyDE themes… have no key of their own).
 	{ keys = "$mod + SHIFT + A", island = "pick menu", hyde = "qs ipc call launcher pick menu", desc = "[Launcher] HyDE menus" },
@@ -115,11 +114,11 @@ M.binds = {
 	{ keys = "$mod + CTRL + Down", cmd = "sh -c 'notify-send -a Palette -t 2500 \"$(wallpaper-palette prev)\"'", desc = "[Theming and Wallpaper] previous wallpaper palette" },
 
 	-- Through loginctl, so hypridle runs the active shell's lock screen. Without hypridle, lock
-	-- directly: the island's lock for either shell, then HyDE's hyprlock.
+	-- directly: the island's lock, for either shell.
 	{
 		keys = "$mod + L",
 		cmd = "sh -c 'pgrep -x hypridle >/dev/null && exec loginctl lock-session; "
-			.. "\"$HOME/.local/bin/island\" lock lock || hyde-shell lockscreen.sh'",
+			.. "\"$HOME/.local/bin/island\" lock lock'",
 		desc = "[Window Management] lock session",
 	},
 

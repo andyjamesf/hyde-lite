@@ -11,7 +11,7 @@ Singleton {
     id: root
 
     // Pickers that can be opened at all; a name missing from this list is not offered anywhere.
-    property var enabled: ["themes", "wallpapers", "windows", "files", "web", "emoji", "glyph", "bookmarks", "quickapps", "games", "wallbash", "palette", "animations", "hyprlock", "workflows", "shaders", "layouts", "menu"]
+    property var enabled: ["themes", "wallpapers", "windows", "files", "web", "emoji", "glyph", "bookmarks", "quickapps", "games", "wallbash", "palette", "animations", "workflows", "shaders", "layouts", "menu"]
     // The HyDE menu picker's rows, in order.
     property var menu: []
     // How many rows each picker returns at most, by picker name.

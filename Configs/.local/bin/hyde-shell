@@ -486,7 +486,7 @@ lock_session() {
         echo "Using org.freedesktop.ScreenSaver for locking"
         loginctl lock-session
     else
-        lockscreen.sh
+        "$HOME/.local/bin/island" lock lock
     fi
 }
 
