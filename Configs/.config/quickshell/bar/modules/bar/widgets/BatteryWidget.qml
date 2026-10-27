@@ -12,8 +12,16 @@ BarItem {
     icon: Battery.icon
     iconFill: 1
     iconColor: Battery.low ? Theme.error : Battery.plugged ? Theme.success : Theme.text
-    // "87% · 3 h 20 min" on the minimal bar when it asks for the time (MiniBarConfig.batteryShowTime).
-    readonly property string timeText: BarLayout.batteryShowTime && Battery.secondsLeft > 0 ? Utils.formatDuration(Battery.secondsLeft) : ""
+    // On the minimal bar / when widgets.battery.showTime is on: "87% · 3 h 20 min" when UPower has an
+    // estimate, otherwise the state ("charging", "full", "plugged in", "on battery"), because UPower
+    // gives no time while full or just after the charger changes.
+    readonly property string timeText: {
+        if (!BarLayout.batteryShowTime)
+            return "";
+        if (Battery.secondsLeft > 0)
+            return Utils.formatDuration(Battery.secondsLeft);
+        return Battery.charging ? "charging" : Battery.plugged ? (Battery.percent >= 95 ? "full" : "plugged in") : "on battery";
+    }
     text: [cfg.showPercent ? `${Battery.percent}%` : "", timeText].filter(t => t !== "").join(" · ")
     textColor: Battery.low ? Theme.error : Theme.text
     tooltip: `${Battery.percent}% · ${Battery.charging ? "charging" : Battery.plugged ? "plugged in" : "on battery"}` + (Battery.secondsLeft > 0 ? `\n${Utils.formatDuration(Battery.secondsLeft)} ${Battery.charging ? "until full" : "left"}` : "") + `\nProfile: ${Battery.profileName}`

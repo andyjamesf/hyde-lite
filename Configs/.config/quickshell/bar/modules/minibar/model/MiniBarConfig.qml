@@ -61,14 +61,15 @@ Singleton {
 
     // "none"        no background at all: only the icons and the text, over whatever is behind
     // "continuous"  a thin strip from edge to edge, against the edge of the screen
-    // "islands"     rounded groups that float, each with its own background
+    // "floating"    rounded groups that float, each with its own background
+    //               ("islands" is still accepted as the old name for this)
     readonly property string style: "none"
 
     // Bar height in px. 0 = the same as the normal bar's. Clamped to 16–40.
     readonly property int height: 20
 
-    // Margin between the bar and the edge of the screen. Only counts in the "islands" style.
-    readonly property int margin: 4
+    // Margin between the bar and the edge of the screen. Only counts in the "floating" style.
+    readonly property int margin: 8
 
     // Space in px between groups of modules (the lines in section 3).
     readonly property int spacing: 8
@@ -81,9 +82,22 @@ Singleton {
     // there is no point writing the colour with an alpha ("#1e1e2ecc"): that alpha is ignored.
     readonly property string color: ""
 
-    // Corner rounding in the "islands" style. -1 = follows Hyprland's `decoration:rounding`,
+    // Corner rounding in the "floating" style. -1 = follows Hyprland's `decoration:rounding`,
     // the way the normal bar does.
     readonly property int radius: -1
+
+    // Space in px between the screen edge (top or bottom, see `position`) and the icons and text:
+    // this is the vertical padding. It makes the bar taller by that much and pushes the modules
+    // away from the edge. -1 = `margin` in the "floating" style, 0 in the others.
+    readonly property int edgeGap: 5
+
+    // Padding in px inside each module, left and right of its icon/text. -1 = worked out from the
+    // height (20% of it), the normal bar's. 0 packs the modules together.
+    readonly property int itemPadding: -1
+
+    // Padding in px between the bar's left/right ends and the first/last module, whatever the
+    // style. -1 = `margin` in the "floating" style, 4 in the others.
+    readonly property int edgePadding: -1
 
     // Text and icon size. 0 = worked out from the height (what you want).
     readonly property int fontSize: 0
@@ -95,7 +109,7 @@ Singleton {
     //        a tab strip) and both end up looking cut.
     // false: the bar floats over the windows and takes no space from them, so a window can use the
     //        whole screen. Worth it with `autoHide` below, which is the case the strip is for.
-    readonly property bool reserveSpace: true
+    readonly property bool reserveSpace: true 
 
     // ── HIDING THE BAR ─────────────────────────────────────────────────────────────────────
 
@@ -105,7 +119,7 @@ Singleton {
     //        While hidden it reserves no space at all, whatever `reserveSpace` says above.
     // false: the bar is always on screen (it still takes no space from windows unless
     //        `reserveSpace` is true).
-    readonly property bool autoHide: false
+    readonly property bool autoHide: false 
 
     // How long the pointer has to be away before the bar hides again, in milliseconds. It never
     // hides while one of its own panels is open (the calendar, the volume panel…).
@@ -139,7 +153,7 @@ Singleton {
     // centre, `qs ipc call bar next`); each one names the modules in its left, centre and right.
     //
     // Each line of those three lists is a GROUP of modules:
-    //     ["audio", "network", "battery"]   the three together, in one block/island
+    //     ["audio", "network", "battery"]   the three together, in one block
     //     ["clock"]                         one module alone in its own block
     // Between groups goes the `spacing` from section 2. A group whose modules have nothing to
     // show (no battery, no bluetooth…) disappears on its own and leaves no empty space.
@@ -228,7 +242,7 @@ Singleton {
         {
             label: "Everything",
             clockDate: true,
-            left: [["workspaces"], ["activeWindow"]],
+            left: [["workspaces"], ["activeWindow"], ["stats"]],
             center: [["clock"]],
             right: [["idle"], ["tray"], ["audio", "network", "battery"], ["notifications", "controlCenter", "power"]],
         },

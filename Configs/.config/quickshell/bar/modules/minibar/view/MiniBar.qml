@@ -10,7 +10,7 @@ import qs.shared.services
 
 // The minimal bar of one screen: a slimmer bar that takes the normal one's place while it is
 // switched on. Everything it shows comes from model/MiniBarConfig.qml, and it hosts the same
-// widgets as the normal bar, in the same Island container, so no widget exists twice. Its own
+// widgets as the normal bar, in the same group container (the `Island` QML type, which has nothing to do with the Morphing Island shell), so no widget exists twice. Its own
 // measurements reach those widgets through services/BarLayout.qml, which applies them while this
 // bar stands in for the normal one.
 //
@@ -23,8 +23,11 @@ PanelWindow {
     readonly property HyprlandMonitor monitor: Hyprland.monitorFor(screen)
     readonly property bool atTop: BarLayout.atTop
     readonly property int gap: BarLayout.margin
-    // The strip is only drawn in the "continuous" style: "islands" lets each group draw its own
-    // background (BarLayout.islands is then true) and "none" draws nothing at all.
+    // Space between the screen edge and the modules (MiniBarConfig.edgeGap), whatever the style.
+    // -1 = just `gap`, which is 0 outside the "floating" style.
+    readonly property int vgap: MiniBarConfig.edgeGap >= 0 ? MiniBarConfig.edgeGap : gap
+    // The strip is only drawn in the "continuous" style: "floating" lets each group draw its own
+    // background (BarLayout.islands, the code's name for floating groups, is then true) and "none" draws nothing at all.
     readonly property bool strip: MiniBarConfig.style === "continuous"
 
     // Auto-hide (MiniBarConfig.autoHide): the bar slides off the screen edge and leaves `peek` px
@@ -42,7 +45,7 @@ PanelWindow {
         left: true
         right: true
     }
-    implicitHeight: BarLayout.height + gap
+    implicitHeight: BarLayout.height + vgap
     color: "transparent"
     // `qs ipc call bar hide` hides whichever bar is in use.
     visible: !ShellState.barHidden
@@ -125,10 +128,10 @@ PanelWindow {
 
         Item {
             anchors.fill: parent
-            anchors.topMargin: bar.atTop ? bar.gap : 0
-            anchors.bottomMargin: bar.atTop ? 0 : bar.gap
-            anchors.leftMargin: bar.gap > 0 ? bar.gap : 4
-            anchors.rightMargin: bar.gap > 0 ? bar.gap : 4
+            anchors.topMargin: bar.atTop ? bar.vgap : 0
+            anchors.bottomMargin: bar.atTop ? 0 : bar.vgap
+            anchors.leftMargin: MiniBarConfig.edgePadding >= 0 ? MiniBarConfig.edgePadding : bar.gap > 0 ? bar.gap : 4
+            anchors.rightMargin: MiniBarConfig.edgePadding >= 0 ? MiniBarConfig.edgePadding : bar.gap > 0 ? bar.gap : 4
 
             Section {
                 id: leftSection
