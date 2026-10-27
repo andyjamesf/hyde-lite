@@ -24,6 +24,34 @@ Singleton {
         JsonAdapter {
             id: adapter
 
+            // ── WHAT THE NORMAL BAR CAN SHOW (a reference to keep next to the settings) ──────
+            // The bar's layouts are in config/layouts.json (JSON has no comments, so they are
+            // listed here). Each layout names the modules of its left, centre and right, as
+            // groups: ["audio", "network", "battery"] is one block, ["clock"] one alone.
+            // Your own layouts go in ~/.config/quickshell/layouts.json, same format, merged over
+            // the shipped ones by name; `qs ipc call bar next` cycles through them.
+            //   "hyde"           HyDE menu: themes, wallpapers, keybindings
+            //   "workspaces"     Hyprland's workspaces
+            //   "activeWindow"   title of the focused window
+            //   "clock"          clock; a click opens the calendar
+            //   "media"          the track that is playing; a click opens the controls
+            //   "cava"           audio visualiser
+            //   "aiUsage"        the AI tools' usage
+            //   "tray"           system tray icons
+            //   "audio"          volume; a click opens the panel, the wheel changes it
+            //   "mic"            microphone
+            //   "brightness"     screen brightness
+            //   "network"        network / Wi-Fi
+            //   "bluetooth"      bluetooth
+            //   "battery"        battery (+ time left: widgets.battery.showTime below)
+            //   "stats"          CPU, memory and temperature
+            //   "idle"           idle inhibitor
+            //   "nightLight"     night light
+            //   "notifications"  notifications and "do not disturb"
+            //   "controlCenter"  the control centre's button
+            //   "power"          power menu
+            // A layout's other keys: style ("islands" | "continuous"), height, margin, spacing,
+            // radius, opacity, fontSize, iconSize, position. The ones below apply to every layout.
             property JsonObject bar: JsonObject {
                 // Default layout (one of the names in config/layouts.json).
                 property string layout: "islands"
@@ -261,6 +289,10 @@ Singleton {
                 }
                 property JsonObject battery: JsonObject {
                     property bool showPercent: true
+                    // Time left next to the percentage ("87% · 3 h 20 min"; until full while
+                    // charging). Nothing shows while the system has no estimate yet.
+                    // false = percentage only; the time stays in the tooltip.
+                    property bool showTime: true
                     property int lowLevel: 15
                 }
                 property JsonObject brightness: JsonObject {

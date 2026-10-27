@@ -125,6 +125,14 @@ Singleton {
     // Or only some, by the names `hyprctl monitors` prints: ["DP-1", "HDMI-A-1"]
     readonly property var screens: []
 
+    // ── 2b. MODULE OPTIONS (this bar only) ─────────────────────────────────────────────────
+
+    // true: the battery module also writes the time left ("87% · 3 h 20 min", until full while
+    //       charging). Nothing shows while the system has no estimate yet (just plugged in, or
+    //       the first minute after boot): the percentage stays on its own.
+    // false: percentage only; the time stays in the tooltip.
+    readonly property bool batteryShowTime: true
+
     // ── 3. MODULES, AND THE LAYOUTS THEY MAKE ──────────────────────────────────────────────
     //
     // The bar has a list of layouts and cycles through them ("Next bar layout" in the control
@@ -186,7 +194,9 @@ Singleton {
             center: [
                 ["clock"],
             ],
-            right: [],
+            right: [
+                ["battery"],
+            ],
         },
         {
             label: "Clock and day",
@@ -214,13 +224,40 @@ Singleton {
             center: [],
             right: [],
         },
-        // A fuller one, for when the minimal bar is the only bar in use. Drop the "//" to get it.
-         {
-             label: "Everything",
-             clockDate: true,
-             left: [["workspaces"], ["activeWindow"]],
-             center: [["clock"]],
-             right: [ ["idle"],["tray"], ["audio", "network", "battery"], ["notifications", "controlCenter", "power"]],
-         },
+        // A fuller one, for when the minimal bar is the only bar in use. Comment it out to drop it.
+        {
+            label: "Everything",
+            clockDate: true,
+            left: [["workspaces"], ["activeWindow"]],
+            center: [["clock"]],
+            right: [["idle"], ["tray"], ["audio", "network", "battery"], ["notifications", "controlCenter", "power"]],
+        },
+
+        // A TEMPLATE WITH EVERY MODULE: uncomment the block, then comment out what you do not want.
+        // Each line is one group; put several ids in one pair of brackets to share a block.
+        // {
+        //     label: "Template",
+        //     clockDate: true,            // true / false; leave the line out to follow config.json
+        //     left: [
+        //         ["hyde"],               // HyDE menu: themes, wallpapers, keybindings
+        //         ["workspaces"],         // Hyprland's workspaces
+        //         ["activeWindow"],       // title of the focused window
+        //     ],
+        //     center: [
+        //         ["clock"],              // clock; a click opens the calendar
+        //         ["media"],              // the track that is playing; a click opens the controls
+        //         ["cava"],               // audio visualiser
+        //     ],
+        //     right: [
+        //         ["aiUsage"],            // the AI tools' usage
+        //         ["stats"],              // CPU, memory and temperature
+        //         ["tray"],               // system tray icons
+        //         ["idle"],               // idle inhibitor (keeps the screen from going off)
+        //         ["nightLight"],         // night light
+        //         ["audio", "mic", "brightness"],      // volume, microphone, screen brightness
+        //         ["network", "bluetooth", "battery"], // Wi-Fi, bluetooth, battery (+ time left, see batteryShowTime)
+        //         ["notifications", "controlCenter", "power"], // notifications, control centre, power menu
+        //     ],
+        // },
     ]
 }
