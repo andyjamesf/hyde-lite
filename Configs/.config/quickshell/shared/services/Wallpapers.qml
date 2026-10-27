@@ -41,7 +41,7 @@ Singleton {
     // placeholders below), extensions, minBytes, pollMs, busyPollMs, busyTimeoutMs.
     property var settings: ({
             "dirs": ["{pictures}/Wallpapers", "{pictures}/Wallpapers/{theme}"],
-            "extensions": ["jpg", "jpeg", "png", "gif", "webp"],
+            "extensions": ["jpg", "jpeg", "png", "gif", "webp", "heic", "heif"],
             "minBytes": 4096,
             "pollMs": 2000,
             "busyPollMs": 400,

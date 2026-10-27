@@ -118,6 +118,18 @@ FocusScope {
         Wallpapers.set(e.path);
     }
 
+    // Picks a tile other than the current wallpaper at random (the only one, if there is only one).
+    function randomize() {
+        if (count === 0)
+            return;
+        let i = Math.floor(Math.random() * count);
+        if (count > 1 && i === currentIndex)
+            i = (i + 1) % count;
+        keyboardUsed = true;
+        apply(i);
+        scrollTo(i);
+    }
+
     Keys.onPressed: event => {
         switch (event.key) {
         case Qt.Key_Left:
@@ -202,6 +214,7 @@ FocusScope {
         }
 
         IconButton {
+            id: refreshButton
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             onClicked: {
@@ -213,6 +226,22 @@ FocusScope {
                 size: 16
                 color: Theme.dim
                 spinning: Wallpapers.loading && Animations.enabled
+            }
+        }
+
+        IconButton {
+            anchors.right: refreshButton.left
+            anchors.rightMargin: 4
+            anchors.verticalCenter: parent.verticalCenter
+            enabled: root.count > 0
+            onClicked: {
+                root.randomize();
+                root.forceActiveFocus();
+            }
+
+            ShuffleIcon {
+                size: 16
+                color: Theme.dim
             }
         }
     }
