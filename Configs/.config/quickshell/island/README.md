@@ -55,7 +55,7 @@ Run by hand: create the `active` file above and start `qs` (the default configur
 | Settings | `Super+Alt+,` | bar height 30–51 and font size live; hover, Peace Mode, animations, speed |
 | Power | `Ctrl+Alt+Delete` | Lock, Suspend immediate; Log out, Restart, Power off need a second click |
 | Polkit | an app asks for privileges | password goes only to polkit; Esc or outside click cancels; a failure closes safely |
-| Lock | `Super+L`, idle | the clock pill morphs into the lock card; same PAM config as hyprlock; survives a reload |
+| Lock | `Super+L`, idle | the clock pill morphs into the lock card; PAM service `login`; survives a reload |
 
 **Peace Mode** hides notification popups (critical ones still show); everything still lands in the
 history. **Caffeine** keeps the session awake (an idle inhibitor on the island: no dimming, lock or
@@ -179,7 +179,7 @@ island ipc open <mode>          launcher | controlcenter | wifi | bluetooth | au
 island ipc close | pin | mode
 island ipc launcher "<query>"   e.g. "=2+2", ":"
 island ipc pick <name>           windows | files | web | emoji | glyph | bookmarks | quickapps | games |
-                                wallbash | animations | hyprlock | workflows | shaders | layouts | menu
+                                wallbash | animations | workflows | shaders | layouts | menu
 island ipc hide | peace | caffeine | nightlight | notifications | clearNotifications
 qs ipc call lock lock | unlock | isLocked
 ```
@@ -210,4 +210,4 @@ qs ipc call island-debug <function>
 - Only one shell can own notifications and polkit, hence the exclusive switch.
 - The animations and layouts pickers call `hyde-shell animations|layouts --set`, exactly like HyDE's
   rofi menus. With Hyprland 0.56 HyDE writes the choice but Hyprland does not apply it live (nor on
-  `hyprctl reload`); the other pickers (shaders, workflows, wallbash, hyprlock, themes) apply live.
+  `hyprctl reload`); the other pickers (shaders, workflows, wallbash, themes) apply live.

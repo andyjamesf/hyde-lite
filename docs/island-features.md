@@ -19,7 +19,7 @@ They are a lower bound: a program started through a variable or a script would b
 | OSD (volume, mic, brightness) | 0 | 0 | - | - |
 | Launcher, calculator, keybindings, windows, files, web | 0 | 0 | - | - |
 | Clipboard | 0 | 0 | - | - |
-| HyDE menus and pickers (emoji, glyph, bookmarks, quick apps, games, wallbash, animations, hyprlock, workflows, shaders, layouts) | 0 | 0 | - | - |
+| HyDE menus and pickers (emoji, glyph, bookmarks, quick apps, games, wallbash, animations, workflows, shaders, layouts) | 0 | 0 | - | - |
 | Control center (Wi-Fi, Bluetooth, sound, battery pages) | 0 | 0 | - | - |
 | Media | 0 | 0 | - | - |
 | Themes, wallpapers, palette pickers | 0 | 0 | - | - |

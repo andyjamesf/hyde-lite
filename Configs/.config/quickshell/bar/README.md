@@ -5,7 +5,7 @@ clipboard, calculator, keybindings), control center, power menu and lock screen.
 Quickshell configuration in `~/.config/quickshell`: `qs` starts `../shell.qml`, which loads this one unless the
 island is active (`island on`). HyDE launches `qs` at login through `hyde.config.start.bar`.
 
-The features, keybindings, configuration, IPC and how to go back to Waybar/dunst/hyprlock are
+The features, keybindings, configuration, IPC and how to go back to Waybar/dunst are
 documented in the repository's [`docs/`](../../../../docs/) folder (the bar layouts in `docs/bar-builder.md`).
 
 ## Layout

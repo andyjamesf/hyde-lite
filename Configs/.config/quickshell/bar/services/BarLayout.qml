@@ -40,14 +40,17 @@ Singleton {
     // The clock's day. A layout of the minimal bar can ask for it or refuse it (clockDate);
     // otherwise it is the owner's setting in config.json, which is what the normal bar follows.
     // widgets/ClockWidget.qml reads this rather than the setting, so one clock serves both bars.
+    // Battery time remaining next to the percentage. The minimal bar sets it in its own settings
+    // (MiniBarConfig.batteryShowTime); the normal bar in widgets.battery.showTime (Config.qml).
+    readonly property bool batteryShowTime: mini ? MiniBarConfig.batteryShowTime : Config.widgets.battery.showTime
     readonly property bool clockShowDate: mini && MiniBarState.layout.clockDate !== undefined ? MiniBarState.layout.clockDate : Config.widgets.clock.showDate
 
     property string hydeTheme: ""
     property int hyprRounding: 10
 
     // The minimal bar's "none" style is a continuous bar whose strip is not drawn (its window
-    // draws the strip, not this), so only "islands" differs here.
-    readonly property string style: mini ? (MiniBarConfig.style === "islands" ? "islands" : "continuous") : preset.style ?? "islands"
+    // draws the strip, not this), so only the floating groups ("islands" internally, "floating" in MiniBarConfig) differ here.
+    readonly property string style: mini ? (MiniBarConfig.style === "floating" || MiniBarConfig.style === "islands" ? "islands" : "continuous") : preset.style ?? "islands"
     readonly property bool islands: style === "islands"
     readonly property string position: mini ? MiniBarConfig.position : preset.position ?? Config.bar.position
     readonly property bool atTop: position !== "bottom"
@@ -75,6 +78,8 @@ Singleton {
         }
     ]
     readonly property int margin: islands ? (mini ? MiniBarConfig.margin : preset.margin ?? 4) : 0
+    // Horizontal padding inside each module (BarItem). The minimal bar can set it (MiniBarConfig.itemPadding).
+    readonly property int itemPadding: mini && MiniBarConfig.itemPadding >= 0 ? MiniBarConfig.itemPadding : Math.round(height * 0.2)
     readonly property int spacing: mini ? MiniBarConfig.spacing : preset.spacing ?? 4
     readonly property int radius: Math.min(mini ? (MiniBarConfig.radius >= 0 ? MiniBarConfig.radius : hyprRounding) : preset.radius ?? hyprRounding, Math.floor(height / 2))
     readonly property real opacity: mini && MiniBarConfig.opacity >= 0 ? MiniBarConfig.opacity : Prefs.pillOpacity >= 0 ? Prefs.pillOpacity : preset.opacity ?? Config.bar.opacity

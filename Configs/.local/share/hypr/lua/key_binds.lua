@@ -88,7 +88,7 @@ hl.bind("CTRL + ALT + DELETE", hl.dsp.exec_cmd("qs ipc call powermenu toggle"), 
 _F = {description = "[Window Management] hide bar"}
 hl.bind(MOD .. " + CTRL + B", hl.dsp.exec_cmd("qs ipc call bar toggle"), _F)
 _F = {description = "[Window Management] lock session"}
--- Via loginctl: hypridle runs its lock_cmd (the Quickshell lockscreen, hyprlock as fallback).
+-- Via loginctl: hypridle runs its lock_cmd (the Quickshell lockscreen).
 hl.bind(MOD .. " + L", hl.dsp.exec_cmd("loginctl lock-session"), _F)
 
 _F = {description = "[Window Management|Group Navigation] change active group backwards"}
@@ -239,8 +239,6 @@ hl.bind(MOD .. "+ ALT + Down", hl.dsp.exec_cmd("qs ipc call bar prev"), _F)
 
 _F = {description = "[Theming and Wallpaper] select animations"}
 hl.bind(MOD .. "+ SHIFT + Y", hl.dsp.exec_cmd("hyde-shell animations --select"), _F)
-_F = {description = "[Theming and Wallpaper] select Hyprlock layout"}
-hl.bind(MOD .. "+ SHIFT + U", hl.dsp.exec_cmd("hyde-shell hyprlock --select"), _F)
 
 -- # TODO Make a main rofi menu for these selectors
 -- $rice=Theming and Wallpaper

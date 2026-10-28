@@ -1,7 +1,6 @@
 # Quickshell configuration: bar, notification server, OSD, launcher (apps/clipboard/calculator),
 # control center, power menu and lockscreen, as the HyDE-style bar (bar/) or the Morphing Island
-# (island/). Replaces waybar, dunst, wlogout (and rofi) in this lite fork; hyprlock (lockscreen
-# fallback) is still installed by its own dot.
+# (island/). Replaces waybar, dunst, wlogout, rofi and hyprlock in this lite fork.
 [quickshell]
 description = "Quickshell desktop shell for HyDE (bar, notifications, launcher, control center, lockscreen)"
 

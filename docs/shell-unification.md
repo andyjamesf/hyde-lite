@@ -15,7 +15,7 @@ hyde-lite ships two Quickshell configurations, `Configs/.config/quickshell` (the
 | `morphing-island` | 196 | 186 | 27 337 |
 
 53 file names exist in both. Of those, **26 are identical or differ by a few lines** (similarity 0.95 to 1.00: `PickWorkflows`,
-`PickShaders`, `PickPalette`, `PickLayouts`, `PamText`, `Fuzzy`, `HydeLuaPicker`, `PickHydeThemes`, `Hyde`, `PickHyprlock`,
+`PickShaders`, `PickPalette`, `PickLayouts`, `PamText`, `Fuzzy`, `HydeLuaPicker`, `PickHydeThemes`, `Hyde`,
 `PickWallbash`, `PickGames`, `PickFiles`, `PickWindows`, `PickBookmarks`, `PickEmoji`, `PickGlyph`, `PickWeb`,
 `PickQuickApps`, `Launch`, `Keybinds`, `PickMenu`, `PickerStore`, `pick_file.py`, `ical_events.py`), about 3 000 lines
 copied by hand. `tools/tests/test_mirrored_files.py` only keeps two of them from drifting. Another 15 services

@@ -27,10 +27,6 @@ All packages installed via the package manager are referenced in:
 - [Hyprland](https://hyprland.org) and [Quickshell](https://quickshell.org) for the compositor and the shells
 - [matugen](https://github.com/InioX/matugen) for the colour pipeline
 
-## Inspirations
-
-- Derived hyprlock ideas, from [MrVivekRajan/Hypr-Dots](https://github.com/MrVivekRajan/Hypr-Dots) (as credited by HyDE)
-
 ---
 
 If something is missing or wrong here, please open an issue or a pull request.

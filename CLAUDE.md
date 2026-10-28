@@ -47,7 +47,7 @@ because this is a GPL-3.0 fork of `HyDE-Project/HyDE` and should stay readable t
 - Changes in `Scripts/` or `Configs/.local/lib/hyde/` (HyDE's own code) are the expensive ones: each
   one is a future porting conflict. Make them minimal, put the reason in a comment and in `LITE.md`.
 - Hyprland's configuration here is **Lua** (`hyprland.lua`), not `hyprland.conf`.
-- Never run `hyprlock` to "test" it: it really locks the screen.
+- Never lock the real session to "test" the lock screen (`island lock lock`, `loginctl lock-session`): it really locks the screen.
 - End commit messages with the co-author line your harness gives you.
 
 ## What you can and cannot test where

@@ -802,7 +802,6 @@ def main():
 
     create_client_parser(subparsers, "waybar", "Waybar client")
     create_client_parser(subparsers, "stdout", "Stdout client")
-    create_client_parser(subparsers, "hyprlock", "Hyprlock client")
 
     subparsers.add_parser("status", help="Check manager status")
     subparsers.add_parser("reload", help="Reload cava manager (restart cava process)")
@@ -817,7 +816,7 @@ def main():
 
         server.start(args.bars, args.range, args.channels, args.reverse)
 
-    elif args.command in ["waybar", "stdout", "hyprlock"]:
+    elif args.command in ["waybar", "stdout"]:
         hyde_config = HydeConfig()
 
         bar_chars, width, standby_mode = CavaClient.parse_command_config(

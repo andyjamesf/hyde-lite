@@ -542,7 +542,7 @@ Scope {
             LauncherState.query = query;
         }
         // Opens the launcher in a picker (services/Pickers.qml): windows, files, web, emoji, glyph,
-        // bookmarks, quickapps, games, wallbash, animations, hyprlock, workflows, shaders, layouts.
+        // bookmarks, quickapps, games, wallbash, animations, workflows, shaders, layouts.
         // An unknown name opens the normal launcher. With the launcher already open, switches picker.
         function pick(name: string): void {
             const known = Pickers.get(name) !== null;

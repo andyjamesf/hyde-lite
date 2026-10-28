@@ -53,7 +53,7 @@ download_and_extract() {
             *.ttf | *.otf)
                 mkdir -p "$font_dir/hyde"
                 mv "$file" "$font_dir/hyde/$name.ttf"
-                echo "[font] $name installed successfully. Please restart hyprlock to apply changes."
+                echo "[font] $name installed successfully."
                 notify-send -i "preferences-desktop-font" "HyDE font" "$name Installed successfully"
                 return 0
                 ;;
@@ -71,7 +71,7 @@ download_and_extract() {
         notify-send -i "preferences-desktop-font" "HyDE font" "$name Installed successfully"
     done
     rm -rf "$temp_dir"
-    echo "[font] $name installed successfully. Please restart hyprlock to apply changes."
+    echo "[font] $name installed successfully."
     return 0
 }
 resolve() {

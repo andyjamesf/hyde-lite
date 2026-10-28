@@ -37,3 +37,6 @@ id_ed25519*
 client_secret*.json
 token.json
 google/client.json
+
+# graphify output (local dependency graph)
+graphify-out/

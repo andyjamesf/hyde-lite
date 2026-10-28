@@ -468,8 +468,7 @@ is_hovered() {
 }
 ##
 # Reports whether the generated colour state this installation reads is on disk.
-# Hyprland reads the Lua state, and the colour include is required alongside it
-# because hyprlock, which has no Lua configuration, sources that file.
+# Hyprland reads the Lua state, and the colour include is required alongside it.
 #
 # Globals:
 #   HYDE_STATE_HOME, confDir

@@ -80,7 +80,6 @@ _BLACKLIST_EXE = frozenset(
         "swaybg",
         "mpvpaper",
         # lock / idle / color
-        "hyprlock",
         "swaylock",
         "hypridle",
         "swayidle",

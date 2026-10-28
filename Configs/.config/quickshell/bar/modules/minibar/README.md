@@ -2,7 +2,7 @@
 
 A second, slimmer bar that takes the normal one's place while it is switched on. It duplicates
 nothing: it shows the **same modules** as the normal bar (`../bar/widgets/`), in the same container
-(`Island`), through the same services. Putting a module on it means writing its name in a list —
+(the `Island` QML type, a name inherited from the bar; it is unrelated to the Morphing Island shell), through the same services. Putting a module on it means writing its name in a list —
 no new code.
 
 It starts with the day and time in the middle and the desktop you are on at the left, and nothing

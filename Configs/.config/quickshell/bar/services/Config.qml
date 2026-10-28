@@ -24,6 +24,34 @@ Singleton {
         JsonAdapter {
             id: adapter
 
+            // ── WHAT THE NORMAL BAR CAN SHOW (a reference to keep next to the settings) ──────
+            // The bar's layouts are in config/layouts.json (JSON has no comments, so they are
+            // listed here). Each layout names the modules of its left, centre and right, as
+            // groups: ["audio", "network", "battery"] is one block, ["clock"] one alone.
+            // Your own layouts go in ~/.config/quickshell/layouts.json, same format, merged over
+            // the shipped ones by name; `qs ipc call bar next` cycles through them.
+            //   "hyde"           HyDE menu: themes, wallpapers, keybindings
+            //   "workspaces"     Hyprland's workspaces
+            //   "activeWindow"   title of the focused window
+            //   "clock"          clock; a click opens the calendar
+            //   "media"          the track that is playing; a click opens the controls
+            //   "cava"           audio visualiser
+            //   "aiUsage"        the AI tools' usage
+            //   "tray"           system tray icons
+            //   "audio"          volume; a click opens the panel, the wheel changes it
+            //   "mic"            microphone
+            //   "brightness"     screen brightness
+            //   "network"        network / Wi-Fi
+            //   "bluetooth"      bluetooth
+            //   "battery"        battery (+ time left: widgets.battery.showTime below)
+            //   "stats"          CPU, memory and temperature
+            //   "idle"           idle inhibitor
+            //   "nightLight"     night light
+            //   "notifications"  notifications and "do not disturb"
+            //   "controlCenter"  the control centre's button
+            //   "power"          power menu
+            // A layout's other keys: style ("islands" | "continuous"), height, margin, spacing,
+            // radius, opacity, fontSize, iconSize, position. The ones below apply to every layout.
             property JsonObject bar: JsonObject {
                 // Default layout (one of the names in config/layouts.json).
                 property string layout: "islands"
@@ -56,7 +84,7 @@ Singleton {
             property JsonObject pickers: JsonObject {
                 // Pickers that can be opened (by IPC or from the HyDE menu). Removing a name disables it: `pick`
                 // falls back to the normal launcher and the HyDE menu hides it. Default: all of them.
-                property var enabled: ["themes", "wallpapers", "windows", "files", "web", "emoji", "glyph", "bookmarks", "quickapps", "games", "wallbash", "palette", "animations", "hyprlock", "workflows", "shaders", "layouts", "menu"]
+                property var enabled: ["themes", "wallpapers", "windows", "files", "web", "emoji", "glyph", "bookmarks", "quickapps", "games", "wallbash", "palette", "animations", "workflows", "shaders", "layouts", "menu"]
 
                 // The HyDE menu picker ("menu"), in display order. Each entry: `name` (a picker from `enabled`),
                 // `description` (row subtitle, also searched) and `glyph` (a Nerd Font character shown as the
@@ -126,11 +154,6 @@ Singleton {
                         "name": "animations",
                         "description": "Window animations",
                         "glyph": ""
-                    },
-                    {
-                        "name": "hyprlock",
-                        "description": "Lock screen layout (hyprlock)",
-                        "glyph": ""
                     },
                     {
                         "name": "workflows",
@@ -270,6 +293,10 @@ Singleton {
                 }
                 property JsonObject battery: JsonObject {
                     property bool showPercent: true
+                    // Time left next to the percentage ("87% · 3 h 20 min"; until full while
+                    // charging). Nothing shows while the system has no estimate yet.
+                    // false = percentage only; the time stays in the tooltip.
+                    property bool showTime: true
                     property int lowLevel: 15
                 }
                 property JsonObject brightness: JsonObject {
@@ -281,10 +308,6 @@ Singleton {
                     property int timeout: 5000
                     property int maxPopups: 4
                     property int historySize: 100
-                }
-                property JsonObject lock: JsonObject {
-                    // false: locking uses HyDE's hyprlock instead of the shell's lock screen.
-                    property bool enabled: true
                 }
                 property JsonObject osd: JsonObject {
                     property bool enabled: true

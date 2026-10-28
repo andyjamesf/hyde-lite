@@ -35,7 +35,20 @@ Singleton {
     //                    popup with every tool's limits; hidden when the usage scripts are missing
     // Prefs key "statusPill.icons" (a list of ids) overrides it, live, from prefs.json.
     // Default ["updates", "ai", "caffeine", "notifications", "volume", "bluetooth", "wifi", "battery", "power"].
-    readonly property var icons: Prefs.get("statusPill.icons", ["weather", "vpn", "updates", "ai", "caffeine", "notifications", "volume", "bluetooth", "wifi", "battery", "power"])
+    // To drop an icon, put "//" at the start of its line; to bring it back, remove them.
+    readonly property var icons: Prefs.get("statusPill.icons", [
+        "weather",        // weather at a glance (config/WeatherConfig.qml)
+        "vpn",            // VPN state
+        "updates",        // only while updates wait
+        "ai",             // AI usage symbol
+        "caffeine",       // keep-awake toggle
+        "notifications",  // bell with the unread count
+        "volume",         // volume
+        "bluetooth",      // Bluetooth
+        "wifi",           // network
+        "battery",          // percentage inside, time left next to it (batteryTime below)
+        "power",          // power menu
+    ])
     // Battery percentage, inside the battery icon. Default true.
     readonly property bool batteryPercent: true
     // Time left next to the battery: until empty on battery, until full while charging ("3h 12m";

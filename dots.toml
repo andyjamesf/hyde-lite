@@ -24,7 +24,6 @@ include = [
     "Scripts/dots/baloofilerc.toml",
     "Scripts/dots/thunar.toml",
     "Scripts/dots/kitty.toml",
-    "Scripts/dots/hyprlock.toml",
     "Scripts/dots/hypridle.toml",
     "Scripts/dots/hyprsunset.toml",
     "Scripts/dots/fastfetch.toml",

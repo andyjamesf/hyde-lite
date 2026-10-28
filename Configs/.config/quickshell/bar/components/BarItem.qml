@@ -21,7 +21,7 @@ Item {
     property var menu: null
     property bool menuOnLeftClick: false
     property bool active: false
-    property int padding: Math.round(BarLayout.height * 0.2)
+    property int padding: BarLayout.itemPadding
 
     // Widgets say whether they have anything to show through `shown` (and not `visible`,
     // which also depends on the parents). The WidgetLoader and the Island use it to hide themselves.

@@ -85,7 +85,6 @@ Keys that exist in only one of the two shells (the island or the HyDE bar) do no
 | <kbd>Super</kbd> + <kbd>Shift</kbd> + <kbd>W</kbd> | select a global wallpaper |
 | <kbd>Super</kbd> + <kbd>Shift</kbd> + <kbd>T</kbd> | select a theme |
 | <kbd>Super</kbd> + <kbd>Shift</kbd> + <kbd>Y</kbd> | select animations |
-| <kbd>Super</kbd> + <kbd>Shift</kbd> + <kbd>U</kbd> | select Hyprlock layout |
 | <kbd>Super</kbd> + <kbd>Alt</kbd> + <kbd>R</kbd> | update the shell from the checkout |
 | <kbd>Super</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd> | wallbash mode selector |
 | <kbd>Super</kbd> + <kbd>Shift</kbd> + <kbd>C</kbd> | wallpaper palette (colour scheme) |
