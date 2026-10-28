@@ -244,7 +244,7 @@ Singleton {
             clockDate: true,
             left: [["workspaces"], ["activeWindow"], ["stats"]],
             center: [["clock"]],
-            right: [["idle"], ["tray"], ["audio", "network", "battery"], ["notifications", "controlCenter", "power"]],
+            right: [["idle", "audio", "network", "bluetooth", "battery"], ["notifications", "controlCenter", "power"]],
         },
 
         // A TEMPLATE WITH EVERY MODULE: uncomment the block, then comment out what you do not want.
