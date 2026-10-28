@@ -18,8 +18,11 @@ def choice_ids(name):
 
 
 def default_list(path, prop):
-    m = re.search(rf"property var {prop}: Prefs\.get\(\"[\w.]+\", (\[.*?\])\)", (MI / path).read_text())
-    return json.loads(m.group(1))
+    m = re.search(rf"property var {prop}: Prefs\.get\(\"[\w.]+\", (\[.*?\])\)", (MI / path).read_text(), re.S)
+    # The lists are written one id per line with "//" comments (and a trailing comma) so an entry can be
+    # switched off by commenting it out; read them as JSON after dropping both.
+    body = re.sub(r"//[^\n]*", "", m.group(1))
+    return json.loads(re.sub(r",\s*\]", "]", body))
 
 
 def run_edits(calls):
