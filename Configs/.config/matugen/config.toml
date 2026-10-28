@@ -52,3 +52,29 @@ post_hook = "pkill -USR1 -x kitty || true"
 [templates.zed]
 input_path = "~/.config/matugen/templates/zed.json"
 output_path = "~/.config/zed/themes/matugen.json"
+
+# Discord: DiscordRecolor's variables, written once and copied to every client's quickCss that
+# exists (the same list HyDE's wallbash script used). Clients reload a changed quickCss themselves.
+[templates.discord]
+input_path = "~/.config/matugen/templates/discord.css"
+output_path = "~/.cache/hyde/matugen/discord.css"
+post_hook = "for d in ~/.config/Vencord/settings ~/.config/vesktop/settings ~/.var/app/dev.vencord.Vesktop/config/vesktop/settings; do [ -d \"$d\" ] && cp ~/.cache/hyde/matugen/discord.css \"$d/quickCss.css\"; done; for f in ~/.config/WebCord/Themes ~/.var/app/io.github.spacingbat3.webcord/config/WebCord/Themes; do [ -d \"$f\" ] && cp ~/.cache/hyde/matugen/discord.css \"$f/theme.css\"; done; true"
+
+# Spotify, through spicetify's Sleek theme. The colour scheme is named Matugen; the hook selects it and
+# applies it, and only when spicetify is installed and has been set up (`spicetify backup apply` once).
+[templates.spicetify]
+input_path = "~/.config/matugen/templates/spicetify.ini"
+output_path = "~/.config/spicetify/Themes/Sleek/color.ini"
+post_hook = "command -v spicetify >/dev/null 2>&1 && [ -d ~/.config/spicetify/Themes/Sleek ] && { spicetify config current_theme Sleek color_scheme Matugen && spicetify apply -q; } >/dev/null 2>&1 || true"
+
+# VS Code and VSCodium: a theme extension, so there is nothing to install from a marketplace. Select
+# "Matugen" once under Preferences: Color Theme; VS Code rereads a changed theme file by itself.
+# The hook copies the extension to VSCodium's folder when that exists.
+[templates.vscode-theme]
+input_path = "~/.config/matugen/templates/vscode-theme.json"
+output_path = "~/.vscode/extensions/hyde-lite.matugen-1.0.0/themes/matugen.json"
+
+[templates.vscode-package]
+input_path = "~/.config/matugen/templates/vscode-package.json"
+output_path = "~/.vscode/extensions/hyde-lite.matugen-1.0.0/package.json"
+post_hook = "[ -d ~/.vscode-oss/extensions ] && mkdir -p ~/.vscode-oss/extensions/hyde-lite.matugen-1.0.0 && cp -r ~/.vscode/extensions/hyde-lite.matugen-1.0.0/. ~/.vscode-oss/extensions/hyde-lite.matugen-1.0.0/ || true"
