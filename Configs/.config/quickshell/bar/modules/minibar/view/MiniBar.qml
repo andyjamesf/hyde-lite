@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
@@ -129,6 +130,19 @@ PanelWindow {
             anchors.bottomMargin: bar.atTop ? 0 : bar.gap
             anchors.leftMargin: bar.gap > 0 ? bar.gap : 4
             anchors.rightMargin: bar.gap > 0 ? bar.gap : 4
+
+            // "none" draws no background, so the text sits on the wallpaper, whose colour is not known
+            // (BarLayout.readable assumes the theme surface). A soft shadow in that surface colour keeps
+            // it readable on a light wallpaper as well as a dark one.
+            layer.enabled: MiniBarConfig.style === "none"
+            layer.effect: MultiEffect {
+                shadowEnabled: true
+                shadowColor: Theme.surface
+                shadowOpacity: 1
+                shadowBlur: 0.12
+                shadowScale: 1.0
+                shadowVerticalOffset: 1
+            }
 
             Section {
                 id: leftSection
