@@ -21,11 +21,13 @@ set -euo pipefail
 themes="${HYDE_CONFIG_HOME:-$HOME/.config/hyde}/themes"
 dest="${XDG_PICTURES_DIR:-$HOME/Pictures}/Wallpapers"
 
+# Extensions the pickers show too (shared/services/Wallpapers.qml, island/config/WallpapersConfig.qml):
+# keep the three lists in sync.
+img_name_test=(-iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.gif' -o -iname '*.webp' -o -iname '*.heic' -o -iname '*.heif')
+
 # Wallpapers of the folder, in the order the pickers list them (find -L follows the links; sort -V).
 list_walls() {
-    find -L "$dest" -maxdepth 1 -type f ! -name 'wall.*' \
-        \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.gif' -o -iname '*.webp' \) \
-        -print0 | sort -zV
+    find -L "$dest" -maxdepth 1 -type f ! -name 'wall.*' \( "${img_name_test[@]}" \) -print0 | sort -zV
 }
 
 cycle() {
@@ -88,7 +90,6 @@ while IFS= read -r -d '' f; do
     [[ -e "$link" || -L "$link" ]] && continue
     ln -s -- "$f" "$link"
     added=$((added + 1))
-done < <(find "$themes" -mindepth 3 -maxdepth 3 -path '*/wallpapers/*' -type f \
-    \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.gif' -o -iname '*.webp' \) -print0 | sort -z)
+done < <(find "$themes" -mindepth 3 -maxdepth 3 -path '*/wallpapers/*' -type f \( "${img_name_test[@]}" \) -print0 | sort -z)
 
 echo "$added new, $(list_walls | tr -cd '\0' | wc -c) wallpapers in $dest"

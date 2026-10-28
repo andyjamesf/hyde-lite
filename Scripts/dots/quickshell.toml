@@ -37,7 +37,7 @@ paths = [
     "shell.qml", "lock.qml", "sync.qml", "README.md",
     "bar/Shell.qml", "bar/README.md", "bar/components", "bar/modules", "bar/pickers", "bar/scripts", "bar/services",
     "island/Shell.qml", "island/README.md", "island/components", "island/core", "island/icons", "island/scripts",
-    "island/sddm", "island/services", "island/theme",
+    "island/sddm", "island/services", "island/theme", "shared",
 ]
 
 # The user's settings (bar/config/config.json, bar/config/layouts.json, island/config/*.qml): only copied

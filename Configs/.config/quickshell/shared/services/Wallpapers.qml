@@ -41,7 +41,7 @@ Singleton {
     // placeholders below), extensions, minBytes, pollMs, busyPollMs, busyTimeoutMs.
     property var settings: ({
             "dirs": ["{pictures}/Wallpapers", "{pictures}/Wallpapers/{theme}"],
-            "extensions": ["jpg", "jpeg", "png", "gif", "webp"],
+            "extensions": ["jpg", "jpeg", "png", "gif", "webp", "heic", "heif"],
             "minBytes": 4096,
             "pollMs": 2000,
             "busyPollMs": 400,
@@ -66,6 +66,8 @@ Singleton {
     property string _theme: ""
     // path → { mtime, hash }
     property var _hashes: ({})
+    // hash → whether HyDE already has that thumbnail (last probe to mention that hash).
+    property var _thumbExists: ({})
     // Result of the 1st phase: [{ path, mtime }], already sorted.
     property var _files: []
     property bool _again: false
@@ -135,16 +137,32 @@ for d; do
     find -L "$d" -maxdepth 1 -type f -size +\${min}c ! -name 'wall.*' \\( $pat \\) -printf '%p\\t%T@\\n' | sort -V
 done`
 
-    // 2nd phase: receives "path hash" pairs (hash "-" = unknown), computes the missing sha1 and tells
-    // whether HyDE already has the thumbnail. Output: "hash<TAB>0|1<TAB>path".
+    // 2nd phase: receives "path hash" pairs (hash "-" = unknown) and tells whether HyDE already has
+    // the thumbnail. Output: "hash<TAB>0|1<TAB>path". The unknown ones (everything, the first time
+    // the library is scanned) are hashed in one sha1sum per thousands of files instead of one process
+    // per file - forking a shell + sha1sum for each of a library this size (thousands) was most of
+    // the picker's loading time.
     readonly property string _probeScript: `
 t=$1; shift
+unknown=$(mktemp)
+trap 'rm -f "$unknown"' EXIT
 while [ $# -ge 2 ]; do
     f=$1; h=$2; shift 2
-    [ "$h" = - ] && h=$(sha1sum < "$f" | cut -d' ' -f1)
-    if [ -s "$t/$h.thmb" ]; then e=1; else e=0; fi
-    printf '%s\\t%s\\t%s\\n' "$h" "$e" "$f"
-done`
+    if [ "$h" = - ]; then
+        printf '%s\\n' "$f" >>"$unknown"
+    else
+        if [ -s "$t/$h.thmb" ]; then e=1; else e=0; fi
+        printf '%s\\t%s\\t%s\\n' "$h" "$e" "$f"
+    fi
+done
+if [ -s "$unknown" ]; then
+    xargs -d '\\n' sha1sum <"$unknown" | while IFS= read -r line; do
+        h=\${line%%  *}
+        f=\${line#*  }
+        if [ -s "$t/$h.thmb" ]; then e=1; else e=0; fi
+        printf '%s\\t%s\\t%s\\n' "$h" "$e" "$f"
+    done
+fi`
 
     function _onListed(text) {
         const seen = new Set();
@@ -167,6 +185,10 @@ done`
             _publish({});
             return;
         }
+        // Show something at once (the raw file, or an already-known thumbnail), instead of leaving
+        // the grid empty until every file below is hashed: on a library this size that first hash
+        // pass can take several seconds, which read as "stuck loading" rather than "still refining".
+        _publishProvisional();
         const args = [];
         for (const f of files) {
             const known = _hashes[f.path];
@@ -174,6 +196,25 @@ done`
         }
         prober.command = ["sh", "-c", _probeScript, "sh", thumbsDir].concat(args);
         prober.running = true;
+    }
+
+    // Immediate version of _publish(), from whatever this folder's previous scan already learned
+    // (nothing, the first time). Files it has no hash for yet fall back to the raw file.
+    function _publishProvisional() {
+        const out = [];
+        for (const f of _files) {
+            const known = _hashes[f.path];
+            const hash = known && known.mtime === f.mtime ? known.hash : "";
+            const cached = hash !== "" && _thumbExists[hash];
+            out.push({
+                key: f.path,
+                path: f.path,
+                name: _basename(f.path),
+                hash: hash,
+                thumb: fileUrl(cached ? `${thumbsDir}/${hash}.thmb` : f.path)
+            });
+        }
+        _list = out;
     }
 
     function _onProbed(text) {
@@ -193,14 +234,17 @@ done`
 
     function _publish(info) {
         const hashes = {};
+        const thumbExists = Object.assign({}, _thumbExists);
         const out = [];
         for (const f of _files) {
             const i = info[f.path];
-            if (i && i.hash)
+            if (i && i.hash) {
                 hashes[f.path] = {
                     mtime: f.mtime,
                     hash: i.hash
                 };
+                thumbExists[i.hash] = i.thumb;
+            }
             out.push({
                 key: f.path,
                 path: f.path,
@@ -209,6 +253,7 @@ done`
                 thumb: fileUrl(i && i.thumb ? `${thumbsDir}/${i.hash}.thmb` : f.path)
             });
         }
+        _thumbExists = thumbExists;
         _hashes = hashes;
         _list = out;
         _loading = false;

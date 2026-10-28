@@ -224,13 +224,16 @@ Singleton {
                     })
 
                 // Most rows each picker returns. 50–1000; defaults windows 200, emoji 300, glyph 300,
-                // bookmarks 200, games 200 (the launcher also caps at maxShown).
+                // bookmarks 200, games 200 (the launcher also caps at maxShown, for pickers with no
+                // entry here). wallpapers has no cap: the folder is the limit, not a row count, and
+                // the grid only renders the tiles actually on screen.
                 property var maxResults: ({
                         "windows": 200,
                         "emoji": 300,
                         "glyph": 300,
                         "bookmarks": 200,
-                        "games": 200
+                        "games": 200,
+                        "wallpapers": Infinity
                     })
 
                 // Quick apps ("quickapps") when ~/.config/hyde/config.toml has no [desktop.app].quickapps
@@ -243,7 +246,8 @@ Singleton {
                 // default 150.
                 property int pasteDelayMs: 150
 
-                // Most rows the launcher shows for any picker. 50–1000, default 300.
+                // Most rows the launcher shows for a picker with no entry in pickers.maxResults.
+                // 50–1000, default 300.
                 property int maxShown: 300
 
                 // Wallpaper picker ("wallpapers"). Folders searched, in grid order; {theme} is the current HyDE
@@ -253,7 +257,7 @@ Singleton {
                 // the picker is open / while a change is being applied. busyTimeoutMs: give up waiting after this.
                 property var wallpapers: ({
                         "dirs": ["{pictures}/Wallpapers", "{pictures}/Wallpapers/{theme}"],
-                        "extensions": ["jpg", "jpeg", "png", "gif", "webp"],
+                        "extensions": ["jpg", "jpeg", "png", "gif", "webp", "heic", "heif"],
                         "minBytes": 4096,
                         "pollMs": 2000,
                         "busyPollMs": 400,
