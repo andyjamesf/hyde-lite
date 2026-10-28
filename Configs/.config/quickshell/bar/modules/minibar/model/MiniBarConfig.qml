@@ -62,7 +62,7 @@ Singleton {
     // "none"        no background at all: only the icons and the text, over whatever is behind
     // "continuous"  a thin strip from edge to edge, against the edge of the screen
     // "islands"     rounded groups that float, each with its own background
-    readonly property string style: "none"
+    readonly property string style: "islands"
 
     // Bar height in px. 0 = the same as the normal bar's. Clamped to 16–40.
     readonly property int height: 20
