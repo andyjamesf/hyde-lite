@@ -422,6 +422,22 @@ Singleton {
         }
     }
 
+    // Average colour of the top strip of the wallpaper: what is really behind a bar with no
+    // background, so its text can be checked against it and not against the theme's surface.
+    // "transparent" until it is measured.
+    property color wallTop: "transparent"
+    readonly property string _wallPath: `${Quickshell.env("XDG_CACHE_HOME") || Quickshell.env("HOME") + "/.cache"}/hyde/wall.set.png`
+    onWallPaletteChanged: wallTopProc.running = true
+    Process {
+        id: wallTopProc
+        running: true
+        command: ["magick", root._wallPath, "-gravity", "north", "-crop", "100%x6%+0+0", "+repage", "-resize", "1x1!", "-format", "#%[hex:p{0,0}]", "info:"]
+        stdout: StdioCollector {
+            onStreamFinished: if (/^#[0-9a-fA-F]{6}/.test(text))
+                root.wallTop = text.slice(0, 7)
+        }
+    }
+
     // Re-reads the wallpaper palette after a HyDE change (see `settle`).
     function reloadWallpaper() {
         settle.tries = 0;

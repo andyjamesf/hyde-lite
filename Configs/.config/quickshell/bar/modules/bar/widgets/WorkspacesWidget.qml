@@ -42,7 +42,8 @@ Item {
         height: root.indicatorHeight
         anchors.verticalCenter: parent.verticalCenter
         radius: height / 2
-        color: BarLayout.readable(Theme.primary, 1.8)
+        // Softened: a fully saturated accent behind the active workspace is too loud.
+        color: BarLayout.readable(Theme.blend(BarLayout.pillBase, Theme.primary, 0.6), 1.8)
 
         Behavior on x {
             NumberAnim {

@@ -138,10 +138,14 @@ Singleton {
     readonly property color pillBorder: pillStyle === "outline" ? Theme.alpha(Theme.primary, 0.7) : pillStyle === "glass" ? Theme.alpha(Theme.text, 0.18) : Theme.alpha(Theme.outlineVariant, 0.5)
 
     // Opaque color seen behind the island text (to guarantee contrast). With transparent
-    // styles we don't know what is behind (the wallpaper); the theme background is used.
+    // styles what is behind is the wallpaper: its measured top strip (Theme.wallTop), or the theme
+    // background until that is known.
     readonly property color pillBase: {
         const c = Qt.color(pillColor);
-        return c.a < 0.5 ? Theme.surface : Qt.rgba(c.r, c.g, c.b, 1);
+        // The minimal bar's "none" style draws nothing although pillColor still carries its opacity.
+        if (c.a >= 0.5 && !(mini && MiniBarConfig.style === "none"))
+            return Qt.rgba(c.r, c.g, c.b, 1);
+        return Theme.wallTop.a > 0 ? Theme.wallTop : Theme.surface;
     }
 
     // Readable color over the islands: text 4.5:1, icons and graphical elements 3:1.
