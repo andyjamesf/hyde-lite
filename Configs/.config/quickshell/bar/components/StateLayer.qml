@@ -34,8 +34,7 @@ MouseArea {
         anchors.fill: parent
         z: -1
         radius: root.radius
-        // A widget that is switched on (caffeine, do not disturb, an open panel) reads as such, not as a hover.
-        color: root.pressed ? Theme.pressed : root.active ? Theme.alpha(Theme.primary, 0.22) : root.highlight
+        color: root.pressed ? Theme.pressed : root.highlight
         opacity: root.containsMouse || root.active ? 1 : 0
 
         Behavior on opacity {
