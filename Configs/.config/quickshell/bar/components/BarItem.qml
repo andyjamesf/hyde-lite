@@ -72,7 +72,10 @@ Item {
         anchors.fill: parent
         anchors.topMargin: Math.round(BarLayout.height * 0.14)
         anchors.bottomMargin: Math.round(BarLayout.height * 0.14)
-        active: root.active || root.menuOpen || root.popoutOpen
+        // Only while its menu or panel is open. A widget that is merely switched on (caffeine, night light,
+        // do not disturb) has no background of its own: every icon of the bar keeps the same one, and the
+        // state shows in the icon (filled or not).
+        active: root.menuOpen || root.popoutOpen
 
         onClicked: mouse => {
             if (mouse.button === Qt.RightButton) {
