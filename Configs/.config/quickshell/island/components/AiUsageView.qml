@@ -12,6 +12,14 @@ Item {
 
     property bool open: false
 
+    // The numbers are fetched while this is open, and not otherwise (services/AiUsage.qml).
+    Binding {
+        target: AiUsage
+        property: "active"
+        value: true
+        when: root.open
+    }
+
     readonly property real islandRadius: 26
     readonly property int pad: 16
 
@@ -132,7 +140,7 @@ Item {
                             anchors.verticalCenter: parent.verticalCenter
                             text: !card.s ? "Waiting…" : card.syncing ? "Syncing…" : card.failed ? card.s.text : root.ago(card.s.updated)
                             color: card.failed ? Theme.danger : Theme.dim
-                            font.pixelSize: Appearance.fontSize - 2
+                            font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                         }
                     }
 
@@ -158,7 +166,7 @@ Item {
                                     Label {
                                         text: root.resetText(modelData.reset)
                                         color: Theme.dim
-                                        font.pixelSize: Appearance.fontSize - 2
+                                        font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                                     }
                                     Label {
                                         text: `${Math.round(modelData.percent)}%`
@@ -204,7 +212,7 @@ Item {
                             wrapMode: Text.WordWrap
                             text: modelData
                             color: Theme.faint
-                            font.pixelSize: Appearance.fontSize - 2
+                            font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                         }
                     }
                 }
@@ -216,7 +224,7 @@ Item {
             horizontalAlignment: Text.AlignHCenter
             text: "Click a card to read it again"
             color: Theme.faint
-            font.pixelSize: Appearance.fontSize - 2
+            font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
         }
     }
 }

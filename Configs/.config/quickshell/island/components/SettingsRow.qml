@@ -88,7 +88,7 @@ Item {
             visible: text !== ""
             text: root.subtitle
             color: Theme.dim
-            font.pixelSize: Appearance.fontSize - 2
+            font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
         }
     }
 

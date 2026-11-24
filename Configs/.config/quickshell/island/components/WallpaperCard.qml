@@ -123,7 +123,7 @@ Item {
                     anchors.leftMargin: 10
                     anchors.rightMargin: 10
                     text: root.entry && root.entry.name ? root.entry.name : ""
-                    font.pixelSize: Appearance.fontSize - 2
+                    font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                 }
             }
 

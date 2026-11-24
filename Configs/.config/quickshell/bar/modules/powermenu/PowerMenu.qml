@@ -31,7 +31,7 @@ PanelWindow {
             confirm: false
         },
         {
-            icon: "downloading",
+            icon: "bedtime",
             label: "Hibernate",
             key: Qt.Key_H,
             cmd: "systemctl hibernate",
@@ -144,7 +144,7 @@ PanelWindow {
 
         anchors.fill: parent
         radius: Theme.shapeXL
-        color: Theme.alpha(Theme.surfaceContainer, 0.96)
+        color: Theme.alpha(Theme.surfaceContainer, Theme.panelOpacity)
         border.width: 1
         border.color: Theme.border
         opacity: win.open ? 1 : 0
@@ -201,7 +201,7 @@ PanelWindow {
                         required property int index
                         readonly property bool selected: index === win.current
                         readonly property bool isArmed: index === win.armed
-                        readonly property bool danger: modelData.confirm
+                        readonly property bool danger: modelData.label === "Restart" || modelData.label === "Shut down"
 
                         spacing: 6
 
@@ -210,7 +210,7 @@ PanelWindow {
                             implicitWidth: 72
                             implicitHeight: 72
                             radius: btn.selected ? 24 : 36
-                            color: btn.isArmed ? Theme.error : btn.selected ? Theme.primary : Theme.surfaceContainerHigh
+                            color: btn.isArmed ? Theme.error : btn.danger ? Theme.alpha(Theme.error, 0.12) : btn.selected ? Theme.primary : Theme.surfaceContainerHigh
 
                             Behavior on radius {
                                 NumberAnim {
@@ -226,7 +226,7 @@ PanelWindow {
                                 icon: btn.modelData.icon
                                 size: 30
                                 fill: btn.selected ? 1 : 0
-                                color: btn.isArmed ? Theme.readable(Theme.surface, Theme.error, 4.5) : btn.selected ? Theme.onPrimary : btn.danger ? Theme.error : Theme.text
+                                color: btn.isArmed ? Theme.readable(Theme.surface, Theme.error, 4.5) : btn.danger ? Theme.error : btn.selected ? Theme.onPrimary : Theme.text
                             }
 
                             StateLayer {

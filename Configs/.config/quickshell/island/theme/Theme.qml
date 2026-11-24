@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell
+import qs.shared.services
 import qs.island.config
 
 // The island's colour roles. No component uses hand-written colours: everything comes from here,
@@ -149,9 +150,7 @@ Singleton {
     // absolute.
 
     function blend(a, b, t) {
-        a = Qt.color(a);
-        b = Qt.color(b);
-        return Qt.rgba(a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t, 1);
+        return ColorMath.blend(a, b, t);
     }
 
     // APCA 0.1.9 (W3C draft). A fitted set, not free parameters: change one and the Lc scale stops
@@ -200,9 +199,7 @@ Singleton {
     // Still WCAG 2's luminance, on purpose: `dark` at the top of this file is a lightness test and
     // not a contrast one, and swapping the curve there could flip which palettes count as dark.
     function relativeLuminance(c) {
-        c = Qt.color(c);
-        const lin = v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
-        return 0.2126 * lin(c.r) + 0.7152 * lin(c.g) + 0.0722 * lin(c.b);
+        return ColorMath.relativeLuminance(c);
     }
 
     // Black or white, whichever reads better on top of `c`.

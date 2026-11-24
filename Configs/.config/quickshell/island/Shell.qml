@@ -20,6 +20,8 @@ Scope {
     // The queue must exist from startup, or the first notification is announced with nobody
     // listening: a singleton is only created when something first touches it.
     readonly property var notificationQueue: NotificationQueue
+    // The palette follows the wallpaper that is on the screen, however it was changed.
+    readonly property var wallpaperFollow: WallpaperFollow
     // The polkit agent must exist from startup (it registers with polkitd).
     readonly property bool polkitRegistered: Polkit.registered
     // Wi-Fi and Bluetooth agent (scripts/agents.py) from startup.

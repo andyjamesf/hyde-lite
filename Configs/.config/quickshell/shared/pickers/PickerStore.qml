@@ -2,7 +2,6 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import qs.shared.services
 
 // Shared picker state (recently used emoji, glyphs and bookmarks) in a single file:
 // pickers.json in the shell's state folder (PickerSettings.statePath). One FileView/JsonAdapter for all

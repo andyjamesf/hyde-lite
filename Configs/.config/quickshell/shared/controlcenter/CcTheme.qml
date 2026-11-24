@@ -34,10 +34,11 @@ Singleton {
     property string nerdFont: ""
     property real fontSize: 13
 
-    // How text is drawn. A shell that scales the page (the bar draws it at 84%) uses curve rendering,
-    // which stays sharp under a transform, and pads a pixel above and below: with `elide` Qt clips to
+    // How text is drawn. Curve rendering stays sharp under a transform (the bar draws the page at 84%) and
+    // under fractional scaling, where native rendering snaps glyphs to whole pixels and the spacing turns
+    // uneven. It pads a pixel above and below: with `elide` Qt clips to
     // the line box and, scaled, the descenders of g, p and y were cut off.
-    property int textRendering: Text.NativeRendering
+    property int textRendering: Text.CurveRendering
     property int textPadding: 0
 
     // Layout.

@@ -189,7 +189,7 @@ Item {
                 wrapMode: Text.WordWrap
                 text: "Performance is held back by the system (temperature, or the laptop on a lap)."
                 color: Theme.dim
-                font.pixelSize: Appearance.fontSize - 2
+                font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
             }
         }
     }

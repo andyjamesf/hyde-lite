@@ -5,7 +5,7 @@ import qs.bar.services
 // (theme, wallpaper, animations, workflows, night light…).
 BarItem {
     icon: "palette"
-    iconColor: Theme.primary
+    iconColor: Theme.text
     tooltip: `HyDE and shell options\nLayout: ${BarLayout.preset.label ?? BarLayout.current}`
     menuOnLeftClick: true
     menu: [

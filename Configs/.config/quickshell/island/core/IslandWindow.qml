@@ -413,7 +413,7 @@ PanelWindow {
                             visible: !entry.heading && (entry.modelData.detail ?? "") !== ""
                             text: entry.modelData.detail ?? ""
                             color: Theme.dim
-                            font.pixelSize: Appearance.fontSize - 2
+                            font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                         }
                     }
 

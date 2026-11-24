@@ -17,6 +17,8 @@ Item {
     property bool rich: false
     property string fontFamily: Config.appearance.font
     property int maxTextWidth: 10000
+    property int textSize: BarLayout.fontSize
+    property int textWeight: Font.Normal
     property string tooltip
     property var menu: null
     property bool menuOnLeftClick: false
@@ -80,6 +82,11 @@ Item {
             } else if (mouse.button === Qt.MiddleButton) {
                 root.middleClicked();
             } else {
+                // With the control centre's tabs on, a widget's panel is the control centre's own page.
+                if (root.popout && ShellState.routePopout(root.popoutName)) {
+                    root.clicked();
+                    return;
+                }
                 if (root.popout && Date.now() - root.popoutClosedAt > 300)
                     root.popoutOpen = !root.popoutOpen;
                 if (root.menu && root.menuOnLeftClick)
@@ -108,18 +115,19 @@ Item {
             icon: root.icon
             fill: root.iconFill
             size: BarLayout.iconSize
-            color: BarLayout.readable(root.iconColor, 3)
+            color: BarLayout.readableFor(root, root.iconColor, 3, BarLayout.relayoutTick)
         }
 
         StyledText {
             visible: root.text !== ""
             anchors.verticalCenter: parent.verticalCenter
             width: Math.min(implicitWidth, root.maxTextWidth)
-            text: root.rich ? Utils.pango(root.text, c => BarLayout.readable(c, 3)) : root.text
+            text: root.rich ? Utils.pango(root.text, c => BarLayout.readableFor(root, c, 3, BarLayout.relayoutTick)) : root.text
             textFormat: root.rich ? Text.StyledText : Text.PlainText
-            color: BarLayout.readable(root.textColor, 4.5)
+            color: BarLayout.readableFor(root, root.textColor, 4.5, BarLayout.relayoutTick)
             font.family: root.fontFamily
-            font.pixelSize: BarLayout.fontSize
+            font.pixelSize: root.textSize
+            font.weight: root.textWeight
         }
     }
 
@@ -178,8 +186,10 @@ Item {
         }
         function onRequestedPopoutChanged() {
             const screenOk = !root.bar?.screen || ShellState.requestedPopoutScreen === "" || ShellState.requestedPopoutScreen === root.bar.screen.name;
-            if (ShellState.requestedPopout === root.popoutName && screenOk && root.visible)
-                root.popoutOpen = true;
+            if (ShellState.requestedPopout === root.popoutName && screenOk && root.visible) {
+                if (!ShellState.routePopout(root.popoutName))
+                    root.popoutOpen = true;
+            }
         }
     }
 }

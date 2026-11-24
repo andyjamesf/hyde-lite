@@ -9,6 +9,8 @@ Singleton {
     readonly property string font: "Inter"
     // Base text size in pixels; larger/smaller texts are derived from it. Range 11–18, default 13.
     readonly property int fontSize: Prefs.get("appearance.fontSize", 13)
+    // Floor for secondary text (hints, subtitles, weekday names): derived sizes never go below it.
+    readonly property int minFontSize: 11
     // Nerd Font family for glyph icons (launcher rows, picker headers, power actions…).
     // Default "JetBrainsMono Nerd Font".
     readonly property string nerdFont: "JetBrainsMono Nerd Font"

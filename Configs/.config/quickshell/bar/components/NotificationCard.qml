@@ -25,7 +25,7 @@ Rectangle {
     implicitWidth: 360
     implicitHeight: content.implicitHeight + 2 * Theme.space3
     radius: popup ? Theme.shapeLarge : Theme.shapeMedium
-    color: popup ? Theme.alpha(Theme.surfaceContainer, 0.97) : Theme.surfaceContainerHigh
+    color: popup ? Theme.alpha(Theme.surfaceContainer, Theme.panelOpacity) : Theme.surfaceContainerHigh
     border.width: critical ? 2 : popup ? 1 : 0
     border.color: critical ? Theme.error : Theme.border
 
@@ -166,10 +166,14 @@ Rectangle {
                         StateLayer {
                             anchors.fill: parent
                             onClicked: {
+                                // invoke() can take the card down at once (the notification is gone), after
+                                // which `root` no longer resolves: read what is needed first.
+                                const notification = root.notification;
+                                const closed = root.closed;
                                 action.modelData.invoke();
-                                root.closed();
-                                if (!root.notification.resident)
-                                    root.notification.dismiss();
+                                closed();
+                                if (!notification.resident)
+                                    notification.dismiss();
                             }
                         }
                     }

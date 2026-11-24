@@ -53,7 +53,7 @@ Item {
         Label {
             anchors.horizontalCenter: parent.horizontalCenter
             text: Time.date
-            font.pixelSize: Appearance.fontSize - 2
+            font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
             color: Theme.dim
         }
     }
@@ -73,7 +73,8 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         zoneWidth: root.side - Expanded.margin
         // With the status pill on, it slides in here: show what it showed, so nothing disappears.
-        icons: StatusPillConfig.enabled ? StatusPillConfig.icons : Expanded.statusIcons
+        // The middle of this view already shows the time and the date: not twice.
+        icons: (StatusPillConfig.enabled ? StatusPillConfig.icons : Expanded.statusIcons).filter(i => i !== "clock" && i !== "date")
         batteryPercent: !StatusPillConfig.enabled || StatusPillConfig.batteryPercent
         batteryTime: StatusPillConfig.enabled && StatusPillConfig.batteryTime
         alwaysShowBell: StatusPillConfig.alwaysShowBell

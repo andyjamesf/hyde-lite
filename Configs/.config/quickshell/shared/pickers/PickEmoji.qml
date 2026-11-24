@@ -35,11 +35,17 @@ Singleton {
     property var _byChar: ({})
 
     function refresh() {
-        if (_requested)
+        // Read once and kept; but when that read left nothing (it was cut short, or the file was not
+        // there yet), opening the picker again reads it again instead of showing an empty grid for good.
+        if (_requested && (_loading || _all.length > 0))
             return;
         _requested = true;
         _loading = true;
-        db.path = `${dataHome}/emoji.db`;
+        const path = `${dataHome}/emoji.db`;
+        if (db.path === path)
+            db.reload();
+        else
+            db.path = path;
     }
 
     function _parse(text) {
@@ -91,21 +97,6 @@ Singleton {
         };
     }
 
-    // Score of one term in a description: whole word > word start > substring.
-    // `t` = { term, word }; `low` is padded with spaces, so a whole word is " term "
-    // (no regular expressions: this runs over thousands of entries per keystroke).
-    function _termScore(t, low) {
-        const idx = low.indexOf(t.term);
-        if (idx < 0)
-            return 0;
-        const w = low.indexOf(t.word);
-        if (w >= 0)
-            return 100 - Math.min(30, w / 2);
-        if (low[idx - 1] === " ")
-            return 80 - Math.min(30, idx / 2);
-        return 50 - Math.min(20, idx / 2);
-    }
-
     function items(query) {
         const q = String(query ?? "").trim().toLowerCase();
         if (q === "") {
@@ -125,7 +116,7 @@ Singleton {
         // Local copies: calling a QML method or reading an object property for each of thousands
         // of entries is several times slower than a local JS function.
         const all = _all;
-        const score = _termScore;
+        const score = Fuzzy.termScore;
         for (const e of all) {
             let s = 0;
             for (const t of terms) {

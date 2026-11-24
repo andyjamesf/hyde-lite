@@ -73,7 +73,7 @@ FocusScope {
         }
         color: Qt.alpha(Theme.foreground, 0.35)
         font.family: Appearance.font
-        font.pixelSize: Appearance.fontSize - 3
+        font.pixelSize: Math.max(Appearance.fontSize - 3, Appearance.minFontSize)
     }
 
     Flickable {

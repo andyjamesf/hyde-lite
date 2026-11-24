@@ -10,6 +10,7 @@ Singleton {
 
     readonly property alias bar: adapter.bar
     readonly property alias appearance: adapter.appearance
+    readonly property alias controlCenter: adapter.controlCenter
     readonly property alias widgets: adapter.widgets
     readonly property alias pickers: adapter.pickers
 
@@ -37,6 +38,7 @@ Singleton {
             //   "media"          the track that is playing; a click opens the controls
             //   "cava"           audio visualiser
             //   "aiUsage"        the AI tools' usage
+            //   "notes"          quick notes; a click opens the page (shared with the island)
             //   "tray"           system tray icons
             //   "audio"          volume; a click opens the panel, the wheel changes it
             //   "mic"            microphone
@@ -58,11 +60,24 @@ Singleton {
                 // "top" | "bottom" (layouts can enforce their own position)
                 property string position: "top"
                 property real opacity: 0.92
+                // Floor for the islands' opacity (0 = off): text on a translucent island over a light
+                // wallpaper loses contrast. Not applied to the "glass" and "outline" styles.
+                property real minOpacity: 0.85
                 // Island background: "surface", "tint", "container", "accent", "glass", "outline"
                 // or a fixed color ("#rrggbb"). Can be changed in the HyDE menu.
                 property string pillStyle: "tint"
                 // Layout to use automatically with each HyDE theme, e.g. { "Catppuccin-Mocha": "minimal" }.
                 property var themeLayouts: ({})
+            }
+
+            property JsonObject controlCenter: JsonObject {
+                // Opacity of the control centre's background, 0.2 (almost glass) to 1 (solid). With
+                // a Hyprland blur rule for the layer (`layerrule = blur, quickshell:controlcenter`)
+                // a lower value frosts what is behind instead of just showing it.
+                property real opacity: 0.8
+                // Apps, clipboard and the keybindings open as tabs of the control centre; false brings
+                // back the launcher's own window.
+                property bool tabs: true
             }
 
             property JsonObject appearance: JsonObject {
@@ -84,17 +99,12 @@ Singleton {
             property JsonObject pickers: JsonObject {
                 // Pickers that can be opened (by IPC or from the HyDE menu). Removing a name disables it: `pick`
                 // falls back to the normal launcher and the HyDE menu hides it. Default: all of them.
-                property var enabled: ["themes", "wallpapers", "windows", "files", "web", "emoji", "glyph", "bookmarks", "quickapps", "games", "wallbash", "palette", "animations", "workflows", "shaders", "layouts", "menu"]
+                property var enabled: ["wallpapers", "windows", "files", "web", "emoji", "glyph", "bookmarks", "quickapps", "wallbash", "palette", "animations", "workflows", "layouts", "menu"]
 
                 // The HyDE menu picker ("menu"), in display order. Each entry: `name` (a picker from `enabled`),
                 // `description` (row subtitle, also searched) and `glyph` (a Nerd Font character shown as the
                 // row icon; "" uses the picker's own glyph if it is a character).
                 property var menu: [
-                    {
-                        "name": "themes",
-                        "description": "Switch the HyDE theme",
-                        "glyph": "󰏘"
-                    },
                     {
                         "name": "wallpapers",
                         "description": "Pick a wallpaper for the current theme",
@@ -136,11 +146,6 @@ Singleton {
                         "glyph": ""
                     },
                     {
-                        "name": "games",
-                        "description": "Launch a Steam or Lutris game",
-                        "glyph": ""
-                    },
-                    {
                         "name": "wallbash",
                         "description": "Theme colours: theme, auto, dark or light",
                         "glyph": ""
@@ -161,11 +166,6 @@ Singleton {
                         "glyph": ""
                     },
                     {
-                        "name": "shaders",
-                        "description": "Screen shaders",
-                        "glyph": ""
-                    },
-                    {
                         "name": "layouts",
                         "description": "Window tiling layout",
                         "glyph": ""
@@ -179,8 +179,8 @@ Singleton {
                         "roots": ["~"],
                         // How deep to descend below each root. Levels, 1–12, default 6.
                         "maxDepth": 6,
-                        // Stop listing after this many files and folders. 500–50000, default 5000.
-                        "maxEntries": 5000,
+                        // Stop listing after this many files and folders. 500–50000, default 30000.
+                        "maxEntries": 30000,
                         // Most rows shown. 50–1000, default 200.
                         "maxResults": 200,
                         // Folder/file names skipped anywhere in the tree (hidden ones are always skipped).
@@ -268,9 +268,12 @@ Singleton {
             property JsonObject widgets: JsonObject {
                 property JsonObject workspaces: JsonObject {
                     // Minimum number of workspaces shown, even when empty.
-                    property int shown: 5
+                    property int shown: 1
                     property bool appIcons: true
                     property int maxIcons: 3
+                    // Only the workspaces with windows (and the one in use) show; the empty ones
+                    // in between do not. `shown` still guarantees a minimum.
+                    property bool hideEmpty: true
                 }
                 property JsonObject activeWindow: JsonObject {
                     property int maxWidth: 200
@@ -290,9 +293,18 @@ Singleton {
                     property bool memory: true
                     property bool temperature: true
                     property bool network: false
+                    // Memory and temperature only show when they stand out (CPU is always there; the
+                    // tooltip has all three). false = always show every enabled one.
+                    property bool onlyWhenHigh: true
+                    property real memoryHigh: 0.75
+                    property int temperatureHigh: 70
                 }
                 property JsonObject battery: JsonObject {
                     property bool showPercent: true
+                    // The percentage only shows below `autoBelow` or while charging; the icon says the
+                    // rest. false = always (when showPercent is on).
+                    property bool autoPercent: true
+                    property int autoBelow: 30
                     // Time left next to the percentage ("87% · 3 h 20 min"; until full while
                     // charging). Nothing shows while the system has no estimate yet.
                     // false = percentage only; the time stays in the tooltip.
@@ -315,6 +327,8 @@ Singleton {
                 }
                 property JsonObject audio: JsonObject {
                     property bool showPercent: true
+                    // The percentage only shows for a moment after the volume changes. false = always.
+                    property bool autoPercent: true
                     property int step: 5
                 }
                 property JsonObject tray: JsonObject {

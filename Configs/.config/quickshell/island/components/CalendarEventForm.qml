@@ -319,7 +319,7 @@ Column {
             Label {
                 visible: GoogleCalendar.calendars.length > 0 && !root.editing
                 text: "Calendar"
-                font.pixelSize: Appearance.fontSize - 2
+                font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                 color: Theme.dim
             }
             Chips {
@@ -350,7 +350,7 @@ Column {
 
             Label {
                 text: "Starts"
-                font.pixelSize: Appearance.fontSize - 2
+                font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                 color: Theme.dim
             }
             Row {
@@ -374,7 +374,7 @@ Column {
 
             Label {
                 text: allDay.value ? "Ends (last day)" : `Ends (empty: ${CalendarConfig.defaultDurationMinutes} min later)`
-                font.pixelSize: Appearance.fontSize - 2
+                font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                 color: Theme.dim
             }
             Row {
@@ -398,7 +398,7 @@ Column {
             Label {
                 visible: root.editing?.scope !== "this" || !root.editing?.recurring
                 text: "Repeat"
-                font.pixelSize: Appearance.fontSize - 2
+                font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                 color: Theme.dim
             }
             Chips {
@@ -501,7 +501,7 @@ Column {
 
             Label {
                 text: "Colour"
-                font.pixelSize: Appearance.fontSize - 2
+                font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                 color: Theme.dim
             }
             // Event colour: the calendar's own, or one of Google's eleven.
@@ -522,7 +522,7 @@ Column {
                         id: calLabel
                         anchors.centerIn: parent
                         text: "Calendar's"
-                        font.pixelSize: Appearance.fontSize - 2
+                        font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                         color: colorPick.value === "" ? Theme.accentContent : Theme.foreground
                     }
                     MouseArea {
@@ -567,7 +567,7 @@ Column {
 
             Label {
                 text: "Reminder"
-                font.pixelSize: Appearance.fontSize - 2
+                font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                 color: Theme.dim
             }
             Chips {
@@ -623,7 +623,7 @@ Column {
             width: parent.width
             wrapMode: Text.WordWrap
             text: root.message
-            font.pixelSize: Appearance.fontSize - 2
+            font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
             color: root.message === "Loading…" ? Theme.dim : Theme.danger
         }
     }

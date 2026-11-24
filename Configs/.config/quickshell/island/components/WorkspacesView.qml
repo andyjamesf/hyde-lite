@@ -86,7 +86,7 @@ Item {
                         visible: chip.modelData.extra > 0
                         anchors.verticalCenter: parent.verticalCenter
                         text: `+${chip.modelData.extra}`
-                        font.pixelSize: Appearance.fontSize - 2
+                        font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                         color: chip.active ? Theme.accentContent : Theme.dim
                     }
                 }

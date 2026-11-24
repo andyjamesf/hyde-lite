@@ -76,7 +76,7 @@ Row {
             // multiplies by the icon's luminance, so the icon is first pushed to the right
             // extreme: white for light colors, black for dark colors (light themes).
             MultiEffect {
-                readonly property color target: BarLayout.readable(Theme.text, 3)
+                readonly property color target: BarLayout.readableFor(trayIcon, Theme.text, 3, BarLayout.relayoutTick)
                 visible: item.mono
                 anchors.fill: trayIcon
                 source: trayIcon

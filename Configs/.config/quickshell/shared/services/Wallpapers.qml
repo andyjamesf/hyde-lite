@@ -58,16 +58,26 @@ Singleton {
     readonly property string hydeCache: `${Paths.cacheHome}/hyde`
     readonly property string hydeConfig: `${Paths.configHome}/hyde`
     readonly property string thumbsDir: `${hydeCache}/thumbs`
+    // Small JPEG copies (320 px wide) of the thumbnails, for the picker's grid. HyDE's own are PNGs of
+    // 1000 px, some of 3 MB: decoding those while scrolling was what made the grid slow. Made in the
+    // background by `_makeSmall`, one per wallpaper, named by the same hash.
+    readonly property string smallDir: `${Paths.cacheHome}/quickshell/wallpaper-thumbs`
 
     property var _list: []
     property string _current: ""
     property string _pending: ""
+    // The request that arrived while `_pending` was still being applied ("" = none).
+    property string _queued: ""
     property bool _loading: false
     property string _theme: ""
     // path → { mtime, hash }
     property var _hashes: ({})
+    // Hashes the small-copy maker already tried (one that fails must not be retried forever).
+    property var _tried: ({})
     // hash → whether HyDE already has that thumbnail (last probe to mention that hash).
     property var _thumbExists: ({})
+    // What is on disk in `hashStore`: path → { mtime, hash }, for every folder seen so far.
+    property var _persisted: ({})
     // Result of the 1st phase: [{ path, mtime }], already sorted.
     property var _files: []
     property bool _again: false
@@ -86,13 +96,29 @@ Singleton {
 
     // Applies a wallpaper globally through HyDE. Returns false if it did nothing.
     function set(path) {
-        if (!path || busy || path === current)
+        if (!path)
+            return false;
+        // A change is still being applied: keep the latest request and run it when that one lands
+        // (before, the click was dropped, and Random seemed to ignore the input).
+        if (busy) {
+            if (path !== _pending)
+                _queued = path;
+            return true;
+        }
+        if (path === current)
             return false;
         _pending = path;
         // Detached: if the shell reloads midway, HyDE still finishes the job.
         Quickshell.execDetached(["hyde-shell", "wallpaper", "--global", "-s", path]);
         busyTimeout.restart();
         return true;
+    }
+
+    function _runQueued() {
+        const q = _queued;
+        _queued = "";
+        if (q !== "")
+            set(q);
     }
 
     function isCurrent(path) {
@@ -143,7 +169,7 @@ done`
     // per file - forking a shell + sha1sum for each of a library this size (thousands) was most of
     // the picker's loading time.
     readonly property string _probeScript: `
-t=$1; shift
+t=$1; s=$2; shift 2
 unknown=$(mktemp)
 trap 'rm -f "$unknown"' EXIT
 while [ $# -ge 2 ]; do
@@ -151,7 +177,7 @@ while [ $# -ge 2 ]; do
     if [ "$h" = - ]; then
         printf '%s\\n' "$f" >>"$unknown"
     else
-        if [ -s "$t/$h.thmb" ]; then e=1; else e=0; fi
+        if [ -s "$s/$h.jpg" ]; then e=2; elif [ -s "$t/$h.thmb" ]; then e=1; else e=0; fi
         printf '%s\\t%s\\t%s\\n' "$h" "$e" "$f"
     fi
 done
@@ -159,7 +185,7 @@ if [ -s "$unknown" ]; then
     xargs -d '\\n' sha1sum <"$unknown" | while IFS= read -r line; do
         h=\${line%%  *}
         f=\${line#*  }
-        if [ -s "$t/$h.thmb" ]; then e=1; else e=0; fi
+        if [ -s "$s/$h.jpg" ]; then e=2; elif [ -s "$t/$h.thmb" ]; then e=1; else e=0; fi
         printf '%s\\t%s\\t%s\\n' "$h" "$e" "$f"
     done
 fi`
@@ -194,8 +220,36 @@ fi`
             const known = _hashes[f.path];
             args.push(f.path, known && known.mtime === f.mtime ? known.hash : "-");
         }
-        prober.command = ["sh", "-c", _probeScript, "sh", thumbsDir].concat(args);
+        prober.command = ["sh", "-c", _probeScript, "sh", thumbsDir, smallDir].concat(args);
         prober.running = true;
+    }
+
+    // The best image known for a wallpaper: the small copy (level 2), HyDE's thumbnail (1) or the file.
+    function _thumbUrl(hash, level, path) {
+        if (hash !== "" && level === 2)
+            return fileUrl(`${smallDir}/${hash}.jpg`);
+        if (hash !== "" && level === 1)
+            return fileUrl(`${thumbsDir}/${hash}.thmb`);
+        return fileUrl(path);
+    }
+
+    // Replaces `list` only when something changed. Every refresh() (each time the picker opens) rebuilds
+    // an identical list of new objects; assigning it reset the grid's model, which destroyed and
+    // recreated every tile and reloaded its image, after the window was already on screen.
+    function _setList(next) {
+        const old = _list;
+        if (old.length === next.length) {
+            let same = true;
+            for (let i = 0; i < next.length; i++) {
+                if (old[i].path !== next[i].path || old[i].thumb !== next[i].thumb) {
+                    same = false;
+                    break;
+                }
+            }
+            if (same)
+                return;
+        }
+        _list = next;
     }
 
     // Immediate version of _publish(), from whatever this folder's previous scan already learned
@@ -205,16 +259,18 @@ fi`
         for (const f of _files) {
             const known = _hashes[f.path];
             const hash = known && known.mtime === f.mtime ? known.hash : "";
-            const cached = hash !== "" && _thumbExists[hash];
+            // A hash from a previous run has no probe result yet: the small copy is the likely case, and
+            // the probe that follows (about 0.1 s) corrects it, instead of decoding the full image.
+            const level = hash !== "" ? _thumbExists[hash] ?? 2 : 0;
             out.push({
                 key: f.path,
                 path: f.path,
                 name: _basename(f.path),
                 hash: hash,
-                thumb: fileUrl(cached ? `${thumbsDir}/${hash}.thmb` : f.path)
+                thumb: _thumbUrl(hash, level, f.path)
             });
         }
-        _list = out;
+        _setList(out);
     }
 
     function _onProbed(text) {
@@ -226,7 +282,7 @@ fi`
                 continue;
             info[line.slice(b + 1)] = {
                 hash: line.slice(0, a),
-                thumb: line.slice(a + 1, b) === "1"
+                level: Number(line.slice(a + 1, b))
             };
         }
         _publish(info);
@@ -243,23 +299,74 @@ fi`
                     mtime: f.mtime,
                     hash: i.hash
                 };
-                thumbExists[i.hash] = i.thumb;
+                thumbExists[i.hash] = i.level;
             }
             out.push({
                 key: f.path,
                 path: f.path,
                 name: _basename(f.path),
                 hash: i ? i.hash : "",
-                thumb: fileUrl(i && i.thumb ? `${thumbsDir}/${i.hash}.thmb` : f.path)
+                thumb: _thumbUrl(i ? i.hash : "", i ? i.level : 0, f.path)
             });
         }
         _thumbExists = thumbExists;
         _hashes = hashes;
-        _list = out;
+        _saveHashes(hashes);
+        _setList(out);
         _loading = false;
         if (_again)
             _scan();
+        else
+            _makeSmall(out, thumbExists);
     }
+
+    // Writes the hashes learned since the last write (nothing when none is new), keeping the ones of
+    // other folders.
+    function _saveHashes(hashes) {
+        let changed = false;
+        const merged = Object.assign({}, _persisted);
+        for (const path in hashes) {
+            const known = merged[path];
+            if (!known || known.mtime !== hashes[path].mtime || known.hash !== hashes[path].hash) {
+                merged[path] = hashes[path];
+                changed = true;
+            }
+        }
+        if (!changed)
+            return;
+        _persisted = merged;
+        hashStore.setText(JSON.stringify(merged));
+    }
+
+    // Makes the small copies that are missing, a few at a time, and publishes again when it is done
+    // (the grid then swaps each tile's image; until then it shows HyDE's thumbnail).
+    function _makeSmall(list, levels) {
+        if (maker.running)
+            return;
+        const args = [];
+        for (const w of list) {
+            if (w.hash === "" || levels[w.hash] === 2 || _tried[w.hash])
+                continue;
+            _tried[w.hash] = true;
+            const src = levels[w.hash] === 1 ? `${thumbsDir}/${w.hash}.thmb` : w.path;
+            args.push(w.hash, src, w.path);
+        }
+        if (args.length === 0)
+            return;
+        maker.command = ["sh", "-c", _makeScript, "sh", smallDir].concat(args);
+        maker.running = true;
+    }
+
+    // Arguments: the folder, then "hash source path" triples (the path is the fallback when the
+    // thumbnail cannot be read). One vipsthumbnail per image, 4 at once, at low
+    // priority so it never competes with the desktop.
+    readonly property string _makeScript: `
+s=$1; shift
+mkdir -p "$s"
+while [ $# -ge 3 ]; do
+    printf '%s\\0%s\\0%s\\0' "$1" "$2" "$3"
+    shift 3
+done | nice -n 15 xargs -0 -n3 -P4 sh -c 'o="'"$s"'/$1.jpg[Q=80,strip]"; vipsthumbnail "$2" -s 320x200 --smartcrop attention -o "$o" 2>/dev/null || vipsthumbnail "$3" -s 320x200 --smartcrop attention -o "$o" 2>/dev/null || true' sh`
 
     // The folders depend on the theme: switching themes in HyDE reads the list again.
     onDirsChanged: rescan.restart()
@@ -267,6 +374,7 @@ fi`
         if (_pending !== "" && _current === _pending) {
             _pending = "";
             busyTimeout.stop();
+            _runQueued();
         }
     }
 
@@ -297,6 +405,7 @@ fi`
         onTriggered: {
             root._pending = "";
             root.readCurrent();
+            root._runQueued();
         }
     }
 
@@ -320,9 +429,36 @@ fi`
     }
 
     Process {
+        id: maker
+        // New copies exist: look again, so the list points at them.
+        onRunningChanged: if (!running)
+            root.refresh()
+    }
+
+    Process {
         id: prober
         stdout: StdioCollector {
             onStreamFinished: root._onProbed(text)
+        }
+    }
+
+    // The sha1s survive a restart: hashing the whole library (GBs) took seconds of CPU at every start
+    // of the shell and every theme change. A path whose mtime changed is hashed again, as before.
+    FileView {
+        id: hashStore
+        path: `${Paths.cacheHome}/quickshell/wallpaper-hashes.json`
+        blockLoading: true
+        printErrors: false
+        onLoaded: {
+            try {
+                const d = JSON.parse(text());
+                if (d && typeof d === "object" && !Array.isArray(d)) {
+                    root._persisted = d;
+                    root._hashes = Object.assign({}, d, root._hashes);
+                }
+            } catch (e) {
+                root._persisted = ({});
+            }
         }
     }
 

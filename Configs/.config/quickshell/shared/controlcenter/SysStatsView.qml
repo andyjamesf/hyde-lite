@@ -39,7 +39,7 @@ Column {
             })
         verticalAlignment: Text.AlignVCenter
         elide: Text.ElideRight
-        renderType: Text.NativeRendering
+        renderType: Text.CurveRendering
     }
 
     // "cpu" or "memory": how the process list is sorted.

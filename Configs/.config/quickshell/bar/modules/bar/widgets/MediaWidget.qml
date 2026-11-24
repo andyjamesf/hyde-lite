@@ -14,7 +14,7 @@ BarItem {
     shown: Media.active && Media.title !== ""
     icon: Media.playing ? "music_note" : "pause"
     iconFill: Media.playing ? 1 : 0
-    iconColor: Theme.primary
+    iconColor: Theme.text
     text: Media.artist ? `${Media.title}  ·  ${Media.artist}` : Media.title
     maxTextWidth: cfg.maxWidth
     tooltip: `<b>${Media.title}</b>` + (Media.artist ? `\n${Media.artist}` : "") + (Media.player?.trackAlbum ? `\n<i>${Media.player.trackAlbum}</i>` : "") + `\n\n${Media.identity}`
@@ -27,10 +27,11 @@ BarItem {
     onScrolled: direction => direction > 0 ? Media.previous() : Media.next()
 
     StyledText {
+        id: cavaText
         visible: root.cfg.cava && Media.playing && cava.text !== ""
         anchors.verticalCenter: parent.verticalCenter
         text: cava.text
-        color: BarLayout.readable(Theme.primary, 3)
+        color: BarLayout.readableFor(cavaText, Theme.primary, 3, BarLayout.relayoutTick)
         font.family: Config.appearance.monoFont
     }
 

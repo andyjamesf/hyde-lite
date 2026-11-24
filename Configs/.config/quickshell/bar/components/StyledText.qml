@@ -15,7 +15,9 @@ Text {
     bottomPadding: 1
     verticalAlignment: Text.AlignVCenter
     elide: Text.ElideRight
-    renderType: Text.NativeRendering
+    // Not NativeRendering: at the 1.5x scale of this screen it snapped glyphs to whole pixels and the
+    // letters came out jagged and unevenly spaced (apps list, subtitles).
+    renderType: Text.CurveRendering
 
     Behavior on color {
         ColorAnim {}

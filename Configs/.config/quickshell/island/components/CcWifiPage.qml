@@ -294,7 +294,7 @@ Item {
                         visible: text !== ""
                         text: row.net.connected ? "Connected" : row.net.connecting ? "Connecting…" : row.pending ? "Password required" : row.net.known ? "Saved" : ""
                         color: row.net.connected ? Theme.accent : Theme.dim
-                        font.pixelSize: Appearance.fontSize - 2
+                        font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                     }
                 }
 
@@ -365,7 +365,7 @@ Item {
                             selectedTextColor: Theme.accentContent
                             font.family: Appearance.font
                             font.pixelSize: Appearance.fontSize
-                            renderType: Text.NativeRendering
+                            renderType: Text.CurveRendering
 
                             Keys.onReturnPressed: row.submit()
                             Keys.onEnterPressed: row.submit()

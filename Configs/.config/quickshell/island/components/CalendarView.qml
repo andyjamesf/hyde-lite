@@ -288,7 +288,7 @@ Item {
                         height: 22
                         horizontalAlignment: Text.AlignHCenter
                         text: root.locale.dayName((CalendarConfig.firstDayOfWeek + index) % 7, Locale.ShortFormat)
-                        font.pixelSize: Appearance.fontSize - 2
+                        font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                         color: Theme.dim
                     }
                 }
@@ -304,13 +304,17 @@ Item {
                         // Time.date changes at midnight: the binding re-evaluates then.
                         readonly property bool today: Time.date !== "" && Calendar.sameDay(modelData, new Date())
                         readonly property bool chosen: Calendar.sameDay(modelData, root.selected)
-                        // Up to three dots, in the colours of that day's calendars.
+                        // Up to two dots, in the colours of that day's calendars.
                         readonly property var dots: {
                             const seen = [];
+                            // Days of the neighbouring months carry no dots, and at most two colours: a
+                            // dot on every day (repeating events) is noise, not information.
+                            if (!inMonth)
+                                return seen;
                             for (const e of Calendar.eventsOn(modelData)) {
                                 if (!seen.includes(e.color))
                                     seen.push(e.color);
-                                if (seen.length === 3)
+                                if (seen.length === 2)
                                     break;
                             }
                             return seen;
@@ -342,6 +346,8 @@ Item {
                             anchors.bottom: parent.bottom
                             anchors.bottomMargin: 1
                             spacing: 3
+                            // Quieter on a day that is neither today nor the chosen one.
+                            opacity: day.today || day.chosen ? 1 : 0.6
                             Repeater {
                                 model: day.dots
                                 Rectangle {
@@ -425,7 +431,7 @@ Item {
                                 Label {
                                     width: parent.width
                                     text: [root.timeOf(ev.modelData), ev.modelData.location, ev.modelData.calendar].filter(x => x).join("  ·  ")
-                                    font.pixelSize: Appearance.fontSize - 2
+                                    font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                                     color: Theme.dim
                                 }
                             }
@@ -743,7 +749,7 @@ Item {
                     width: parent.width
                     text: root.message
                     wrapMode: Text.WordWrap
-                    font.pixelSize: Appearance.fontSize - 2
+                    font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                     color: root.messageError ? Theme.danger : Theme.dim
                 }
             }

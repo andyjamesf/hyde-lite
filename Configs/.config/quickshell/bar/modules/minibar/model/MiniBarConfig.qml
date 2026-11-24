@@ -171,6 +171,7 @@ Singleton {
     //   "media"          the track that is playing (MPRIS); a click opens the controls
     //   "cava"           audio visualiser
     //   "aiUsage"        the AI tools' usage
+    //   "notes"          quick notes; a click opens the page (shared with the island)
     //   "tray"           system tray icons
     //   "audio"          volume; a click opens the panel, the wheel changes it
     //   "mic"            microphone
@@ -244,7 +245,7 @@ Singleton {
             clockDate: true,
             left: [["workspaces"], ["activeWindow"], ["stats"]],
             center: [["clock"]],
-            right: [["idle", "audio", "network", "bluetooth", "battery"], ["notifications", "controlCenter", "power"]],
+            right: [["notes"], ["idle", "audio", "network", "bluetooth", "battery"], ["notifications", "controlCenter", "power"]],
         },
 
         // A TEMPLATE WITH EVERY MODULE: uncomment the block, then comment out what you do not want.

@@ -89,14 +89,14 @@ FocusScope {
                     text: root.now ? `Feels ${root.temp(root.now.feels)} · ${Math.round(root.now.humidity)}%` : ""
                     color: Qt.alpha(Theme.foreground, 0.4)
                     font.family: Appearance.font
-                    font.pixelSize: Appearance.fontSize - 3
+                    font.pixelSize: Math.max(Appearance.fontSize - 3, Appearance.minFontSize)
                 }
                 Text {
                     anchors.right: parent.right
                     text: root.now ? `${Math.round(root.now.wind)} ${Weather.windSuffix}` : ""
                     color: Qt.alpha(Theme.foreground, 0.4)
                     font.family: Appearance.font
-                    font.pixelSize: Appearance.fontSize - 3
+                    font.pixelSize: Math.max(Appearance.fontSize - 3, Appearance.minFontSize)
                 }
             }
         }
@@ -109,7 +109,7 @@ FocusScope {
             color: Theme.danger
             wrapMode: Text.Wrap
             font.family: Appearance.font
-            font.pixelSize: Appearance.fontSize - 2
+            font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
         }
 
         Rectangle {
@@ -148,7 +148,7 @@ FocusScope {
                         text: hour.isNow ? "now" : String(hour.modelData.time.getHours()).padStart(2, "0")
                         color: Qt.alpha(Theme.foreground, hour.isNow ? 0.75 : 0.45)
                         font.family: Appearance.font
-                        font.pixelSize: Appearance.fontSize - 4
+                        font.pixelSize: Math.max(Appearance.fontSize - 4, Appearance.minFontSize)
                     }
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
@@ -162,7 +162,7 @@ FocusScope {
                         text: root.temp(hour.modelData.temp)
                         color: Theme.foreground
                         font.family: Appearance.font
-                        font.pixelSize: Appearance.fontSize - 2
+                        font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                     }
                 }
             }

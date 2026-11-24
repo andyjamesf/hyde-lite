@@ -32,7 +32,7 @@ Item {
         anchors.fill: parent
         radius: 20
         scale: root.pressed ? 0.95 : 1
-        color: root.armed ? Theme.danger : Theme.surface
+        color: root.armed ? Theme.danger : root.destructive ? Qt.alpha(Theme.danger, 0.12) : Theme.surface
         border.width: root.selected ? 2 : 1
         border.color: root.selected ? (root.armed ? Theme.foreground : Theme.accent) : Theme.border
 

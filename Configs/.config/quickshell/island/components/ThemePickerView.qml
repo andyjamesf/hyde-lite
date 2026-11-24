@@ -212,7 +212,7 @@ FocusScope {
                 Label {
                     text: section.modelData.title
                     color: Theme.faint
-                    font.pixelSize: Appearance.fontSize - 2
+                    font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                     font.weight: Font.DemiBold
                     font.letterSpacing: 0.6
                     height: 16

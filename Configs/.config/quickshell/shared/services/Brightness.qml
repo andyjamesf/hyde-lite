@@ -100,6 +100,7 @@ Singleton {
     }
 
     Process {
+        id: monitor
         running: root._device !== ""
         command: ["udevadm", "monitor", "--kernel", "--subsystem-match=backlight"]
         stdout: SplitParser {
@@ -108,5 +109,14 @@ Singleton {
                     current.reload();
             }
         }
+        // If udevadm dies the brightness would stop following the keys: start it again.
+        onExited: if (root._device !== "")
+            monitorRestart.start()
+    }
+
+    Timer {
+        id: monitorRestart
+        interval: 3000
+        onTriggered: monitor.running = root._device !== ""
     }
 }

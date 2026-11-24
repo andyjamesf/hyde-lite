@@ -30,7 +30,7 @@ Column {
     // Layout.
     property int rowHeight: 46
     // Rows visible before the list scrolls; the shell lowers it when the screen is short.
-    property int visibleRows: Math.min(Notifications.count, 4)
+    property int visibleRows: Math.min(rows.length, 4)
 
     // Where the list starts inside this item (below the header and the empty state), for a shell
     // that fits `visibleRows` to the room it has.
@@ -41,6 +41,45 @@ Column {
 
     width: parent ? parent.width : implicitWidth
     spacing: 4
+
+    // Notifications grouped by app (newest first). One entry stays a plain row; several collapse into a
+    // header ("App · 18") that expands, on click, into its notifications.
+    property var expanded: ({})
+    readonly property var rows: {
+        const order = [];
+        const by = {};
+        for (const n of Notifications.list) {
+            const k = n.appName || "Notification";
+            if (!by[k]) {
+                by[k] = [];
+                order.push(k);
+            }
+            by[k].push(n);
+        }
+        const out = [];
+        for (const k of order) {
+            const g = by[k];
+            if (g.length === 1) {
+                out.push({ kind: "single", n: g[0], app: k, count: 1 });
+                continue;
+            }
+            out.push({ kind: "group", n: g[0], app: k, count: g.length });
+            if (root.expanded[k])
+                for (const n of g)
+                    out.push({ kind: "child", n: n, app: k, count: g.length });
+        }
+        return out;
+    }
+
+    function toggleGroup(app) {
+        const e = Object.assign({}, root.expanded);
+        e[app] = !e[app];
+        root.expanded = e;
+    }
+
+    function firstLine(n) {
+        return String(n?.body ?? "").replace(/<[^>]*>/g, "").split("\n")[0].trim();
+    }
 
     function ago(d) {
         const s = Math.max(0, (root.now.getTime() - new Date(d).getTime()) / 1000);
@@ -150,10 +189,10 @@ Column {
         height: root.visibleRows * root.rowHeight
         visible: Notifications.count > 0
         clip: true
-        interactive: Notifications.count > root.visibleRows
+        interactive: root.rows.length > root.visibleRows
         boundsBehavior: Flickable.StopAtBounds
         model: ScriptModel {
-            values: Notifications.list
+            values: root.rows
         }
 
         remove: Transition {
@@ -188,7 +227,9 @@ Column {
             id: row
 
             required property var modelData
-            readonly property var n: modelData
+            readonly property var n: modelData.n
+            readonly property bool isGroup: modelData.kind === "group"
+            readonly property bool isChild: modelData.kind === "child"
 
             width: ListView.view.width
             height: root.rowHeight
@@ -198,7 +239,7 @@ Column {
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onClicked: Notifications.dismiss(row.n)
+                onClicked: row.isGroup ? root.toggleGroup(row.modelData.app) : Notifications.dismiss(row.n)
             }
 
             Rectangle {
@@ -219,7 +260,7 @@ Column {
             Item {
                 id: lead
                 anchors.left: parent.left
-                anchors.leftMargin: 8
+                anchors.leftMargin: row.isChild ? 28 : 8
                 anchors.verticalCenter: parent.verticalCenter
                 width: 28
                 height: 28
@@ -263,7 +304,7 @@ Column {
 
                 Text {
                     width: parent.width
-                    text: row.n?.summary || row.n?.appName || ""
+                    text: row.isGroup ? `${row.modelData.app}  ·  ${row.modelData.count}` : (row.n?.summary || row.n?.appName || "")
                     textFormat: Text.PlainText
                     elide: Text.ElideRight
                     color: root.foreground
@@ -277,7 +318,7 @@ Column {
 
                 Text {
                     width: parent.width
-                    text: row.n?.appName || "Notification"
+                    text: row.isGroup ? (row.n?.summary || "") : (root.firstLine(row.n) || row.n?.appName || "Notification")
                     textFormat: Text.PlainText
                     elide: Text.ElideRight
                     color: root.dim
@@ -302,8 +343,8 @@ Column {
                     id: timeLabel
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
-                    visible: !rowMouse.containsMouse
-                    text: root.ago(Notifications.timeOf(row.n))
+                    visible: row.isGroup || !rowMouse.containsMouse
+                    text: row.isGroup ? (root.expanded[row.modelData.app] ? "▾" : "▸") : root.ago(Notifications.timeOf(row.n))
                     color: root.faint
                     font.family: root.fontFamily
                     renderType: CcTheme.textRendering
@@ -316,7 +357,7 @@ Column {
                 Item {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
-                    visible: rowMouse.containsMouse
+                    visible: rowMouse.containsMouse && !row.isGroup
                     width: 12
                     height: 12
 

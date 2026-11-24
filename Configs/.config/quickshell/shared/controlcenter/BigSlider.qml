@@ -37,7 +37,7 @@ Item {
 
     function valueAt(x) {
         const span = width - height;
-        return span <= 0 ? 0 : Math.max(0, Math.min(1, (x - height / 2) / span));
+        return span <= 0 ? 0 : Math.max(0, Math.min(1, (x - height / 2) / Math.max(1, span - (label !== "" ? 68 : 0))));
     }
 
     function send(v) {
@@ -80,7 +80,7 @@ Item {
             anchors.left: parent.left
             anchors.top: parent.top
             anchors.bottom: parent.bottom
-            width: root.height + (parent.width - root.height) * root.shown
+            width: root.height + Math.max(0, parent.width - root.height - (root.label !== "" ? 68 : 0)) * root.shown
             radius: height / 2
             color: root.muted ? CcTheme.pressed : CcTheme.accent
 

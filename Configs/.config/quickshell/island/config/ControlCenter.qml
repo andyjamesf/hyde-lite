@@ -26,7 +26,7 @@ Singleton {
     // HyDE shortcuts under the media row, in order: "nextwallpaper", "wallpaper" (the picker),
     // "hydetheme" (HyDE themes), "animations", "keybindings", "syncshell" (copy the checkout's shell
     // into ~/.config/quickshell). [] hides the row.
-    readonly property var shortcuts: ["nextwallpaper", "wallpaper", "hydetheme", "animations", "keybindings", "syncshell"]
+    readonly property var shortcuts: ["nextwallpaper", "wallpaper", "animations", "keybindings", "syncshell"]
     // Tile height in pixels. Default 56.
     readonly property int tileHeight: 56
 

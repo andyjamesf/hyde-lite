@@ -248,14 +248,7 @@ FocusScope {
 
     // A picker icon: freedesktop name (looked up in the icon theme), absolute path or URL.
     function iconSource(name) {
-        const s = String(name ?? "");
-        if (s === "")
-            return "";
-        if (s.startsWith("/"))
-            return "file://" + s;
-        if (/^[a-z]+:/.test(s))
-            return s;
-        return Quickshell.iconPath(s, true) ?? "";
+        return IconSource.resolve(name);
     }
 
     function compute(k, t, p) {
@@ -539,7 +532,7 @@ FocusScope {
             selectedTextColor: Theme.accentContent
             font.family: root.font
             font.pixelSize: root.fontSize + 3
-            renderType: Text.NativeRendering
+            renderType: Text.CurveRendering
 
             onTextChanged: {
                 if (root.open && LauncherState.query !== text)

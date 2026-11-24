@@ -140,7 +140,7 @@ Item {
             width: parent.width
             text: root.appName
             color: root.critical ? Theme.danger : Theme.dim
-            font.pixelSize: Appearance.fontSize - 2
+            font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
         }
 
         Label {

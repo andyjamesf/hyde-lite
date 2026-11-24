@@ -168,8 +168,10 @@ FocusScope {
 
         TextInput {
             id: input
-            anchors.left: spinner.right
-            anchors.leftMargin: root.busy ? 10 : root.sidePadding
+            // Anchored to the pill, not to the spinner: the spinner's own left margin would count even when
+            // it is hidden (width 0) and push the dots 8 px right of the centre.
+            anchors.left: parent.left
+            anchors.leftMargin: root.busy ? spinner.anchors.leftMargin + spinner.width + 10 : root.sidePadding
             anchors.right: parent.right
             anchors.rightMargin: root.sidePadding
             anchors.verticalCenter: parent.verticalCenter
@@ -189,7 +191,7 @@ FocusScope {
             font.pixelSize: Appearance.fontSize + 1
             font.letterSpacing: root.responseVisible ? 0 : 2
             horizontalAlignment: root.horizontalAlignment
-            renderType: Text.NativeRendering
+            renderType: Text.CurveRendering
 
             onTextChanged: {
                 if (text !== "")

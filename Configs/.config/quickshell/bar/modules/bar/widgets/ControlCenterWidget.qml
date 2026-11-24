@@ -5,7 +5,7 @@ import qs.bar.services
 BarItem {
     icon: "tune"
     iconFill: ShellState.controlCenterOpen ? 1 : 0
-    iconColor: Theme.primary
+    iconColor: Theme.text
     active: ShellState.controlCenterOpen
     tooltip: "Control center"
 
