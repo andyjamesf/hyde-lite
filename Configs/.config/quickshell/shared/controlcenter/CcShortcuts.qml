@@ -51,13 +51,6 @@ Singleton {
             glyph: "\u{F02E9}"
         },
         {
-            id: "hydetheme",
-            pick: "themes",
-            label: "Choose theme",
-            icon: "palette",
-            glyph: "\u{F03D8}"
-        },
-        {
             id: "animations",
             pick: "animations",
             label: "Animations",
@@ -91,9 +84,6 @@ Singleton {
             return;
         case "wallpaper":
             openRequested("pick:wallpapers");
-            return;
-        case "hydetheme":
-            openRequested("pick:themes");
             return;
         case "animations":
             openRequested("pick:animations");

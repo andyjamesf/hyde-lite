@@ -70,7 +70,7 @@ Item {
         if (listing)
             search.focusInput();
         else
-            goto(lines.count - 1, -1);
+            gotoLine(lines.count - 1, -1);
     }
 
     function init() {
@@ -192,7 +192,7 @@ Item {
             n += lenOf(i) + 1;
         }
         commit();
-        goto(i, off - n);
+        gotoLine(i, off - n);
     }
 
     // Dragging from line a to line b selects the lines from a's start (or end) to b's.
@@ -243,7 +243,7 @@ Item {
         const e = hist[i];
         load(e.text);
         Notes.set(e.text);
-        goto(Math.min(e.line, lines.count - 1), -1);
+        gotoLine(Math.min(e.line, lines.count - 1), -1);
     }
     function undo() {
         histT = 0;
@@ -258,7 +258,7 @@ Item {
         commit();
     }
 
-    function goto(i, pos) {
+    function gotoLine(i, pos) {
         const n = Math.max(0, Math.min(i, lines.count - 1));
         wantPos = pos;
         if (n === cur)
@@ -286,7 +286,7 @@ Item {
             kind: "text"
         });
         commit();
-        goto(i + 1, prefix.length);
+        gotoLine(i + 1, prefix.length);
     }
 
     // Backspace at the start of a line (or Delete at the end of the one before): the two become one.
@@ -295,7 +295,7 @@ Item {
         lines.setProperty(i, "t", a + lines.get(i + 1).t);
         lines.remove(i + 1);
         commit();
-        goto(i, a.length);
+        gotoLine(i, a.length);
     }
 
     // A line whose text now has line breaks (a paste): each piece becomes a line.
@@ -308,7 +308,7 @@ Item {
                 kind: "text"
             });
         commit();
-        goto(i + parts.length - 1, -1);
+        gotoLine(i + parts.length - 1, -1);
     }
 
     // The note changed under us (another note opened, the file edited in Obsidian).
@@ -642,13 +642,13 @@ Item {
                                             } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                                                 win.enter(row.index, cursorPosition);
                                             } else if (event.key === Qt.Key_Up && first && row.index > 0) {
-                                                win.goto(row.index - 1, -1);
+                                                win.gotoLine(row.index - 1, -1);
                                             } else if (event.key === Qt.Key_Down && last && row.index < lines.count - 1) {
-                                                win.goto(row.index + 1, 0);
+                                                win.gotoLine(row.index + 1, 0);
                                             } else if (event.key === Qt.Key_Left && noSel && cursorPosition === 0 && row.index > 0) {
-                                                win.goto(row.index - 1, -1);
+                                                win.gotoLine(row.index - 1, -1);
                                             } else if (event.key === Qt.Key_Right && noSel && cursorPosition === length && row.index < lines.count - 1) {
-                                                win.goto(row.index + 1, 0);
+                                                win.gotoLine(row.index + 1, 0);
                                             } else if (event.key === Qt.Key_Backspace && noSel && cursorPosition === 0 && row.index > 0) {
                                                 win.join(row.index - 1);
                                             } else if (event.key === Qt.Key_Delete && noSel && cursorPosition === length && row.index < lines.count - 1) {
@@ -715,7 +715,7 @@ Item {
                             if (link !== "")
                                 Qt.openUrlExternally(link);
                             else
-                                win.goto(pressRow, -1);
+                                win.gotoLine(pressRow, -1);
                         }
                         onCanceled: win.dragging = false
                     }

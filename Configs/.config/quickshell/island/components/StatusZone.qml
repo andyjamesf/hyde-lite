@@ -45,7 +45,6 @@ Item {
             settings: "\u{F0493}",
             system: "\u{F061A}",
             nextwallpaper: "\u{F04AD}",
-            hydetheme: "\u{F08B5}",
             keybindings: "\u{F030C}",
             syncshell: "\u{F04E6}"
         })
