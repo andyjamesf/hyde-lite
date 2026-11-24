@@ -109,6 +109,7 @@ M.binds = {
 	-- $mod+SHIFT+W opens the grid to pick one; `wallpaper-library random` is a random one.
 	{ keys = "$mod + CTRL + Right", cmd = "wallpaper-library next", desc = "[Theming and Wallpaper] next wallpaper (all of them)" },
 	{ keys = "$mod + CTRL + Left", cmd = "wallpaper-library prev", desc = "[Theming and Wallpaper] previous wallpaper (all of them)" },
+	{ keys = "$mod + CTRL + R", cmd = "wallpaper-library random", desc = "[Theming and Wallpaper] random wallpaper (all of them)" },
 	-- The colour schemes matugen can give the current wallpaper; $mod+SHIFT+C lists them with a swatch each.
 	{ keys = "$mod + CTRL + Up", cmd = "sh -c 'notify-send -a Palette -t 2500 \"$(wallpaper-palette next)\"'", desc = "[Theming and Wallpaper] next wallpaper palette" },
 	{ keys = "$mod + CTRL + Down", cmd = "sh -c 'notify-send -a Palette -t 2500 \"$(wallpaper-palette prev)\"'", desc = "[Theming and Wallpaper] previous wallpaper palette" },

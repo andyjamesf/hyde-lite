@@ -6,7 +6,7 @@ import qs.shared.services
 
 // Wallpaper picker: the current theme's wallpapers (plus the extra folders in
 // "pickers.wallpapers.dirs"), as a grid of thumbnails. Choosing one applies it globally through HyDE
-// (`hyde-shell wallpaper --global -s`), which also regenerates the wallbash colours. The list and the
+// (`wallpaper-library set`, which ends in `hyde-shell wallpaper --global -s`), which also regenerates the wallbash colours. The list and the
 // thumbnails come from Wallpapers.
 Singleton {
     id: root

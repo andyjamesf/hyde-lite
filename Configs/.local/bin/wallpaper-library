@@ -7,11 +7,14 @@
 #   wallpaper-library --own    turn those links into files of the folder (hard links: the same data, no extra
 #                              space), so the wallpapers stay when a theme is removed. Run it before deleting themes
 #   wallpaper-library --clean  remove the links this script made (files of yours are never touched)
+#   wallpaper-library set <image>
+#                              set that image with the same wipe (what the pickers call)
 #   wallpaper-library next | prev | random
 #                              set the next, previous or a random wallpaper of the folder. Same
 #                              folder and same order as the pickers' grid, so stepping through them
 #                              and scrolling the grid agree; it never touches the theme. HyDE's own
 #                              --next only walks the current theme's wallpapers.
+#                              The change is a diagonal wipe, started before HyDE does its colours.
 #
 # They are links, not copies: the themes hold the files (about 1.6 GB), and a copy of each would
 # double that. A link is named "<Theme> - <file>" because several themes call theirs wallpaper-1.png.
@@ -30,6 +33,17 @@ list_walls() {
     find -L "$dest" -maxdepth 1 -type f ! -name 'wall.*' \( "${img_name_test[@]}" \) -print0 | sort -zV
 }
 
+apply() {
+    # The animation first: HyDE spends over a second on its colours and templates before it
+    # reaches awww, so waiting for it made the wallpaper change late. A wipe from the top-right
+    # corner to the bottom-left one. HyDE then sets the same image itself with no transition
+    # (this env var is read by its awww backend), so its call is invisible, and the colours
+    # follow as before. Files awww cannot read (video) are left to HyDE alone.
+    awww img "$1" --transition-type wipe --transition-angle 225 --transition-duration 1 \
+        --transition-fps 60 --transition-bezier .65,0,.35,1 >/dev/null 2>&1 || true
+    WALLPAPER_AWWW_TRANSITION_DEFAULT=none hyde-shell wallpaper --global -s "$1" >/dev/null 2>&1
+}
+
 cycle() {
     local walls=() inodes=() cur i idx=-1 n new
     mapfile -d '' walls < <(list_walls)
@@ -44,14 +58,15 @@ cycle() {
         prev) ((idx < 0)) && new=$((n - 1)) || new=$(((idx - 1 + n) % n)) ;;
         random) new=$((RANDOM % n)); ((n > 1 && new == idx)) && new=$(((new + 1) % n)) ;;
     esac
-    hyde-shell wallpaper --global -s "${walls[new]}" >/dev/null 2>&1
+    apply "${walls[new]}"
     echo "$((new + 1))/$n  ${walls[new]##*/}"
 }
 
 case "${1:-}" in
     next | prev | random) cycle "$1"; exit 0 ;;
+    set) [[ -f "${2:-}" ]] || { echo "usage: wallpaper-library set <image>" >&2; exit 2; }; apply "$2"; exit 0 ;;
     "" | --clean | --own) ;;
-    *) sed -n '2,18p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
+    *) sed -n '2,21p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
 esac
 
 # Only links into the themes folder count as ours.
