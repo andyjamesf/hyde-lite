@@ -109,7 +109,8 @@ Singleton {
             return false;
         _pending = path;
         // Detached: if the shell reloads midway, HyDE still finishes the job.
-        Quickshell.execDetached(["hyde-shell", "wallpaper", "--global", "-s", path]);
+        // wallpaper-library starts the wipe at once and hands the rest (colours) to HyDE.
+        Quickshell.execDetached(["wallpaper-library", "set", path]);
         busyTimeout.restart();
         return true;
     }

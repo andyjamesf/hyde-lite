@@ -97,10 +97,17 @@ hc.ui.sddm_theme = ""
 
 -- Apps and launchers
 hc.app.quickapps = nil
-hc.app.browser = "hyde-shell open --fall firefox web-browser"
-hc.app.editor = "hyde-shell open --fall code-oss code-editor"
-hc.app.explorer = "hyde-shell open --fall thunar file-manager"
-hc.app.terminal = "hyde-shell app -T"
+-- The programs come from ~/.config/hypr/desktop.lua (`apps`), the one file that names them; what is
+-- written here is only what HyDE falls back to when that file is missing or broken.
+local desk_ok, desk = pcall(dofile, os.getenv("HOME") .. "/.config/hypr/desktop.lua")
+local desk_apps = desk_ok and type(desk) == "table" and desk.apps or {}
+local function app_run(role, fallback)
+	return desk_apps[role] and desk_apps[role].run or fallback
+end
+hc.app.browser = app_run("browser", "hyde-shell open --fall firefox web-browser")
+hc.app.editor = app_run("editor", "hyde-shell open --fall code-oss code-editor")
+hc.app.explorer = app_run("files", "hyde-shell open --fall thunar file-manager")
+hc.app.terminal = app_run("terminal", "hyde-shell app -T")
 hc.app.lockscreen = "hyde-shell lock-session"
 
 -- Mod keys

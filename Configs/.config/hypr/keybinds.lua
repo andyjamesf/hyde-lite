@@ -35,8 +35,11 @@ M.shell = {
 	-- windows (components/OverviewView.qml). Only the island has it.
 	{ keys = "$mod + D", island = "open overview", hyde = nil, desc = "[Window Management] workspace overview" },
 
-	-- Scratch page, saved as you type (components/NotepadView.qml). Only the island has it.
-	{ keys = "$mod + ALT + N", island = "open notepad", hyde = nil, desc = "[Utilities] notepad" },
+	-- Scratch page, saved as you type (components/NotepadView.qml). In the bars it is the "notes" widget
+	-- (it has to be in the layout in use).
+	{ keys = "$mod + ALT + N", island = "open notepad", hyde = "qs ipc call notes toggle", desc = "[Utilities] notepad (the bars: notes in the vault)" },
+	-- Every quick note as a card with a preview, with a search box (the island has no list).
+	{ keys = "$mod + ALT + SHIFT + N", island = nil, hyde = "qs ipc call notes list", desc = "[Utilities] all notes" },
 
 	-- Steps the wallpaper palette through auto, dark and light, taking HyDE's programs with it.
 	{ keys = "$mod + SHIFT + D", island = "scheme ''", hyde = "sh -c 'notify-send -a Palette -t 2500 \"$(wallpaper-palette mode next)\"'", desc = "[Theming and Wallpaper] light or dark (auto, dark, light)" },
@@ -46,11 +49,11 @@ M.shell = {
 
 	-- Control center, notifications, island settings.
 	{ keys = "$mod + ALT + C", island = "open controlcenter", hyde = "qs ipc call controlcenter toggle", desc = "[Launcher] control center" },
+	{ keys = "$mod + space", island = "open controlcenter", hyde = "qs ipc call controlcenter toggle", desc = "[Launcher] control center" },
 	{ keys = "$mod + N", island = "open controlcenter", hyde = "qs ipc call notifications toggle", desc = "[Utilities] notification center" },
 	{ keys = "$mod + ALT + comma", island = "open settings", hyde = nil, desc = "[Morphing Island] settings" },
 
 	-- Theme and wallpaper.
-	{ keys = "$mod + SHIFT + T", island = "open theme", hyde = "qs ipc call launcher pick themes", desc = "[Theming and Wallpaper] select a theme" },
 	{ keys = "$mod + SHIFT + W", island = "open wallpaper", hyde = "qs ipc call launcher pick wallpapers", desc = "[Theming and Wallpaper] select a global wallpaper" },
 
 	-- HyDE's rofi menus, ported to both shells: launcher pickers (`pick <name>`; the island's are in
@@ -63,7 +66,6 @@ M.shell = {
 	{ keys = "$mod + SHIFT + R", island = "pick wallbash", hyde = "qs ipc call launcher pick wallbash", desc = "[Theming and Wallpaper] wallbash mode selector" },
 	{ keys = "$mod + SHIFT + C", island = "pick palette", hyde = "qs ipc call launcher pick palette", desc = "[Theming and Wallpaper] wallpaper palette (colour scheme)" },
 	{ keys = "$mod + SHIFT + Y", island = "pick animations", hyde = "qs ipc call launcher pick animations", desc = "[Theming and Wallpaper] select animations" },
-	{ keys = "$mod + SHIFT + G", island = "pick games", hyde = "qs ipc call launcher pick games", desc = "[Utilities] game launcher" },
 	-- Every picker in one list (workflows, shaders, layouts, HyDE themes… have no key of their own).
 	{ keys = "$mod + SHIFT + A", island = "pick menu", hyde = "qs ipc call launcher pick menu", desc = "[Launcher] HyDE menus" },
 
@@ -109,6 +111,7 @@ M.binds = {
 	-- $mod+SHIFT+W opens the grid to pick one; `wallpaper-library random` is a random one.
 	{ keys = "$mod + CTRL + Right", cmd = "wallpaper-library next", desc = "[Theming and Wallpaper] next wallpaper (all of them)" },
 	{ keys = "$mod + CTRL + Left", cmd = "wallpaper-library prev", desc = "[Theming and Wallpaper] previous wallpaper (all of them)" },
+	{ keys = "$mod + CTRL + R", cmd = "wallpaper-library random", desc = "[Theming and Wallpaper] random wallpaper (all of them)" },
 	-- The colour schemes matugen can give the current wallpaper; $mod+SHIFT+C lists them with a swatch each.
 	{ keys = "$mod + CTRL + Up", cmd = "sh -c 'notify-send -a Palette -t 2500 \"$(wallpaper-palette next)\"'", desc = "[Theming and Wallpaper] next wallpaper palette" },
 	{ keys = "$mod + CTRL + Down", cmd = "sh -c 'notify-send -a Palette -t 2500 \"$(wallpaper-palette prev)\"'", desc = "[Theming and Wallpaper] previous wallpaper palette" },
@@ -152,6 +155,8 @@ M.unbind = {
 	"$mod + T", -- second terminal key: $mod+Return is enough
 	"$mod + CTRL + B", -- second hide-bar key: $mod+comma is enough
 	"$mod + L", -- lock: reassigned above (goes through hypridle)
+	"$mod + SHIFT + T", -- HyDE theme picker: the colours come from the shell's own schemes and the wallpaper
+	"$mod + SHIFT + U", -- Hyprlock layout picker: the lock screen is the shell's, hyprlock is only the fallback
 	-- HyDE's next/previous global wallpaper only walk the current theme's folder: its keys are freed
 	-- here and the wallpaper-library ones sit on $mod+CTRL+Left/Right (M.binds above).
 	-- HyDE's relative-workspace and empty-workspace keys sit on $mod+CTRL+arrows; the layers give that
