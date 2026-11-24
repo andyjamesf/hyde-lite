@@ -233,9 +233,7 @@ Singleton {
     // --- Colour utilities (only to interpret the dynamic sources) ---------------------------------
 
     function blend(a, b, t) {
-        a = Qt.color(a);
-        b = Qt.color(b);
-        return Qt.rgba(a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t, 1);
+        return ColorMath.blend(a, b, t);
     }
 
     // Approximate lightness (enough to decide whether a background is light or dark).

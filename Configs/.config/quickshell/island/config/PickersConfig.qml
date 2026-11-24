@@ -17,22 +17,12 @@ import Quickshell
 Singleton {
     // Pickers that can be opened (by IPC or from the HyDE menu). Removing a name disables it: `pick`
     // falls back to the normal launcher and the HyDE menu hides it. Default: all of them.
-    readonly property var enabled: ["themes", "themeimport", "windows", "files", "web", "emoji", "glyph", "bookmarks", "quickapps", "games", "wallbash", "palette", "animations", "workflows", "shaders", "layouts", "menu"]
+    readonly property var enabled: ["windows", "files", "web", "emoji", "glyph", "bookmarks", "quickapps", "wallbash", "palette", "animations", "workflows", "layouts", "menu"]
 
     // The HyDE menu picker ("menu"), in display order. Each entry: `name` (a picker from `enabled`),
     // `description` (row subtitle, also searched) and `glyph` (a Nerd Font character shown as the
     // row icon; "" uses the picker's own glyph if it is a character).
     readonly property var menu: [
-        {
-            "name": "themes",
-            "description": "Switch the HyDE theme",
-            "glyph": "󰏘"
-        },
-        {
-            "name": "themeimport",
-            "description": "Download more themes from the HyDE gallery",
-            "glyph": "󰇚"
-        },
         {
             "name": "windows",
             "description": "Switch to an open window",
@@ -69,11 +59,6 @@ Singleton {
             "glyph": ""
         },
         {
-            "name": "games",
-            "description": "Launch a Steam or Lutris game",
-            "glyph": ""
-        },
-        {
             "name": "wallbash",
             "description": "Theme colours: theme, auto, dark or light",
             "glyph": ""
@@ -92,11 +77,6 @@ Singleton {
             "name": "workflows",
             "description": "Workflow presets (gaming, focus…)",
             "glyph": ""
-        },
-        {
-            "name": "shaders",
-            "description": "Screen shaders",
-            "glyph": ""
         },
         {
             "name": "layouts",

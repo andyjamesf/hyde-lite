@@ -45,7 +45,6 @@ Singleton {
         { id: "power", label: "Power" },
         { id: "system", label: "System" },
         { id: "nextwallpaper", label: "Next wallpaper" },
-        { id: "hydetheme", label: "HyDE theme" },
         { id: "keybindings", label: "Keybindings" },
         { id: "syncshell", label: "Update shell" }
     ]

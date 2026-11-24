@@ -267,7 +267,7 @@ Item {
                             return [state, row.battery !== "" ? `Battery ${row.battery}` : ""].filter(s => s !== "").join("  ·  ");
                         }
                         color: row.dev.connected ? Theme.accent : Theme.dim
-                        font.pixelSize: Appearance.fontSize - 2
+                        font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                     }
                 }
 

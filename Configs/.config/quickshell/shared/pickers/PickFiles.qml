@@ -5,7 +5,7 @@ import Quickshell.Io
 import qs.shared.services
 
 // File picker (HyDE's `rofilaunch.sh f`, which opened rofi's file browser): folders and files under
-// the configured roots (home by default), opened with `xdg-open` (Launch.open).
+// the configured roots (home by default); folders open in Rivet Files, files with `xdg-open` (Launch.open).
 // The list is read once per opening with `fd` (no hidden files, .gitignore honoured; `find` when fd
 // is missing), limited by depth and entry count; searching filters that list in JS.
 // Roots, depth, limits and excluded names are in config/PickerSettings.qml (`files`).
@@ -19,6 +19,13 @@ Singleton {
     readonly property bool loading: proc.running && entries.length === 0
     readonly property bool grid: false
     readonly property bool keepOpen: false
+    // Folders are entered, not opened: the launcher stays open for them (see keepsOpenFor).
+    function keepsOpenFor(item) {
+        return item?.icon === "folder";
+    }
+
+    // The folder being browsed ("" = the search over all the roots).
+    property string cwd: ""
 
     readonly property string home: Paths.home
     readonly property var cfg: PickerSettings.files
@@ -35,9 +42,12 @@ Singleton {
     // Big or generated folders nobody wants to browse (hidden ones are skipped anyway).
     readonly property var excludes: (cfg.excludes ?? []).map(e => String(e).replace(/'/g, ""))
 
+    // What is listed: the roots, or just the folder being browsed.
+    readonly property var scanRoots: cwd !== "" ? [cwd] : roots
+
     // Roots are passed as "$@" (never interpolated).
     readonly property string script: {
-        const depth = Math.max(1, cfg.maxDepth ?? 6);
+        const depth = cwd !== "" ? 1 : Math.max(1, cfg.maxDepth ?? 6);
         const ex = excludes.map(e => `--exclude '${e}'`).join(" ");
         const prune = ["-name '.*'"].concat(excludes.map(e => `-name '${e}'`)).join(" -o ");
         return `if command -v fd >/dev/null 2>&1; then fd . "$@" --type f --type d --max-depth ${depth} --absolute-path ${ex} 2>/dev/null; ` + `else find "$@" -mindepth 1 -maxdepth ${depth} \\( ${prune} \\) -prune -o \\( -type d -printf '%p/\\n' -o -type f -print \\) 2>/dev/null; fi | head -n ${maxEntries}`;
@@ -46,13 +56,20 @@ Singleton {
     // Root that contains `path` (the longest match), or "".
     function rootOf(path) {
         let best = "";
-        for (const r of roots)
+        for (const r of scanRoots)
             if ((path === r || path.startsWith(r === "/" ? "/" : r + "/")) && r.length > best.length)
                 best = r;
         return best;
     }
 
     function refresh() {
+        // Opening the picker starts from the search again.
+        if (cwd !== "")
+            cwd = "";
+        rescan();
+    }
+
+    function rescan() {
         proc.running = false;
         proc.running = true;
     }
@@ -209,10 +226,41 @@ Singleton {
         return Math.max(1, 30 - gaps * 6);
     }
 
+    // The rows that lead out of the folder being browsed: up one level, and open it in the file manager.
+    function navRows() {
+        if (cwd === "")
+            return [];
+        const up = cwd.slice(0, cwd.lastIndexOf("/")) || "/";
+        const fm = cfg.manager ?? "thunar";
+        const rows = [
+            {
+                "key": "__up__",
+                "title": "..",
+                "subtitle": tilde(up),
+                "icon": "folder",
+                "text": "",
+                "badge": "",
+                "path": up
+            }
+        ];
+        if (fm !== "")
+            rows.push({
+                "key": "__fm__",
+                "title": `Open ${tilde(cwd)} in ${fm}`,
+                "subtitle": "",
+                "icon": "system-file-manager",
+                "text": "",
+                "badge": "",
+                "path": cwd,
+                "external": true
+            });
+        return rows;
+    }
+
     function items(query) {
         const q = String(query ?? "").trim().toLowerCase();
         if (q === "")
-            return shallow.map(row);
+            return navRows().concat(shallow.map(row));
         const wordRe = new RegExp(`(^|[\\s\\-_.])${q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`);
         const scored = [];
         for (const e of entries) {
@@ -223,17 +271,33 @@ Singleton {
                     s: s - Math.min(10, e.depth)
                 });
         }
-        return scored.sort((a, b) => b.s - a.s || a.e.path.length - b.e.path.length).slice(0, maxResults).map(x => row(x.e));
+        return navRows().concat(scored.sort((a, b) => b.s - a.s || a.e.path.length - b.e.path.length).slice(0, maxResults).map(x => row(x.e)));
     }
 
+    // A folder is entered (the launcher stays open and shows what is in it); a file opens with its default
+    // application. The "open in the file manager" row hands the folder being browsed to Thunar
+    // (`manager` in the `files` settings changes it, "" goes back to xdg-open). Returns true when the
+    // list changed folder, so the caller clears the search.
     function activate(item) {
-        if (item?.path)
-            Launch.open(item.path);
+        if (!item?.path)
+            return false;
+        const fm = cfg.manager ?? "thunar";
+        if (item.external) {
+            Launch.run([fm, item.path]);
+            return false;
+        }
+        if (item.icon === "folder") {
+            cwd = item.path;
+            rescan();
+            return true;
+        }
+        Launch.open(item.path);
+        return false;
     }
 
     Process {
         id: proc
-        command: ["sh", "-c", root.script, "sh"].concat(root.roots)
+        command: ["sh", "-c", root.script, "sh"].concat(root.scanRoots)
         stdout: StdioCollector {
             onStreamFinished: {
                 const list = root.parse(text);

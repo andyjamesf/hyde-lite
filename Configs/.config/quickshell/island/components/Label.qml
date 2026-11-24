@@ -12,5 +12,5 @@ Text {
         })
     verticalAlignment: Text.AlignVCenter
     elide: Text.ElideRight
-    renderType: Text.NativeRendering
+    renderType: Text.CurveRendering
 }

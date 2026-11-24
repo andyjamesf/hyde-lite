@@ -55,7 +55,9 @@ class ControlCentreParity(unittest.TestCase):
         draws the bar's panels), and neither keeps tiles, sliders or a notification list of its own."""
         for path in ("island/components/CcMainPage.qml", "bar/modules/controlcenter/ControlCenter.qml"):
             text = (SHELL / path).read_text(encoding="utf-8")
-            self.assertIn("CcMainView {", text, "%s does not draw the shared main page" % path)
+            # The bar draws the wide page (CcWideView), made of the same shared pieces as CcMainView.
+            drawn = ("CcMainView {", "CcWideView {") if path.startswith("bar/") else ("CcMainView {",)
+            self.assertTrue(any(d in text for d in drawn), "%s does not draw the shared main page" % path)
             for own in ("Notifications.list", "BigSlider {", "CcTile {"):
                 self.assertNotIn(own, text, "%s keeps its own %s" % (path, own))
         view = (SHELL / "shared/controlcenter/CcMainView.qml").read_text(encoding="utf-8")

@@ -6,7 +6,7 @@ import qs.shared.services
 BarItem {
     icon: "coffee"
     iconFill: Caffeine.active ? 1 : 0
-    iconColor: Caffeine.active ? Theme.primary : Theme.text
+    iconColor: Theme.text
     active: Caffeine.active
     tooltip: Caffeine.active ? "Caffeine on: the system stays awake" : "Caffeine off"
 

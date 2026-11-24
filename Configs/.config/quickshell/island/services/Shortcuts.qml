@@ -65,8 +65,6 @@ Singleton {
             return `Battery: ${Battery.profileName} profile`;
         case "nextwallpaper":
             return "Next wallpaper";
-        case "hydetheme":
-            return "HyDE theme";
         case "animations":
             return "Animations";
         case "keybindings":
@@ -153,8 +151,6 @@ Singleton {
             IslandController.open(IslandState.system);
         else if (id === "nextwallpaper")
             Launch.run(["hyde-shell", "wallpaper", "--next"]);
-        else if (id === "hydetheme")
-            pick("themes");
         else if (id === "animations")
             pick("animations");
         else if (id === "keybindings") {

@@ -153,9 +153,7 @@
         ],
         "right": [
             [
-                "stats"
-            ],
-            [
+                "stats",
                 "aiUsage"
             ],
             [

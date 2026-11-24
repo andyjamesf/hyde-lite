@@ -8,7 +8,8 @@ BarItem {
     shown: Notifications.available
     icon: Notifications.dnd ? "notifications_off" : Notifications.count > 0 ? "notifications_unread" : "notifications"
     iconFill: Notifications.count > 0 ? 1 : 0
-    iconColor: Notifications.dnd ? Theme.textFaint : Notifications.count > 0 ? Theme.primary : Theme.text
+    iconColor: Theme.text
+    active: Notifications.dnd
     text: Notifications.count > 0 ? String(Notifications.count) : ""
     tooltip: (Notifications.dnd ? "Do not disturb on\n" : "") + (Notifications.count > 0 ? `${Notifications.count} notifications` : "No notifications")
 

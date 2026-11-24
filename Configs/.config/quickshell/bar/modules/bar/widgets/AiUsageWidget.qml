@@ -6,6 +6,10 @@ import qs.bar.services
 // (~/.local/bin/ai-usage-watch). Stays collapsed behind a button: the icon turns red if any of them
 // is close to its limit, the tooltip summarizes all three and a click shows/hides the details
 // (the choice is remembered). Clicking one of the details forces a refresh of that one.
+//
+// The scripts only run while the details are open: opening them fetches at once, and then every
+// `period` seconds (40) for as long as they stay open. Collapsed, nothing runs and the icon and the
+// tooltip keep the last numbers.
 Row {
     id: root
 
@@ -13,19 +17,19 @@ Row {
         {
             name: "claude",
             label: "Claude",
-            period: 120,
+            period: 40,
             cmd: "/usr/bin/claude-usage --waybar --show-5h"
         },
         {
             name: "codex",
             label: "Codex",
-            period: 120,
+            period: 40,
             cmd: "codex-credits"
         },
         {
             name: "copilot",
             label: "Copilot",
-            period: 300,
+            period: 40,
             cmd: "copilot-credits"
         }
     ]
@@ -41,7 +45,9 @@ Row {
             return "mid";
         return "low";
     }
-    property bool shown: anyData
+    // Always on the bar: with nothing running while it is collapsed there is no data to wait for, and
+    // hiding it until some arrived would leave no button to open it with.
+    property bool shown: true
 
     // A Nerd Font glyph: a Private Use Area code point (BMP or supplementary planes 15-16).
     function isNerdGlyph(ch) {
@@ -106,7 +112,7 @@ Row {
         iconFill: root.expanded ? 1 : 0
         iconColor: root.worst === "high" ? Theme.error : root.worst === "mid" ? Theme.warning : Theme.primary
         active: root.expanded
-        tooltip: root.agents.map(a => `<b>${a.label}</b>&nbsp;&nbsp;${root.states[a.name]?.text || "…"}`).join("\n") + `\n\n${root.expanded ? "Click to collapse" : "Click to expand"}`
+        tooltip: root.agents.map(a => `<b>${a.label}</b>&nbsp;&nbsp;${root.states[a.name]?.text || "…"}`).join("\n") + `\n\n${root.expanded ? "Click to collapse" : "Click to expand and refresh"}`
         onClicked: {
             Prefs.aiExpanded = !Prefs.aiExpanded;
             Prefs.save();
@@ -159,7 +165,7 @@ Row {
                             text: seg.modelData.glyph
                             font.family: Config.appearance.monoFont
                             font.pixelSize: Math.round(BarLayout.iconSize * 0.85)
-                            color: BarLayout.readable(seg.modelData.color || item.textColor, 3)
+                            color: BarLayout.readableFor(seg, seg.modelData.color || item.textColor, 3, BarLayout.relayoutTick)
                         }
 
                         StyledText {
@@ -168,7 +174,7 @@ Row {
                             elide: Text.ElideNone
                             text: seg.modelData.text
                             font.pixelSize: BarLayout.fontSize
-                            color: BarLayout.readable(item.textColor, 4.5)
+                            color: BarLayout.readableFor(seg, item.textColor, 4.5, BarLayout.relayoutTick)
                         }
                     }
                 }
@@ -177,6 +183,7 @@ Row {
             // The streams always run (even when collapsed), so the icon and tooltip stay accurate.
             JsonStream {
                 id: stream
+                running: root.expanded
                 exec: `ai-usage-watch ${item.modelData.name} ${item.modelData.period} -- ${item.modelData.cmd}`
                 onTextChanged: root.setState(item.modelData.name, text, cls)
                 onClsChanged: root.setState(item.modelData.name, text, cls)

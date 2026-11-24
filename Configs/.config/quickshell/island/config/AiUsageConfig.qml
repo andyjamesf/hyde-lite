@@ -17,19 +17,19 @@ Singleton {
         {
             name: "claude",
             label: "Claude",
-            period: 120,
+            period: 40,
             cmd: ["/usr/bin/claude-usage", "--waybar", "--show-5h"]
         },
         {
             name: "codex",
             label: "Codex",
-            period: 120,
+            period: 40,
             cmd: ["codex-credits"]
         },
         {
             name: "copilot",
             label: "Copilot",
-            period: 300,
+            period: 40,
             cmd: ["copilot-credits"]
         }
     ]

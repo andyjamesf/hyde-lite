@@ -15,6 +15,14 @@ Item {
     readonly property var cfg: Config.widgets.workspaces
     readonly property int activeId: bar?.monitor?.activeWorkspace?.id ?? 1
     readonly property int count: Math.max(cfg.shown, activeId, ...Workspaces.workspaces.map(w => w.id))
+    // Ids shown, in order: all of 1..count, or with `hideEmpty` only the ones with windows, the active
+    // one and the first `shown` (so a fresh session still shows something to click).
+    readonly property var ids: {
+        const all = Array.from({
+            length: count
+        }, (_, i) => i + 1);
+        return cfg.hideEmpty ? all.filter(id => id <= cfg.shown || id === activeId || Workspaces.toplevelsOn(id).length > 0) : all;
+    }
 
     implicitWidth: row.implicitWidth + 8
     implicitHeight: BarLayout.height
@@ -35,7 +43,7 @@ Item {
     Rectangle {
         id: indicator
 
-        readonly property Item target: repeater.count >= root.activeId ? repeater.itemAt(root.activeId - 1) : null
+        readonly property Item target: repeater.itemAt(root.ids.indexOf(root.activeId))
 
         x: row.x + (target?.x ?? 0)
         width: target?.width ?? 0
@@ -67,16 +75,18 @@ Item {
 
         Repeater {
             id: repeater
-            model: root.count
+            model: root.ids
 
             Item {
                 id: ws
 
                 required property int index
-                readonly property int wsId: index + 1
+                required property int modelData
+                readonly property int wsId: modelData
                 readonly property bool isActive: wsId === root.activeId
                 readonly property var toplevels: Workspaces.toplevelsOn(wsId)
                 readonly property bool occupied: toplevels.length > 0
+                readonly property int maxIcons: root.cfg.maxIcons
                 readonly property bool showIcons: root.cfg.appIcons && occupied
 
                 width: Math.max(root.indicatorHeight, content.implicitWidth + Math.round(row.height * 0.5))
@@ -95,25 +105,44 @@ Item {
                     anchors.centerIn: parent
                     spacing: 3
 
-                    Repeater {
-                        model: ws.showIcons ? ws.toplevels.slice(0, root.cfg.maxIcons) : []
-
-                        IconImage {
-                            required property var modelData
-                            anchors.verticalCenter: parent.verticalCenter
-                            implicitSize: Math.min(Math.round(BarLayout.iconSize * 0.9), root.indicatorHeight - 6)
-                            source: Apps.iconFor(Workspaces.appIdOf(modelData))
-                        }
-                    }
-
+                    // The number: on empty workspaces, and on the active one next to its apps (so two
+                    // identical icons still tell which workspace is in use).
                     StyledText {
-                        visible: !ws.showIcons
+                        visible: !ws.showIcons || ws.isActive
                         anchors.verticalCenter: parent.verticalCenter
                         text: ws.wsId
                         font.pixelSize: BarLayout.fontSize
                         font.weight: ws.isActive ? Font.Bold : Font.Normal
-                        color: ws.isActive ? Theme.onPrimary : ws.occupied ? BarLayout.readable(Theme.text, 4.5) : BarLayout.readable(Theme.textFaint, 2.6)
+                        color: ws.isActive ? Theme.onPrimary : ws.occupied ? BarLayout.readableFor(ws, Theme.text, 4.5, BarLayout.relayoutTick) : BarLayout.readableFor(ws, Theme.textFaint, 2.6, BarLayout.relayoutTick)
                     }
+
+                    // The active workspace's apps at full strength, the others a step back.
+                    Row {
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: content.spacing
+                        opacity: ws.isActive ? 1 : 0.65
+
+                        Repeater {
+                            model: ws.showIcons ? ws.toplevels.slice(0, ws.maxIcons) : []
+
+                            IconImage {
+                                required property var modelData
+                                anchors.verticalCenter: parent.verticalCenter
+                                implicitSize: Math.min(Math.round(BarLayout.iconSize * 0.9), root.indicatorHeight - 6)
+                                source: Apps.iconFor(Workspaces.appIdOf(modelData))
+                            }
+                        }
+                    }
+
+                    // Windows beyond the icons shown: how many more there are.
+                    StyledText {
+                        visible: ws.showIcons && ws.toplevels.length > ws.maxIcons
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: `+${ws.toplevels.length - ws.maxIcons}`
+                        font.pixelSize: BarLayout.fontSize - 2
+                        color: ws.isActive ? Theme.onPrimary : BarLayout.readableFor(ws, Theme.textDim, 3.5, BarLayout.relayoutTick)
+                    }
+
                 }
             }
         }

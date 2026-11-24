@@ -64,6 +64,15 @@ Singleton {
         }
     }
 
+    // The window inhibitors (see the header) only count while their window is visible and mapped, and
+    // hypridle still dimmed and locked with the caffeine on. A systemd idle inhibitor needs no window,
+    // and hypridle respects it (ignore_systemd_inhibit = false). It holds as long as this shell lives:
+    // `tail --pid` ends with the process, so a crash cannot leave the system awake for good.
+    Process {
+        running: root.active
+        command: ["sh", "-c", "exec systemd-inhibit --what=idle --who=Quickshell --why=Caffeine --mode=block tail --pid=$PPID -f /dev/null"]
+    }
+
     // Ticks only while there is a countdown to show, so `remaining` keeps up with the minute.
     QtObject {
         id: tick

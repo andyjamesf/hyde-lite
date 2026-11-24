@@ -175,11 +175,13 @@ Item {
 
             TextInput {
                 id: input
-                anchors.left: keyIcon.right
-                anchors.leftMargin: 12
+                // Symmetric margins (icon width + gaps) so the text centre is the box centre.
+                anchors.left: parent.left
+                anchors.leftMargin: 50
                 anchors.right: parent.right
-                anchors.rightMargin: 20
+                anchors.rightMargin: 50
                 anchors.verticalCenter: parent.verticalCenter
+                horizontalAlignment: TextInput.AlignHCenter
                 echoMode: TextInput.Password
                 passwordCharacter: "●"
                 color: Theme.text
@@ -195,6 +197,7 @@ Item {
 
                 StyledText {
                     visible: input.text === ""
+                    anchors.horizontalCenter: parent.horizontalCenter
                     anchors.verticalCenter: parent.verticalCenter
                     text: Lock.authenticating ? "Checking…" : "Password"
                     color: Theme.textFaint

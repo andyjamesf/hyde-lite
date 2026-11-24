@@ -24,7 +24,7 @@ def problems(**change):
 
 class Validate(unittest.TestCase):
     def test_catalogue_is_read_from_the_qml(self):
-        self.assertEqual(len(IDS), 20)
+        self.assertEqual(len(IDS), 21)
         self.assertIn("controlCenter", IDS)
         self.assertEqual(STYLES, {"surface", "tint", "container", "accent", "glass", "outline"})
 

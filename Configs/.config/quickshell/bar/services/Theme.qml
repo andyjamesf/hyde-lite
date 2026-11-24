@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell
+import qs.shared.services
 import Quickshell.Io
 
 // Shell colors. Four sources (picked in the HyDE menu, in Prefs.colorSource):
@@ -70,6 +71,7 @@ Singleton {
     readonly property color error: readable("#f38ba8", surface, 3)
     readonly property color warning: readable("#f9e2af", surface, 3)
     readonly property color success: readable("#a6e3a1", surface, 3)
+    readonly property real panelOpacity: 0.97
 
     // State layers (hover/press) on top of any surface.
     readonly property color hover: Qt.alpha(text, 0.08)
@@ -97,6 +99,9 @@ Singleton {
     readonly property int titleSmall: 14
     readonly property int titleMedium: 16
     readonly property int titleLarge: 20
+    readonly property int typeSmall: 13
+    readonly property int typeMedium: 15
+    readonly property int typeLarge: 20
     readonly property int headline: 24
     readonly property int displaySmall: 36
     readonly property int display: 56
@@ -124,9 +129,7 @@ Singleton {
     // icon colors go through readable(), which darkens or lightens them just enough to be readable.
 
     function relativeLuminance(c) {
-        c = Qt.color(c);
-        const lin = v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
-        return 0.2126 * lin(c.r) + 0.7152 * lin(c.g) + 0.0722 * lin(c.b);
+        return ColorMath.relativeLuminance(c);
     }
 
     function contrast(a, b) {
@@ -166,9 +169,7 @@ Singleton {
 
     // Linear blend of two colors (t = 0 → a, t = 1 → b), always opaque.
     function blend(a, b, t) {
-        a = Qt.color(a);
-        b = Qt.color(b);
-        return Qt.rgba(a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t, 1);
+        return ColorMath.blend(a, b, t);
     }
 
     // theme.css color with transparency (e.g. rgba(…, 0.4) in wallbash mode) composited over the
@@ -298,6 +299,16 @@ Singleton {
         toRoles = targetRoles;
         progress = 0;
         transition.restart();
+        settleProgress.restart();
+    }
+
+    // Safety net: whatever happened to the animation (palettes arrive in bursts while HyDE and the
+    // palette engine write their files), the colours end on the new ones and not somewhere between.
+    Timer {
+        id: settleProgress
+        interval: Anim.slow + 250
+        onTriggered: if (root.progress < 1)
+            root.progress = 1
     }
 
     function setColorSource(source) {
@@ -426,15 +437,71 @@ Singleton {
     // background, so its text can be checked against it and not against the theme's surface.
     // "transparent" until it is measured.
     property color wallTop: "transparent"
-    readonly property string _wallPath: `${Quickshell.env("XDG_CACHE_HOME") || Quickshell.env("HOME") + "/.cache"}/hyde/wall.set.png`
-    onWallPaletteChanged: wallTopProc.running = true
+    // The same strip in 96 cells, left to right, measured the way awww shows the picture (scaled to
+    // cover the screen and cropped), not on the original: a bright patch under the clock is invisible
+    // in the average of the whole strip but it is exactly where the text is.
+    property var wallTopCells: []
+    // The lightest and the darkest of the wallpaper's cells between two x positions of the screen
+    // (logical px), or null before it is measured.
+    function wallBehind(x0, x1) {
+        const cells = wallTopCells;
+        if (cells.length === 0)
+            return null;
+        const w = Quickshell.screens.length > 0 ? Quickshell.screens[0].width : 1920;
+        const a = Math.max(0, Math.min(cells.length - 1, Math.floor(x0 / w * cells.length)));
+        const b = Math.max(a, Math.min(cells.length - 1, Math.ceil(x1 / w * cells.length) - 1));
+        let light = cells[a], dark = cells[a];
+        for (let i = a; i <= b; i++) {
+            if (relativeLuminance(cells[i]) > relativeLuminance(light))
+                light = cells[i];
+            if (relativeLuminance(cells[i]) < relativeLuminance(dark))
+                dark = cells[i];
+        }
+        return {
+            light: light,
+            dark: dark
+        };
+    }
+    // wall.set is the link HyDE re-points first; wall.set.png is a copy it writes afterwards, so
+    // reading that one right after a change measured the previous wallpaper (a light one then
+    // looked dark, and the bar's light text sat on a bright sky).
+    readonly property string _wallPath: `${Quickshell.env("XDG_CACHE_HOME") || Quickshell.env("HOME") + "/.cache"}/hyde/wall.set`
+    // Measured again after every palette change, once the files have settled.
+    onWallPaletteChanged: wallTopTimer.restart()
+    onMatugenPaletteChanged: wallTopTimer.restart()
+    Timer {
+        id: wallTopTimer
+        interval: 700
+        onTriggered: {
+            if (!wallTopProc.running)
+                wallTopProc.running = true;
+            else
+                wallTopAgain.restart();
+        }
+    }
+    Timer {
+        id: wallTopAgain
+        interval: 400
+        onTriggered: wallTopTimer.restart()
+    }
     Process {
         id: wallTopProc
         running: true
-        command: ["magick", root._wallPath, "-gravity", "north", "-crop", "100%x6%+0+0", "+repage", "-resize", "1x1!", "-format", "#%[hex:p{0,0}]", "info:"]
+        readonly property var scr: Quickshell.screens.length > 0 ? Quickshell.screens[0] : null
+        readonly property int w: Math.round((scr?.width ?? 1920) * (scr?.devicePixelRatio ?? 1))
+        readonly property int h: Math.round((scr?.height ?? 1080) * (scr?.devicePixelRatio ?? 1))
+        // What is under the bar: the picture covering the screen, its top rows (the bar's height, and a
+        // little more), in 96 cells.
+        command: ["magick", root._wallPath, "-resize", `${w}x${h}^`, "-gravity", "center", "-extent", `${w}x${h}`, "-gravity", "north", "-crop", `${w}x${Math.round(36 * (scr?.devicePixelRatio ?? 1))}+0+0`, "+repage", "-resize", "96x1!", "-depth", "8", "txt:-"]
         stdout: StdioCollector {
-            onStreamFinished: if (/^#[0-9a-fA-F]{6}/.test(text))
-                root.wallTop = text.slice(0, 7)
+            onStreamFinished: {
+                const cells = (text.match(/#[0-9A-Fa-f]{6}/g) ?? []).map(c => Qt.color(c));
+                if (cells.length === 0)
+                    return;
+                const n = cells.length;
+                root.wallTopCells = cells;
+                root.wallTop = Qt.rgba(cells.reduce((a, c) => a + c.r, 0) / n, cells.reduce((a, c) => a + c.g, 0) / n, cells.reduce((a, c) => a + c.b, 0) / n, 1);
+            }
         }
     }
 

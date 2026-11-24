@@ -135,6 +135,7 @@ PanelWindow {
 
             Section {
                 id: leftSection
+                side: "left"
                 anchors.left: parent.left
                 barRef: bar
                 islandList: MiniBarState.layout.left ?? []
@@ -143,6 +144,7 @@ PanelWindow {
             // Centred, but pushed aside when the sides need the space; if it does not fit between
             // them at all it hides instead of overlapping (the same rule as the normal bar).
             Section {
+                side: "center"
                 visible: parent.width - leftSection.width - rightSection.width - 2 * BarLayout.spacing >= implicitWidth
                 x: Math.max(leftSection.width + BarLayout.spacing, Math.min((parent.width - width) / 2, rightSection.x - width - BarLayout.spacing))
                 barRef: bar
@@ -151,6 +153,7 @@ PanelWindow {
 
             Section {
                 id: rightSection
+                side: "right"
                 anchors.right: parent.right
                 barRef: bar
                 islandList: MiniBarState.layout.right ?? []
@@ -179,6 +182,16 @@ PanelWindow {
 
         height: parent.height
         spacing: BarLayout.spacing
+        // The elements move with it: colours chosen by position are chosen again.
+        // Which side of the bar this is, and where: the colours of the elements on it are chosen together.
+        property string side: ""
+        function report() {
+            if (side !== "" && width > 0)
+                BarLayout.setSide(side, mapToItem(null, 0, 0).x, width);
+        }
+        onWidthChanged: report()
+        onXChanged: report()
+        Component.onCompleted: report()
 
         Repeater {
             model: section.islandList

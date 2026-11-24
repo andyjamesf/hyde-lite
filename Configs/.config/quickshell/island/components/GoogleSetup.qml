@@ -57,7 +57,7 @@ Column {
         width: parent.width
         wrapMode: Text.WordWrap
         text: GoogleCalendar.error
-        font.pixelSize: Appearance.fontSize - 2
+        font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
         color: Theme.danger
     }
 }

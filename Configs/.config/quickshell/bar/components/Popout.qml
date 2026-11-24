@@ -62,7 +62,7 @@ PopupWindow {
         height: implicitHeight
         y: popout.below ? 0 : 10
         radius: Theme.shapeLarge + 4
-        color: Theme.alpha(Theme.surfaceContainer, 0.97)
+        color: Theme.alpha(Theme.surfaceContainer, Theme.panelOpacity)
         border.width: 1
         border.color: Theme.border
         focus: true

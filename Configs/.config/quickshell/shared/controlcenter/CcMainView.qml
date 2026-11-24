@@ -1,5 +1,4 @@
 import QtQuick
-import Quickshell.Widgets
 import qs.shared.icons
 import qs.shared.services
 
@@ -18,7 +17,7 @@ Column {
     // Ids of the tiles and of the shortcut buttons to show, in order. A tile or a button whose
     // entry is not available (no Bluetooth adapter, a picker that is not registered) is left out.
     property var tiles: ["wifi", "bluetooth", "sound", "mic", "dnd", "nightlight", "caffeine", "powerProfile", "colors"]
-    property var shortcuts: ["nextwallpaper", "wallpaper", "hydetheme", "animations", "keybindings", "syncshell"]
+    property var shortcuts: ["nextwallpaper", "wallpaper", "animations", "keybindings", "syncshell"]
 
     // Tiles per row (the island has 2; a wide window can take more, so the page is not so tall).
     property int columns: 2
@@ -44,165 +43,12 @@ Column {
 
     spacing: 12
 
-    // Header: picture (click: choose another), name and time since boot on the left; battery
-    // (click: battery page), system, settings, lock and power on the right.
-    Item {
+    CcMainHeader {
         width: parent.width
-        height: 40
-
-        Rectangle {
-            id: avatarFrame
-            anchors.left: parent.left
-            anchors.verticalCenter: parent.verticalCenter
-            width: 38
-            height: 38
-            radius: width / 2
-            color: CcTheme.surface
-            border.width: 1
-            border.color: avatarMouse.containsMouse ? CcTheme.accent : CcTheme.border
-
-            CcLabel {
-                anchors.centerIn: parent
-                visible: avatarImage.status !== Image.Ready
-                text: SysInfo.user.charAt(0).toUpperCase()
-                color: CcTheme.accent
-                font.weight: Font.DemiBold
-            }
-            ClippingRectangle {
-                anchors.fill: parent
-                anchors.margins: 1
-                radius: width / 2
-                color: "transparent"
-                visible: avatarImage.status === Image.Ready
-
-                Image {
-                    id: avatarImage
-                    anchors.fill: parent
-                    source: SysInfo.avatarUrl
-                    fillMode: Image.PreserveAspectCrop
-                    sourceSize.width: 80
-                    sourceSize.height: 80
-                    asynchronous: true
-                    cache: false
-                }
-            }
-            MouseArea {
-                id: avatarMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: root.headerAction("avatar")
-                onContainsMouseChanged: root.hintRequested(containsMouse, "avatar", avatarFrame)
-            }
-        }
-
-        Column {
-            anchors.left: avatarFrame.right
-            anchors.leftMargin: 10
-            anchors.right: headerButtons.left
-            anchors.rightMargin: 8
-            anchors.verticalCenter: parent.verticalCenter
-
-            CcLabel {
-                width: parent.width
-                text: SysInfo.user
-                font.weight: Font.DemiBold
-            }
-            CcLabel {
-                width: parent.width
-                text: `Up for ${SysInfo.uptime}`
-                color: CcTheme.dim
-                font.pixelSize: CcTheme.fontSize - 2
-            }
-        }
-
-        Row {
-            id: headerButtons
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
-            spacing: 2
-
-            // Battery: percentage and icon; opens the battery page (power profiles).
-            Rectangle {
-                id: batteryButton
-                anchors.verticalCenter: parent.verticalCenter
-                visible: Battery.available
-                width: batteryRow.implicitWidth + 16
-                height: 32
-                radius: height / 2
-                color: batteryMouse.pressed ? CcTheme.pressed : batteryMouse.containsMouse ? CcTheme.hover : "transparent"
-
-                Row {
-                    id: batteryRow
-                    anchors.centerIn: parent
-                    spacing: 6
-
-                    CcLabel {
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: `${Math.round(Battery.percent)}%`
-                        color: CcTheme.dim
-                        font.pixelSize: CcTheme.fontSize - 1
-                    }
-                    BatteryIcon {
-                        anchors.verticalCenter: parent.verticalCenter
-                        size: 20
-                        showPercent: false
-                        present: Battery.available
-                        percent: Battery.percent
-                        charging: Battery.charging
-                    }
-                }
-                MouseArea {
-                    id: batteryMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    acceptedButtons: Qt.LeftButton | Qt.RightButton
-                    onClicked: event => event.button === Qt.RightButton ? root.menuRequested("battery", batteryButton) : root.pageRequested("battery")
-                    onContainsMouseChanged: root.hintRequested(containsMouse, "batterypage", batteryButton)
-                }
-            }
-
-            Repeater {
-                model: [
-                    {
-                        id: "system",
-                        glyph: "\u{F061A}"
-                    },
-                    {
-                        id: "settings",
-                        glyph: "\u{F0493}"
-                    },
-                    {
-                        id: "lock",
-                        glyph: "\u{F033E}"
-                    },
-                    {
-                        id: "power",
-                        glyph: "\u{F0425}"
-                    }
-                ]
-
-                CcIconButton {
-                    id: headerButton
-                    required property var modelData
-                    anchors.verticalCenter: parent.verticalCenter
-                    size: 32
-                    onClicked: root.headerAction(modelData.id)
-                    rightClickable: true
-                    onRightClicked: root.menuRequested(modelData.id, headerButton)
-                    onHoveredChanged: root.hintRequested(hovered, modelData.id, headerButton)
-
-                    CcLabel {
-                        text: headerButton.modelData.glyph
-                        font.family: CcTheme.nerdFont
-                        font.pixelSize: 17
-                        elide: Text.ElideNone
-                        color: CcTheme.icon
-                    }
-                }
-            }
-        }
+        onPageRequested: page => root.pageRequested(page)
+        onHeaderAction: id => root.headerAction(id)
+        onMenuRequested: (id, item) => root.menuRequested(id, item)
+        onHintRequested: (on, id, item) => root.hintRequested(on, id, item)
     }
 
     // Tiles in `columns` columns; a last tile that would be alone in a row takes the rest of it.

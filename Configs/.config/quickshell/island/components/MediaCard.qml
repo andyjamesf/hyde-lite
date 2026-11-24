@@ -250,7 +250,7 @@ Item {
                         text: Media.identity ?? ""
                         textFormat: Text.PlainText
                         color: Theme.faint
-                        font.pixelSize: Appearance.fontSize - 2
+                        font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                     }
                 }
             }
@@ -332,7 +332,7 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                         text: root.formatTime(seekBar.dragging ? seekBar.dragFraction * Media.length : Media.position)
                         color: Theme.dim
-                        font.pixelSize: Appearance.fontSize - 2
+                        font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                     }
 
                     Label {
@@ -340,7 +340,7 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                         text: root.formatTime(Media.length)
                         color: Theme.dim
-                        font.pixelSize: Appearance.fontSize - 2
+                        font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                     }
                 }
             }
@@ -429,7 +429,7 @@ Item {
                     text: root.outputName
                     textFormat: Text.PlainText
                     color: Theme.dim
-                    font.pixelSize: Appearance.fontSize - 2
+                    font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                 }
             }
 

@@ -3,7 +3,6 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import qs.island.config as Config
 
 // Installed applications, shared by every UI of this configuration.
 //
@@ -114,8 +113,13 @@ Singleton {
         if (q === "") {
             // No search: favourites, then the most used, then the rest alphabetically.
             const fav = applications.filter(e => isFavorite(e));
-            const used = applications.filter(e => !isFavorite(e) && frecency(e) > 0).sort((a, b) => frecency(b) - frecency(a));
-            const rest = applications.filter(e => !isFavorite(e) && frecency(e) === 0);
+            // frecency() once per entry, not inside the sort comparator.
+            const scored = applications.filter(e => !isFavorite(e)).map(e => ({
+                        e,
+                        f: frecency(e)
+                    }));
+            const used = scored.filter(x => x.f > 0).sort((a, b) => b.f - a.f).map(x => x.e);
+            const rest = scored.filter(x => x.f === 0).map(x => x.e);
             return fav.concat(used, rest).slice(0, max);
         }
         const w = root.fuzzyWeights;

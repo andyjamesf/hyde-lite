@@ -421,7 +421,7 @@ FocusScope {
                     text: special.modelData.windows === 1 ? `${special.modelData.label} · 1 window` : `${special.modelData.label} · ${special.modelData.windows} windows`
                     color: Theme.dim
                     font.family: Appearance.font
-                    font.pixelSize: Appearance.fontSize - 2
+                    font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                 }
 
                 DropArea {

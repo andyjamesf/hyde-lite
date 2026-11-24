@@ -4,8 +4,10 @@ import Quickshell
 import Quickshell.Io
 import qs.island.config
 
-// AI usage (config/AiUsageConfig.qml): one ai-usage-watch stream per tool, always running so the
-// icon's colour stays current. Each reading keeps the short value, the script's class, and the
+// AI usage (config/AiUsageConfig.qml): one ai-usage-watch stream per tool. The streams run while the
+// AI popup is open (they fetch when it opens and then every `period` seconds), once at the start of
+// the shell (for at most 45 s) so the icon has something to show, and briefly after a refresh() made while they are not
+// running. Otherwise nothing runs and the icon keeps the last numbers. Each reading keeps the short value, the script's class, and the
 // windows parsed from its tooltip (5-hour, 7-day, monthly, credits…) with how full they are and
 // when they reset; the AI popup (components/AiUsageView.qml) shows them. refresh() asks every
 // stream (or one) for fresh numbers at once (SIGUSR1).
@@ -34,8 +36,39 @@ Singleton {
         return `${a.label}   ${s && s.text !== "" ? s.text : "…"}`;
     }).join("\n")
 
-    // Fresh numbers for every tool, or only `name`.
+    // Set while the AI popup is open (components/AiUsageView.qml).
+    property bool active: false
+    // The first reading after the shell starts: until every tool has answered, or 45 s (a tool whose login
+    // has expired keeps answering "syncing" while the script retries, and must not hold the others up).
+    property bool _seed: true
+    // A refresh() made while the streams were stopped: they run for a short while to fetch.
+    property bool _burst: false
+    readonly property bool _running: active || _seed || _burst
+
+    Timer {
+        interval: 45000
+        running: root._seed
+        onTriggered: root._seed = false
+    }
+
+    Timer {
+        id: burstTimer
+        interval: 25000
+        onTriggered: root._burst = false
+    }
+
+    onStatesChanged: {
+        if (_seed && AiUsageConfig.agents.every(a => states[a.name] !== undefined && states[a.name].cls !== "syncing"))
+            _seed = false;
+    }
+
+    // Fresh numbers for every tool, or only `name`. Starting a stopped stream fetches at once.
     function refresh(name) {
+        if (!_running) {
+            _burst = true;
+            burstTimer.restart();
+            return;
+        }
         const who = name ? `${name} ` : "";
         Quickshell.execDetached(["pkill", "-USR1", "-f", `[a]i-usage-watch ${who}`]);
     }
@@ -156,7 +189,7 @@ Singleton {
         Process {
             required property var modelData
             command: ["ai-usage-watch", String(modelData.name), String(modelData.period), "--"].concat(root._argv(modelData.cmd))
-            running: true
+            running: root._running
             stdout: SplitParser {
                 onRead: line => root._set(modelData.name, line)
             }

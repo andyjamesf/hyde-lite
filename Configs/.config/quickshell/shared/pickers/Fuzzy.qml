@@ -58,4 +58,19 @@ Singleton {
     function currentFirst(list, current) {
         return list.filter(it => it.key === current).concat(list.filter(it => it.key !== current));
     }
+
+    // Score of one search term in a description (emoji and glyph names): whole word > word start > substring.
+    // `t` = { term, word }; `low` is padded with spaces, so a whole word is " term "
+    // (no regular expressions: this runs over thousands of entries per keystroke).
+    function termScore(t, low) {
+        const idx = low.indexOf(t.term);
+        if (idx < 0)
+            return 0;
+        const w = low.indexOf(t.word);
+        if (w >= 0)
+            return 100 - Math.min(30, w / 2);
+        if (low[idx - 1] === " ")
+            return 80 - Math.min(30, idx / 2);
+        return 50 - Math.min(20, idx / 2);
+    }
 }

@@ -80,9 +80,11 @@ Singleton {
     readonly property int margin: islands ? (mini ? MiniBarConfig.margin : preset.margin ?? 4) : 0
     // Horizontal padding inside each module (BarItem). The minimal bar can set it (MiniBarConfig.itemPadding).
     readonly property int itemPadding: mini && MiniBarConfig.itemPadding >= 0 ? MiniBarConfig.itemPadding : Math.round(height * 0.2)
-    readonly property int spacing: mini ? MiniBarConfig.spacing : preset.spacing ?? 4
+    readonly property int spacing: mini ? MiniBarConfig.spacing : preset.spacing ?? 8
     readonly property int radius: Math.min(mini ? (MiniBarConfig.radius >= 0 ? MiniBarConfig.radius : hyprRounding) : preset.radius ?? hyprRounding, Math.floor(height / 2))
-    readonly property real opacity: mini && MiniBarConfig.opacity >= 0 ? MiniBarConfig.opacity : Prefs.pillOpacity >= 0 ? Prefs.pillOpacity : preset.opacity ?? Config.bar.opacity
+    readonly property real requestedOpacity: mini && MiniBarConfig.opacity >= 0 ? MiniBarConfig.opacity : Prefs.pillOpacity >= 0 ? Prefs.pillOpacity : preset.opacity ?? Config.bar.opacity
+    // Never below Config.bar.minOpacity, except in the styles that are see-through on purpose.
+    readonly property real opacity: pillStyle === "glass" || pillStyle === "outline" ? requestedOpacity : Math.max(requestedOpacity, Config.bar.minOpacity)
 
     // Island background. All options derive from the theme colors, so they change with it.
     readonly property var pillStyles: [
@@ -148,6 +150,80 @@ Singleton {
         return Theme.wallTop.a > 0 ? Theme.wallTop : Theme.surface;
     }
 
+    // A bar with no background (the minimal bar's "none" style) has the wallpaper itself behind its text,
+    // and a wallpaper is not one colour: a bright patch under the clock is invisible in the average of
+    // the strip. So there the contrast is measured against what is really behind each element (the
+    // wallpaper's top strip, in Theme.wallTopCells), and the colour is moved just enough to keep it.
+    readonly property bool noBackground: mini && MiniBarConfig.style === "none"
+    // Bumped whenever the elements may have moved, so colours measured by position are measured again.
+    property int relayoutTick: 0
+    function relayout() {
+        relayoutTick++;
+    }
+
+    // Where each side of the bar is, in screen x: {left, center, right} -> {x0, x1}. Filled by the bar's
+    // sections (Bar.qml, MiniBar.qml) as they move.
+    property var sides: ({})
+    function setSide(name, x0, width) {
+        const s = Object.assign({}, sides);
+        s[name] = {
+            x0: x0,
+            x1: x0 + width
+        };
+        sides = s;
+        relayoutTick++;
+    }
+
+    // The side of the bar an element is on (the section whose extent is nearest to its centre).
+    function sideOf(item) {
+        const cx = item.mapToItem(null, 0, 0).x + item.width / 2;
+        let best = "";
+        let dist = Infinity;
+        for (const k in sides) {
+            const d = cx < sides[k].x0 ? sides[k].x0 - cx : cx > sides[k].x1 ? cx - sides[k].x1 : 0;
+            if (d < dist) {
+                dist = d;
+                best = k;
+            }
+        }
+        return best;
+    }
+
+    // The colour for `item` (the same as readable() when the bar has a background). Without one, every
+    // plain text and icon on a side of the bar gets the SAME colour: the one that keeps the best contrast
+    // against everything behind that side of the wallpaper (the lightest and the darkest of its cells).
+    // Only a colour that means something (an alert, a charging battery...) keeps its hue, adjusted the same
+    // way. The last argument only makes the call depend on relayoutTick.
+    function readableFor(item, fg, minRatio, tick) {
+        if (!noBackground || Theme.wallTopCells.length === 0 || !item || !item.width)
+            return readable(fg, minRatio ?? 4.5);
+        const range = sides[sideOf(item)];
+        const ext = range ? Theme.wallBehind(range.x0, range.x1) : null;
+        if (!ext)
+            return readable(fg, minRatio ?? 4.5);
+        const c0 = Qt.color(fg);
+        const base = c0.hsvSaturation > 0.35 ? c0 : Qt.color(Theme.text);
+        const r = 4.5;
+        const worst = c => Math.min(Theme.contrast(c, ext.light), Theme.contrast(c, ext.dark));
+        if (worst(base) >= r)
+            return Qt.rgba(base.r, base.g, base.b, c0.a);
+        let best = base;
+        let bestWorst = worst(base);
+        for (const target of ["#ffffff", "#000000"]) {
+            for (let t = 0.1; t < 1.0001; t += 0.1) {
+                const c = Theme.blend(base, target, Math.min(t, 1));
+                const w = worst(c);
+                if (w > bestWorst + 0.001) {
+                    best = c;
+                    bestWorst = w;
+                }
+                if (w >= r)
+                    break;
+            }
+        }
+        return Qt.rgba(best.r, best.g, best.b, c0.a);
+    }
+
     // Readable color over the islands: text 4.5:1, icons and graphical elements 3:1.
     function readable(color, minRatio) {
         return Theme.readable(color, pillBase, minRatio ?? 4.5);
@@ -189,7 +265,7 @@ Singleton {
         Utils.run(`notify-send -a "Quickshell" -r 91 -t 1500 -h int:transient:1 -i preferences-desktop "Bar layout" "${presets[name].label ?? name}"`);
     }
 
-    function cycle(step) {
+    function cycle(step = 1) {
         // "Next bar layout" and `qs ipc call bar next|prev` drive whichever bar is in charge: the
         // minimal bar keeps its own layouts (modules/minibar/model/MiniBarConfig.qml).
         if (mini) {

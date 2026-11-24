@@ -131,7 +131,7 @@ FocusScope {
                 text: root.flow?.actionId ?? ""
                 color: Theme.faint
                 font.family: Appearance.monoFont
-                font.pixelSize: Appearance.fontSize - 2
+                font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
             }
         }
     }

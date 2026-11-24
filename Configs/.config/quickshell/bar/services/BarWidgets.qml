@@ -14,6 +14,7 @@ Singleton {
             "media": "Media",
             "cava": "Cava",
             "aiUsage": "AiUsage",
+            "notes": "Notes",
             "tray": "Tray",
             "audio": "Audio",
             "mic": "Mic",

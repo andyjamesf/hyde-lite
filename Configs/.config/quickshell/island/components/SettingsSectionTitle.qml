@@ -9,7 +9,7 @@ Label {
     height: 30
     verticalAlignment: Text.AlignBottom
     color: Theme.faint
-    font.pixelSize: Appearance.fontSize - 2
+    font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
     font.weight: Font.DemiBold
     font.letterSpacing: 0.6
 }

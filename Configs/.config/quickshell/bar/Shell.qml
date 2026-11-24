@@ -12,6 +12,7 @@ import qs.bar.modules.notifications
 import qs.bar.modules.osd
 import qs.bar.modules.launcher
 import qs.bar.modules.powermenu
+import qs.bar.modules.notes
 import qs.bar.modules.barbuilder
 import qs.bar.modules.lock
 import qs.bar.modules.avatar
@@ -22,12 +23,18 @@ import qs.shared.pickers
 import qs.shared.controlcenter
 
 Scope {
+    // The first read of the applications list loads every .desktop entry (~0.5 s the first time the
+    // launcher opened); touch it here so that happens at startup instead.
+    Component.onCompleted: Apps.applications.length
+
     // Singletons are only created when something uses them; these must exist from startup
     // (the calendar events, which must be ready before it is opened).
     readonly property var agenda: Calendar
     readonly property var notifs: Notifications
     // The popup policy must exist from startup too, or the first notification has nowhere to go.
     readonly property var popups: Popups
+    // The palette follows the wallpaper that is on the screen, however it was changed.
+    readonly property var wallpaperFollow: WallpaperFollow
 
     // User picture editor (only exists while it is open).
     Variants {
@@ -89,15 +96,21 @@ Scope {
         }
     }
 
-    // Launcher and power menu only exist while open, and only on the screen where they opened: each
-    // window has its own graphics context, and keeping them all created cost hundreds of MB.
+    // Launcher and power menu are only created on the screen where they open: each window has its own
+    // graphics context, and keeping them all created cost hundreds of MB. The launcher then stays
+    // created on that screen (closed it is just an empty input region): recreating the layer-shell
+    // window and the whole view on every open was most of the delay before it appeared.
     Variants {
         model: Quickshell.screens
 
         LazyLoader {
             id: launcherLoader
             required property ShellScreen modelData
-            active: ShellState.launcherOpen && ShellState.launcherScreen === modelData.name
+            readonly property bool wanted: ShellState.launcherOpen && ShellState.launcherScreen === modelData.name
+            property bool used: false
+            onWantedChanged: if (wanted)
+                used = true
+            active: used || wanted
 
             Launcher {
                 modelData: launcherLoader.modelData
@@ -115,6 +128,20 @@ Scope {
 
             PowerMenu {
                 modelData: powerLoader.modelData
+            }
+        }
+    }
+
+    Variants {
+        model: Quickshell.screens
+
+        LazyLoader {
+            id: notesLoader
+            required property ShellScreen modelData
+            active: ShellState.notesOpen && ShellState.notesScreen === modelData.name
+
+            NotesWindow {
+                modelData: notesLoader.modelData
             }
         }
     }
@@ -389,6 +416,17 @@ Scope {
     }
 
     IpcHandler {
+        target: "notes"
+
+        function toggle(): void {
+            ShellState.toggleNotes("edit");
+        }
+        function list(): void {
+            ShellState.toggleNotes("list");
+        }
+    }
+
+    IpcHandler {
         target: "notifications"
 
         function toggleDnd(): void {
@@ -421,6 +459,10 @@ Scope {
         function page(name: string): void {
             ShellState.openControlCenter(name);
         }
+        // "home", "apps", "clipboard", "keys", "notes", "calendar", "system", "power" or "more"
+        function tab(name: string): void {
+            ShellState.toggleControlCenterTab(name);
+        }
     }
 
     // Test/diagnostic hooks (read-only): qs ipc call bar-debug <function>
@@ -431,6 +473,10 @@ Scope {
         // same things: "toggles=<ids> shortcuts=<ids>". The control centre cannot be held open for
         // a screenshot (it closes as soon as a scripted call returns), so this is how the two are
         // compared — see tools/tests/test_cc_parity.py.
+        // The colours in use, for checking what the palette delivers to the bar.
+        function theme(): string {
+            return `source=${Theme.source} progress=${Theme.progress} surface=${Theme.surface} text=${Theme.text} dim=${Theme.textDim} faint=${Theme.textFaint} primary=${Theme.primary} pillBase=${BarLayout.pillBase} wallTop=${Theme.wallTop} opacity=${BarLayout.opacity}`;
+        }
         function ccItems(): string {
             return "toggles=" + CcToggles.shown.map(t => t.id).join(",") + " shortcuts=" + CcShortcuts.shown.map(s => s.id).join(",");
         }

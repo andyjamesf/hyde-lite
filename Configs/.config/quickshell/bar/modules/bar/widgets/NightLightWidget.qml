@@ -7,7 +7,7 @@ import qs.shared.services
 BarItem {
     icon: "nightlight"
     iconFill: NightLight.active ? 1 : 0
-    iconColor: NightLight.active ? Theme.warning : Theme.text
+    iconColor: Theme.text
     active: NightLight.active
     tooltip: NightLight.tooltip
     menu: HydeActions.hyprsunset

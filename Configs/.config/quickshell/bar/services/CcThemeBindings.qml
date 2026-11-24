@@ -14,7 +14,7 @@ Scope {
     Binding {
         target: CcTheme
         property: "surface"
-        value: Theme.surfaceContainerHigh
+        value: Theme.surfaceContainerHighest
     }
     Binding {
         target: CcTheme

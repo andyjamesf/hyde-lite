@@ -41,7 +41,6 @@ Singleton {
         timeout: 20
         respectInhibitors: false
         onIsIdleChanged: {
-            console.debug("osd: idle =", isIdle);
             if (!isIdle)
                 resumeGrace.restart();
         }

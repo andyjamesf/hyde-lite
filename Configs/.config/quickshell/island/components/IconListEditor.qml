@@ -113,7 +113,7 @@ Item {
 
     component Heading: Label {
         color: Theme.dim
-        font.pixelSize: Appearance.fontSize - 2
+        font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
         font.weight: Font.DemiBold
         font.capitalization: Font.AllUppercase
         font.letterSpacing: 0.6
@@ -173,7 +173,7 @@ Item {
                 width: Math.max(0, parent.width - titleLabel.implicitWidth - (defaultButton.visible ? defaultButton.width : 0) - 16)
                 text: root.subtitle
                 color: Theme.dim
-                font.pixelSize: Appearance.fontSize - 2
+                font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
                 elide: Text.ElideRight
             }
             CcTextButton {
@@ -249,7 +249,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 text: root.current.length > 1 ? "Click an icon to move or remove it" : ""
                 color: Theme.dim
-                font.pixelSize: Appearance.fontSize - 2
+                font.pixelSize: Math.max(Appearance.fontSize - 2, Appearance.minFontSize)
             }
         }
 
