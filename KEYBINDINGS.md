@@ -43,6 +43,7 @@ Keys that exist in only one of the two shells (the island or the HyDE bar) do no
 | <kbd>Super</kbd> + <kbd>A</kbd> | application finder |
 | <kbd>Super</kbd> + <kbd>Shift</kbd> + <kbd>K</kbd> | calculator |
 | <kbd>Super</kbd> + <kbd>V</kbd> | clipboard |
+| <kbd>Super</kbd> + <kbd>space</kbd> | control center |
 | <kbd>Super</kbd> + <kbd>Alt</kbd> + <kbd>C</kbd> | control center |
 | <kbd>Super</kbd> + <kbd>Shift</kbd> + <kbd>A</kbd> | HyDE menus |
 | <kbd>Super</kbd> + <kbd>backslash</kbd> | keybindings |
@@ -82,8 +83,8 @@ Keys that exist in only one of the two shells (the island or the HyDE bar) do no
 | <kbd>Super</kbd> + <kbd>Alt</kbd> + <kbd>Down</kbd> | previous bar layout |
 | <kbd>Super</kbd> + <kbd>Ctrl</kbd> + <kbd>Left</kbd> | previous wallpaper (all of them) |
 | <kbd>Super</kbd> + <kbd>Ctrl</kbd> + <kbd>Down</kbd> | previous wallpaper palette |
+| <kbd>Super</kbd> + <kbd>Ctrl</kbd> + <kbd>R</kbd> | random wallpaper (all of them) |
 | <kbd>Super</kbd> + <kbd>Shift</kbd> + <kbd>W</kbd> | select a global wallpaper |
-| <kbd>Super</kbd> + <kbd>Shift</kbd> + <kbd>T</kbd> | select a theme |
 | <kbd>Super</kbd> + <kbd>Shift</kbd> + <kbd>Y</kbd> | select animations |
 | <kbd>Super</kbd> + <kbd>Alt</kbd> + <kbd>R</kbd> | update the shell from the checkout |
 | <kbd>Super</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd> | wallbash mode selector |
@@ -93,8 +94,8 @@ Keys that exist in only one of the two shells (the island or the HyDE bar) do no
 
 | Keys | Does |
 |---|---|
-| <kbd>Super</kbd> + <kbd>Shift</kbd> + <kbd>G</kbd> | game launcher |
-| <kbd>Super</kbd> + <kbd>Alt</kbd> + <kbd>N</kbd> | notepad |
+| <kbd>Super</kbd> + <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>N</kbd> | all notes |
+| <kbd>Super</kbd> + <kbd>Alt</kbd> + <kbd>N</kbd> | notepad (the bars: notes in the vault) |
 | <kbd>Super</kbd> + <kbd>N</kbd> | notification center |
 | <kbd>Super</kbd> + <kbd>Ctrl</kbd> + <kbd>S</kbd> | OCR scanner |
 | <kbd>Super</kbd> + <kbd>P</kbd> | partial screenshot capture |
