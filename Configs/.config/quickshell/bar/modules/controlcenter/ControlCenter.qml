@@ -169,11 +169,23 @@ PanelWindow {
     HyprlandFocusGrab {
         windows: [panel]
         active: panel.open && panel.grabReady
-        onCleared: ShellState.closeControlCenter()
+        onCleared: {
+            // Hyprland sometimes cancels the grab on the first click ON the panel, which is not a click
+            // outside: the pointer is still over it. Then the grab is armed again and the panel stays.
+            if (panel.open && overPanel.hovered) {
+                panel.grabReady = false;
+                return;
+            }
+            ShellState.closeControlCenter();
+        }
     }
 
     Rectangle {
         id: bg
+        // Whether the pointer is over the panel (the compositor says so when it enters the surface).
+        HoverHandler {
+            id: overPanel
+        }
 
         // Closed, the panel sat off to the side at 40% opacity but was still drawn: anything animating
         // inside it kept the window rendering frames nobody sees, which costs battery. Same condition as
