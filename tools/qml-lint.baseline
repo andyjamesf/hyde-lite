@@ -3,12 +3,12 @@
 # Lower a number whenever you fix something. Never raise one to make the check pass, with one exception:
 # an increase the owner has decided to accept, recorded below as a '#!' line with its reason
 # (tools/tests/test_qml_baseline.py checks the record). Rewriting the baseline keeps those lines.
-#! accepted 2026-10-24 bar uncreatable-type 7->9 Configs/.config/quickshell/bar/modules/minibar/view/MiniBar.qml:16: one per window of this shell, which qmllint reports as "not creatable" because Quickshell supplies the backend at runtime; 7->8 was the bar editor (CI run 38745431293) and 8->9 is the minimal bar's window; inherent to having the window, and it goes only by not having one (measured locally, tools/qml-lint.sh --since, 2026-10-24)
+#! accepted 2026-10-24 bar uncreatable-type 7->10 Configs/.config/quickshell/bar/modules/minibar/view/MiniBar.qml:16: one per window of this shell, which qmllint reports as "not creatable" because Quickshell supplies the backend at runtime; 7->8 was the bar editor (CI run 38745431293) and 8->9 is the minimal bar's window, 9->10 the notes window (bar/modules/notes/NotesWindow.qml:11, accepted by the owner on 2026-11-24); inherent to having the window, and it goes only by not having one (measured locally, tools/qml-lint.sh --since, 2026-10-24)
 bar 13 import
 bar 4 incompatible-type
 bar 148 missing-property
 bar 2 property-override
-bar 9 uncreatable-type
+bar 10 uncreatable-type
 bar 84 unqualified
 bar 5 unresolved-type
 island 46 import
