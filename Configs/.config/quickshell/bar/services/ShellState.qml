@@ -9,6 +9,17 @@ Singleton {
 
     property bool barHidden: false
 
+    // Windows that belong to the panel's focus grab without being the panel (the notification popups): a
+    // click on one of them must not count as a click outside and shut the control center.
+    property var grabExtras: []
+    function addGrabExtra(w) {
+        if (!grabExtras.includes(w))
+            grabExtras = grabExtras.concat([w]);
+    }
+    function removeGrabExtra(w) {
+        grabExtras = grabExtras.filter(x => x !== w);
+    }
+
     // Control center: which screen it is open on, and which page ("" = main, "wifi", "bluetooth", "audio").
     property bool controlCenterOpen: false
     property string controlCenterScreen: ""
