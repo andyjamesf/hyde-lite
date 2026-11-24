@@ -167,7 +167,7 @@ PanelWindow {
     }
 
     HyprlandFocusGrab {
-        windows: [panel]
+        windows: [panel].concat(ShellState.grabExtras)
         active: panel.open && panel.grabReady
         onCleared: {
             // Hyprland sometimes cancels the grab on the first click ON the panel, which is not a click
