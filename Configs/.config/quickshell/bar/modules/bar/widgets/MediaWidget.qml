@@ -31,7 +31,7 @@ BarItem {
         visible: root.cfg.cava && Media.playing && cava.text !== ""
         anchors.verticalCenter: parent.verticalCenter
         text: cava.text
-        color: BarLayout.readableFor(cavaText, Theme.primary, 3, BarLayout.relayoutTick)
+        color: BarLayout.readableFor(cavaText, Theme.primary, 3)
         font.family: Config.appearance.monoFont
     }
 

@@ -85,11 +85,11 @@ PanelWindow {
 
         height: parent.height
         spacing: BarLayout.spacing
-        // The elements move with it: colours chosen by position are chosen again.
         // Which side of the bar this is, and where: the colours of the elements on it are chosen together.
         property string side: ""
         function report() {
-            if (side !== "" && width > 0)
+            // Only a bar with no background is coloured by what is behind it (BarLayout.noBackground).
+            if (BarLayout.noBackground && side !== "" && width > 0)
                 BarLayout.setSide(side, mapToItem(null, 0, 0).x, width);
         }
         onWidthChanged: report()

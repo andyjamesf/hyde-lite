@@ -165,7 +165,7 @@ Row {
                             text: seg.modelData.glyph
                             font.family: Config.appearance.monoFont
                             font.pixelSize: Math.round(BarLayout.iconSize * 0.85)
-                            color: BarLayout.readableFor(seg, seg.modelData.color || item.textColor, 3, BarLayout.relayoutTick)
+                            color: BarLayout.readableFor(seg, seg.modelData.color || item.textColor, 3)
                         }
 
                         StyledText {
@@ -174,7 +174,7 @@ Row {
                             elide: Text.ElideNone
                             text: seg.modelData.text
                             font.pixelSize: BarLayout.fontSize
-                            color: BarLayout.readableFor(seg, item.textColor, 4.5, BarLayout.relayoutTick)
+                            color: BarLayout.readableFor(seg, item.textColor, 4.5)
                         }
                     }
                 }

@@ -118,16 +118,16 @@ Item {
             icon: root.icon
             fill: root.iconFill
             size: BarLayout.iconSize
-            color: BarLayout.readableFor(root, root.iconColor, 3, BarLayout.relayoutTick)
+            color: BarLayout.readableFor(root, root.iconColor, 3)
         }
 
         StyledText {
             visible: root.text !== ""
             anchors.verticalCenter: parent.verticalCenter
             width: Math.min(implicitWidth, root.maxTextWidth)
-            text: root.rich ? Utils.pango(root.text, c => BarLayout.readableFor(root, c, 3, BarLayout.relayoutTick)) : root.text
+            text: root.rich ? Utils.pango(root.text, c => BarLayout.readableFor(root, c, 3)) : root.text
             textFormat: root.rich ? Text.StyledText : Text.PlainText
-            color: BarLayout.readableFor(root, root.textColor, 4.5, BarLayout.relayoutTick)
+            color: BarLayout.readableFor(root, root.textColor, 4.5)
             font.family: root.fontFamily
             font.pixelSize: root.textSize
             font.weight: root.textWeight
