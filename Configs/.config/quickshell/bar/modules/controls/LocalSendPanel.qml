@@ -117,7 +117,7 @@ ColumnLayout {
             size: 36
             tonal: true
             tooltip: "Browse…"
-            onClicked: LocalSend.browseFile()
+            onClicked: LocalSend.browseFile("bar")
         }
 
         StyledTextField {

@@ -50,18 +50,28 @@ Singleton {
     property string selectedTarget: ""
 
     // A file chosen with `browseFile()`, waiting to be read into a path field
-    // and cleared. Property, not a signal: opening the portal's own window
-    // clears this shell's HyprlandFocusGrab (the bar popout and the control
-    // centre both use one), which closes whatever panel called browseFile()
-    // before the user has picked anything — same as SysInfo.chooseAvatar(),
-    // whose callers close their own panel on purpose first. A signal would
-    // have nothing left listening by the time it fires; a property survives
-    // for the panel to read when it (or a fresh instance of it) reopens.
+    // and cleared. Property, not just a signal: opening the portal's own
+    // window clears this shell's HyprlandFocusGrab (the bar popout and the
+    // control centre both use one), which closes whatever panel called
+    // browseFile() before the user has picked anything — same as
+    // SysInfo.chooseAvatar(), whose callers close their own panel on purpose
+    // first. `filePicked` below reopens that panel automatically (handled in
+    // bar/Shell.qml, which — like the panel it reopens — always exists, so
+    // it is never missed); `pickedPath` is the fallback in case that race
+    // loses for some reason: the panel reads it unprompted on its own next
+    // open regardless.
     property string pickedPath: ""
+    signal filePicked(string path)
 
-    function browseFile() {
-        if (!filePicker.running)
-            filePicker.running = true;
+    // Which panel asked, so bar/Shell.qml knows what to reopen once a file
+    // is picked: "bar" (the widget's own popout) or "controlCenter".
+    property string pickSource: ""
+
+    function browseFile(source) {
+        if (filePicker.running)
+            return;
+        pickSource = source ?? "";
+        filePicker.running = true;
     }
 
     function restart() {
@@ -284,7 +294,7 @@ Singleton {
                 const path = text.trim();
                 if (path !== "") {
                     root.pickedPath = path;
-                    root._notify("LocalSend", `Ready to send: ${path.split("/").pop()}`);
+                    root.filePicked(path);
                 }
             }
         }

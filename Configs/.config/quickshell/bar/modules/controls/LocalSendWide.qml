@@ -131,7 +131,7 @@ Item {
                     // purpose first.
                     onClicked: {
                         ShellState.closeControlCenter();
-                        LocalSend.browseFile();
+                        LocalSend.browseFile("controlCenter");
                     }
                 }
 
