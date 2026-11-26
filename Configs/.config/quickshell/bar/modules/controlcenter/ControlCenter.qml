@@ -532,7 +532,7 @@ PanelWindow {
     Component {
         id: localSendTab
 
-        LocalSendPanel {}
+        LocalSendWide {}
     }
 
     // System: the resource manager (load per core, memory, temperatures, storage, network, the heaviest
