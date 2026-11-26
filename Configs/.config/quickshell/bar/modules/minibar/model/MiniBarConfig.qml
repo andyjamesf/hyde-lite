@@ -183,6 +183,7 @@ Singleton {
     //   "idle"           idle inhibitor (keeps the screen from going off)
     //   "nightLight"     night light
     //   "notifications"  notifications and "do not disturb"
+    //   "localSend"      LocalSend: requests waiting, nearby devices, sending a file
     //   "controlCenter"  the control centre's button
     //   "power"          power menu
     //
@@ -210,7 +211,7 @@ Singleton {
                 ["clock"],
             ],
             right: [
-                ["battery"],
+                ["localSend", "battery"],
             ],
         },
         {
@@ -245,7 +246,7 @@ Singleton {
             clockDate: true,
             left: [["workspaces"], ["activeWindow"], ["stats"]],
             center: [["clock"]],
-            right: [["notes"], ["idle", "audio", "network", "bluetooth", "battery"], ["notifications", "controlCenter", "power"]],
+            right: [["notes"], ["idle", "audio", "network", "bluetooth", "localSend", "battery"], ["notifications", "controlCenter", "power"]],
         },
 
         // A TEMPLATE WITH EVERY MODULE: uncomment the block, then comment out what you do not want.

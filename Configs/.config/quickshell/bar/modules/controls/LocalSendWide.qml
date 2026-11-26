@@ -27,7 +27,7 @@ Item {
             spacing: 8
 
             PanelHeader {
-                icon: "send_to_mobile"
+                icon: "send"
                 title: "LocalSend"
                 subtitle: LocalSend.installError ? "Not installed" : LocalSend.ready ? `"${LocalSend.alias}" · port ${LocalSend.port}` : "Starting…"
             }
@@ -139,13 +139,17 @@ Item {
                     id: pathField
                     Layout.fillWidth: true
                     placeholder: "Or type a path…"
-                    // A path picked earlier is read once here, in whichever
-                    // instance of this tab happens to open next (see
-                    // LocalSend.pickedPath).
-                    Component.onCompleted: {
-                        if (LocalSend.pickedPath !== "") {
+                    // The picked file (see LocalSend.pickedPath): read when this field is created, and
+                    // followed afterwards, because the panel can outlive the picker.
+                    function showPicked() {
+                        if (LocalSend.pickedPath !== "" || LocalSend.sendBusy)
                             text = LocalSend.pickedPath;
-                            LocalSend.pickedPath = "";
+                    }
+                    Component.onCompleted: showPicked()
+                    Connections {
+                        target: LocalSend
+                        function onPickedPathChanged() {
+                            pathField.showPicked();
                         }
                     }
                     onAccepted: sendButton.clicked()

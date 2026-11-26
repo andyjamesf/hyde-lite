@@ -25,6 +25,7 @@ Singleton {
     //                    notification center
     //   "volume"         click: audio page · middle click: mute · scroll: volume
     //   "bluetooth"      click: Bluetooth page
+    //   "localsend"      accent and a count while a transfer waits for an answer; click: LocalSend page
     //   "wifi"           click: network page (also shows wired)
     //   "battery"        percentage inside, time left next to it; hidden on PCs without one;
     //                    click: control center
@@ -34,7 +35,7 @@ Singleton {
     //   "ai"             AI usage, only the symbol (config/AiUsageConfig.qml); click: the AI
     //                    popup with every tool's limits; hidden when the usage scripts are missing
     // Prefs key "statusPill.icons" (a list of ids) overrides it, live, from prefs.json.
-    // Default ["updates", "ai", "caffeine", "notifications", "volume", "bluetooth", "wifi", "battery", "power"].
+    // Default ["updates", "ai", "caffeine", "notifications", "volume", "bluetooth", "localsend", "wifi", "battery", "power"].
     // To drop an icon, put "//" at the start of its line; to bring it back, remove them.
     readonly property var icons: Prefs.get("statusPill.icons", [
         "weather",        // weather at a glance (config/WeatherConfig.qml)
@@ -45,6 +46,7 @@ Singleton {
         "notifications",  // bell with the unread count
         "volume",         // volume
         "bluetooth",      // Bluetooth
+        "localsend",      // files from and to nearby devices
         "wifi",           // network
         "battery",          // percentage inside, time left next to it (batteryTime below)
         "power",          // power menu

@@ -42,6 +42,8 @@ Singleton {
     property bool sendBusy: false
     // "" when idle or the last send succeeded.
     property string lastSendError: ""
+    // The last line `send` wrote to stderr: its reason when it fails.
+    property string _sendStderr: ""
 
     // The device currently picked to send to (an alias from `devices`), kept
     // here rather than in the panel: referencing an outer `id: root` from
@@ -49,32 +51,35 @@ Singleton {
     // the component boundary, unlike a qualified singleton property.
     property string selectedTarget: ""
 
-    // A file chosen with `browseFile()`, waiting to be read into a path field
-    // and cleared. Property, not just a signal: opening the portal's own
-    // window clears this shell's HyprlandFocusGrab (the bar popout and the
-    // control centre both use one), which closes whatever panel called
-    // browseFile() before the user has picked anything — same as
-    // SysInfo.chooseAvatar(), whose callers close their own panel on purpose
-    // first. `filePicked` below reopens that panel automatically (handled in
-    // bar/Shell.qml, which — like the panel it reopens — always exists, so
-    // it is never missed); `pickedPath` is the fallback in case that race
-    // loses for some reason: the panel reads it unprompted on its own next
-    // open regardless.
+    // The file chosen with `browseFile()`, until it is sent. Every path field
+    // follows it and none clears it by reading: the control centre and its tabs
+    // stay created while closed, so a hidden field and the one on screen both
+    // listen. A property, not only a signal, because opening the portal's own
+    // window clears this shell's HyprlandFocusGrab, which can close the panel
+    // that called browseFile() before anything is picked: a panel created later
+    // reads it then. `filePicked` below reopens the panel (bar/Shell.qml or
+    // island/Shell.qml, which always exist).
     property string pickedPath: ""
     signal filePicked(string path)
 
-    // Which panel asked, so bar/Shell.qml knows what to reopen once a file
-    // is picked: "bar" (the widget's own popout) or "controlCenter".
+    // Which panel asked, so the shell that is loaded knows what to reopen once
+    // a file is picked: "bar" (the widget's own popout) or "controlCenter"
+    // (bar/Shell.qml), or "island" (island/Shell.qml).
     property string pickSource: ""
 
     function browseFile(source) {
         if (filePicker.running)
             return;
         pickSource = source ?? "";
+        // Picking the same file again has to count as a change.
+        pickedPath = "";
         filePicker.running = true;
     }
 
     function restart() {
+        // The port belongs to the send; the receiver comes back when it ends.
+        if (sendBusy)
+            return;
         installError = false;
         ready = false;
         proc.running = false;
@@ -98,9 +103,18 @@ Singleton {
         if (root.sendBusy || !target || !paths || paths.length === 0)
             return;
         root.sendBusy = true;
+        // After sendBusy: the fields empty themselves on this change only while a send starts.
+        root.pickedPath = "";
         root.lastSendError = "";
+        root._sendStderr = "";
         sendProc.command = [root.bin, "send", "--to", target].concat(paths);
-        sendProc.running = true;
+        // `send` opens the same port as the receiver (the one other devices and the
+        // firewall know), so the receiver stops first and `send` starts when it has
+        // exited (proc.onExited). Nothing can be received until the send ends.
+        if (proc.running)
+            proc.running = false;
+        else
+            sendProc.running = true;
     }
 
     function _pushHistory(entry) {
@@ -248,10 +262,17 @@ Singleton {
         }
         onStarted: _started = true
         onExited: {
+            root.pending = [];
+            if (root.sendBusy) {
+                // Paused for a send: `ready` and the device list stay as they were.
+                _started = false;
+                if (!sendProc.running)
+                    sendProc.running = true;
+                return;
+            }
             root.ready = false;
             root.installError = !_started;
             _started = false;
-            root.pending = [];
             root.devices = [];
             restartTimer.start();
         }
@@ -260,7 +281,7 @@ Singleton {
     Timer {
         id: restartTimer
         interval: 3000
-        onTriggered: if (!proc.running)
+        onTriggered: if (!proc.running && !root.sendBusy)
             proc.running = true
     }
 
@@ -269,17 +290,24 @@ Singleton {
     // this finishes, which is enough for "drop one file, pick a device".
     Process {
         id: sendProc
+        // Line by line, not a StdioCollector, whose `text` is only reliable inside
+        // its own `onStreamFinished`.
+        stderr: SplitParser {
+            onRead: line => {
+                if (line.trim() !== "")
+                    root._sendStderr = line.trim();
+            }
+        }
         onExited: code => {
             root.sendBusy = false;
             if (code === 0) {
                 root.lastSendError = "";
             } else {
-                // Not reading stderr here: a StdioCollector's `text` is only
-                // reliable inside its own `onStreamFinished`, and ordering
-                // against this `onExited` is not something to rely on.
-                root.lastSendError = `send exited with code ${code}`;
-                root._notify("LocalSend", "Send failed");
+                root.lastSendError = root._sendStderr || `send exited with code ${code}`;
+                root._notify("LocalSend", `Send failed: ${root.lastSendError}`);
             }
+            if (!proc.running)
+                proc.running = true;
         }
     }
 

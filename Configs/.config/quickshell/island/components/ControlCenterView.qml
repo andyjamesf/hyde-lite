@@ -36,7 +36,7 @@ Item {
     readonly property bool sliding: progress < 1
 
     readonly property Item currentItem: {
-        const loaders = [mainPage, wifiPage, bluetoothPage, audioPage, mediaPage, batteryPage, systemPage];
+        const loaders = [mainPage, wifiPage, bluetoothPage, localSendPage, audioPage, mediaPage, batteryPage, systemPage];
         return loaders.find(l => l.name === current)?.item ?? null;
     }
 
@@ -155,6 +155,25 @@ Item {
         opacity: root.opacityFor(name)
         sourceComponent: CcBluetoothPage {
             shown: root.open && root.current === bluetoothPage.name
+        }
+    }
+
+    Loader {
+        id: localSendPage
+        readonly property string name: IslandState.localsend
+        active: root.live(name)
+        visible: active
+        width: root.width
+        x: root.offsetFor(name)
+        opacity: root.opacityFor(name)
+        sourceComponent: CcLocalSendPage {}
+    }
+    // Connected from outside the component: the page needs nothing else from this view.
+    Connections {
+        target: localSendPage.item
+        ignoreUnknownSignals: true
+        function onReleaseFocus() {
+            root.releaseFocus();
         }
     }
 
