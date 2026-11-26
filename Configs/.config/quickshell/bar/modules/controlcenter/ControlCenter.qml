@@ -143,7 +143,7 @@ PanelWindow {
     }
 
     // Tab goes to the next tab and Shift+Tab to the previous one, round all of them (Home to More).
-    readonly property var tabIds: ["home", "apps", "clipboard", "keys", "files", "notes", "calendar", "system", "power", "more"]
+    readonly property var tabIds: ["home", "apps", "clipboard", "keys", "files", "notes", "calendar", "system", "localSend", "power", "more"]
 
     function cycleTab(step) {
         const i = Math.max(0, tabIds.indexOf(ShellState.controlCenterTab));
@@ -529,6 +529,12 @@ PanelWindow {
         CalendarWide {}
     }
 
+    Component {
+        id: localSendTab
+
+        LocalSendPanel {}
+    }
+
     // System: the resource manager (load per core, memory, temperatures, storage, network, the heaviest
     // processes), the same view as the System page, filling the tab.
     Component {
@@ -746,6 +752,15 @@ PanelWindow {
                         label: "System"
                     },
                     {
+                        id: "localSend",
+                        // Same glyph as "files" for now: not verified visually
+                        // in this environment, pick a better one once it can
+                        // be seen (a share/send-to-mobile glyph would read
+                        // better than a duplicate).
+                        glyph: "\u{F024B}",
+                        label: "LocalSend"
+                    },
+                    {
                         id: "power",
                         glyph: "\u{F0425}",
                         label: "Power"
@@ -764,6 +779,7 @@ PanelWindow {
                                 notes: notesTab,
                                 calendar: calendarTab,
                                 system: systemTab,
+                                localSend: localSendTab,
                                 power: powerTab
                             })[ShellState.controlCenterTab] ?? searchTab
                     }
