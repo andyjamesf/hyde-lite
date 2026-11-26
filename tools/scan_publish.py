@@ -34,7 +34,15 @@ FORBIDDEN_TEXT = {
     r"private-[0-9a-f]{20,}/basic\.ics": "a private Google Calendar feed address",
 }
 # files that may legitimately talk about the above (the rules themselves; LITE.md records the removals)
-TEXT_EXEMPT = {"tools/tests/test_repo_hygiene.py", "tools/scan_publish.py", "LITE.md"}
+# third-party/localsend-cli/.../cert.rs: vendored, unmodified upstream test fixtures (PEM certs/keys
+# for certificate parsing tests) and a string-prefix assertion on the "BEGIN PRIVATE KEY" header, not
+# an actual embedded key (see .gitleaks.toml for the matching gitleaks allowlist).
+TEXT_EXEMPT = {
+    "tools/tests/test_repo_hygiene.py",
+    "tools/scan_publish.py",
+    "LITE.md",
+    "third-party/localsend-cli/core/src/crypto/cert.rs",
+}
 SECRET_FILE_NAMES = re.compile(
     r"(^|/)(\.env(\..*)?|id_rsa|id_ed25519|\.netrc|\.pypirc|token\.json|client_secret.*\.json"
     r"|.*\.(pem|p12|pfx|key|keystore|jks|kdbx))$")
