@@ -132,6 +132,20 @@ class Updater(unittest.TestCase):
         self.assertIn("nothing to reload", r.stdout)
         self.assertEqual(self.calls(), ["install --island --no-services"])
 
+    def test_a_new_localsend_source_restarts_the_shell_that_runs_the_receiver(self):
+        self.mark_installed()
+        self.upstream("third-party/localsend-cli/cli/src/main.rs", "fn main() {}\n")
+        r = self.run_it("update", "--restart")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(self.calls(), ["install --island --no-services", "island off", "island on"])
+
+    def test_a_localsend_document_alone_restarts_nothing(self):
+        self.mark_installed()
+        self.upstream("third-party/localsend-cli/README.md", "words\n")
+        r = self.run_it("update", "--restart")
+        self.assertIn("nothing to reload", r.stdout)
+        self.assertEqual(self.calls(), ["install --island --no-services"])
+
     def test_changes_of_its_own_stop_it_before_anything_happens(self):
         self.mark_installed()
         self.upstream("README.md", "two\n")

@@ -12,7 +12,10 @@ root=$(dirname "$(dirname "$(realpath "${BASH_SOURCE[0]}")")")
 src=$root/third-party/localsend-cli
 dest=$HOME/.local/bin/localsend-cli
 stamp=${XDG_STATE_HOME:-$HOME/.local/state}/hyde-lite/localsend-cli.source
-build=${XDG_CACHE_HOME:-$HOME/.cache}/hyde-lite/localsend-build
+# A relative XDG_CACHE_HOME is ignored, as the XDG specification says: the build runs from $src.
+cache=${XDG_CACHE_HOME:-}
+[[ $cache == /* ]] || cache=$HOME/.cache
+build=$cache/hyde-lite/localsend-build
 
 # "[err]" is one of the markers install.sh looks for in a step's output.
 fail() { echo "[err] localsend-cli: $*"; exit 1; }
@@ -38,6 +41,7 @@ mkdir -p "$(dirname "$dest")" "$(dirname "$stamp")"
 # Renamed into place, so a receiver that is running keeps the file it started from.
 install -m755 "$build/release/localsend-cli" "$dest.new"
 mv -f "$dest.new" "$dest"
-echo "$want" >"$stamp"
+# The stamp is written last: a run interrupted before this builds again and cleans up.
 rm -rf "$build"
+echo "$want" >"$stamp"
 echo "localsend-cli installed in $dest (a running shell uses it after it restarts)"

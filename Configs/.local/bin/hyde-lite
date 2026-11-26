@@ -95,6 +95,10 @@ update() {
     local reload_hypr=0 reload_shell=0
     if [[ -z $changed ]] || grep -q -E '^Configs/(\.config|\.local/share)/hypr/' <<<"$changed"; then reload_hypr=1; fi
     if [[ -z $changed ]] || grep -q -E '^Configs/(\.config/quickshell/|\.local/bin/island$)' <<<"$changed"; then reload_shell=1; fi
+    # The shell runs the LocalSend receiver, so a new build of it (its sources, documents aside) needs the restart.
+    local receiver
+    receiver=$(grep '^third-party/localsend-cli/' <<<"$changed" | grep -v '\.md$' || true)
+    if [[ -n $receiver ]]; then reload_shell=1; fi
     local shell_cmd="qs ipc call shell reload"
     [[ $(shell_in_use) == island ]] && shell_cmd="island off && island on"
     echo
