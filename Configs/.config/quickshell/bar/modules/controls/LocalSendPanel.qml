@@ -19,7 +19,7 @@ ColumnLayout {
     PanelHeader {
         backButton: root.backButton
         onBack: root.back()
-        icon: "send_to_mobile"
+        icon: "send"
         title: "LocalSend"
         subtitle: LocalSend.installError ? "Not installed" : LocalSend.ready ? `"${LocalSend.alias}" · port ${LocalSend.port}` : "Starting…"
     }

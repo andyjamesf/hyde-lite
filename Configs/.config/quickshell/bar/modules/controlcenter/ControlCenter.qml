@@ -765,11 +765,7 @@ PanelWindow {
                     },
                     {
                         id: "localSend",
-                        // Same glyph as "files" for now: not verified visually
-                        // in this environment, pick a better one once it can
-                        // be seen (a share/send-to-mobile glyph would read
-                        // better than a duplicate).
-                        glyph: "\u{F024B}",
+                        glyph: "\u{F048A}",
                         label: "LocalSend"
                     },
                     {

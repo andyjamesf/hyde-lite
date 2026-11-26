@@ -300,7 +300,7 @@ Item {
 
             Label {
                 anchors.verticalCenter: parent.verticalCenter
-                text: "\u{F09D5}"
+                text: "\u{F048A}"
                 font.family: Appearance.nerdFont
                 font.pixelSize: Math.round(localSendRow.iconSize * 0.95)
                 elide: Text.ElideNone

@@ -27,7 +27,7 @@ Item {
             spacing: 8
 
             PanelHeader {
-                icon: "send_to_mobile"
+                icon: "send"
                 title: "LocalSend"
                 subtitle: LocalSend.installError ? "Not installed" : LocalSend.ready ? `"${LocalSend.alias}" · port ${LocalSend.port}` : "Starting…"
             }
