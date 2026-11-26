@@ -50,11 +50,23 @@ PopupWindow {
     HyprlandFocusGrab {
         windows: popout.barWindow ? [popout, popout.barWindow] : [popout]
         active: popout.visible && popout.grabReady
-        onCleared: popout.close()
+        onCleared: {
+            // Hyprland sometimes cancels the grab on the first click ON the popout, which is not a click
+            // outside: the pointer is still over it. Then the grab is armed again and the popout stays.
+            if (popout.visible && overPopout.hovered) {
+                popout.grabReady = false;
+                return;
+            }
+            popout.close();
+        }
     }
 
     Rectangle {
         id: bg
+        // Whether the pointer is over it (the compositor says so when it enters the surface).
+        HoverHandler {
+            id: overPopout
+        }
 
         implicitWidth: loader.implicitWidth + 2 * Theme.space5
         implicitHeight: loader.implicitHeight + 2 * Theme.space5

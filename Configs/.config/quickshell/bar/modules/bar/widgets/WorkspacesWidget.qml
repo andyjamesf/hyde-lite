@@ -55,14 +55,14 @@ Item {
 
         Behavior on x {
             NumberAnim {
-                duration: Anim.spatial
-                easing.bezierCurve: Anim.expressive
+                duration: Anim.fast
+                easing.bezierCurve: Anim.standard
             }
         }
         Behavior on width {
             NumberAnim {
-                duration: Anim.spatial
-                easing.bezierCurve: Anim.expressive
+                duration: Anim.fast
+                easing.bezierCurve: Anim.standard
             }
         }
     }
@@ -105,15 +105,14 @@ Item {
                     anchors.centerIn: parent
                     spacing: 3
 
-                    // The number: on empty workspaces, and on the active one next to its apps (so two
-                    // identical icons still tell which workspace is in use).
+                    // The number of every workspace, next to its apps (two identical icons still tell which
+                    // workspace is which). Always there, so switching workspace does not change any width.
                     StyledText {
-                        visible: !ws.showIcons || ws.isActive
                         anchors.verticalCenter: parent.verticalCenter
                         text: ws.wsId
                         font.pixelSize: BarLayout.fontSize
-                        font.weight: ws.isActive ? Font.Bold : Font.Normal
-                        color: ws.isActive ? Theme.onPrimary : ws.occupied ? BarLayout.readableFor(ws, Theme.text, 4.5, BarLayout.relayoutTick) : BarLayout.readableFor(ws, Theme.textFaint, 2.6, BarLayout.relayoutTick)
+                        font.weight: Font.DemiBold
+                        color: ws.isActive ? Theme.onPrimary : ws.occupied ? BarLayout.readableFor(ws, Theme.text, 4.5) : BarLayout.readableFor(ws, Theme.textFaint, 2.6)
                     }
 
                     // The active workspace's apps at full strength, the others a step back.
@@ -140,7 +139,7 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                         text: `+${ws.toplevels.length - ws.maxIcons}`
                         font.pixelSize: BarLayout.fontSize - 2
-                        color: ws.isActive ? Theme.onPrimary : BarLayout.readableFor(ws, Theme.textDim, 3.5, BarLayout.relayoutTick)
+                        color: ws.isActive ? Theme.onPrimary : BarLayout.readableFor(ws, Theme.textDim, 3.5)
                     }
 
                 }

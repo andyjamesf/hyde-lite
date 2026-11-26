@@ -155,58 +155,88 @@ Singleton {
     // the strip. So there the contrast is measured against what is really behind each element (the
     // wallpaper's top strip, in Theme.wallTopCells), and the colour is moved just enough to keep it.
     readonly property bool noBackground: mini && MiniBarConfig.style === "none"
-    // Bumped whenever the elements may have moved, so colours measured by position are measured again.
-    property int relayoutTick: 0
-    function relayout() {
-        relayoutTick++;
-    }
-
-    // Where each side of the bar is, in screen x: {left, center, right} -> {x0, x1}. Filled by the bar's
-    // sections (Bar.qml, MiniBar.qml) as they move.
+    // Where each side of the bar is, in screen x: {left, center, right} -> {x0, x1}. The bar's sections report
+    // it as they move; it is rounded and applied once the movement settles (they report on every frame of an
+    // animation, and everything on the bar used to be coloured again each time).
     property var sides: ({})
+    property var pendingSides: ({})
     function setSide(name, x0, width) {
-        const s = Object.assign({}, sides);
-        s[name] = {
-            x0: x0,
-            x1: x0 + width
+        const a = Math.round(x0), b = Math.round(x0 + width);
+        const cur = pendingSides[name];
+        if (cur && cur.x0 === a && cur.x1 === b)
+            return;
+        const p = Object.assign({}, pendingSides);
+        p[name] = {
+            x0: a,
+            x1: b
         };
-        sides = s;
-        relayoutTick++;
+        pendingSides = p;
+        sidesTimer.restart();
+    }
+    // The sides as they were when sideInfo was last worked out.
+    property var usedSides: ({})
+    Timer {
+        id: sidesTimer
+        interval: 120
+        onTriggered: {
+            BarLayout.sides = BarLayout.pendingSides;
+            // Only a side that appeared or moved a lot is worth measuring again: the digits of the clock
+            // changing width are not.
+            if (BarLayout.sidesMoved())
+                BarLayout.refreshSideInfo();
+        }
     }
 
-    // The side of the bar an element is on (the section whose extent is nearest to its centre).
-    function sideOf(item) {
-        const cx = item.mapToItem(null, 0, 0).x + item.width / 2;
-        let best = "";
-        let dist = Infinity;
+    function sidesMoved() {
         for (const k in sides) {
-            const d = cx < sides[k].x0 ? sides[k].x0 - cx : cx > sides[k].x1 ? cx - sides[k].x1 : 0;
-            if (d < dist) {
-                dist = d;
-                best = k;
+            const u = usedSides[k];
+            if (!u || Math.abs(u.x0 - sides[k].x0) > 120 || Math.abs(u.x1 - sides[k].x1) > 120)
+                return true;
+        }
+        return false;
+    }
+
+    // For each side: what is behind it (its lightest and darkest cell) and the colour that every plain text
+    // and icon on it gets: the theme's text colour moved just enough for the best contrast against both.
+    // Worked out when the wallpaper or the palette changes (and when a side first appears or moves a lot),
+    // never per frame: a plain property, not a binding.
+    property var sideInfo: ({})
+
+    function refreshSideInfo() {
+        const out = {};
+        if (noBackground && Theme.wallTopCells.length > 0) {
+            for (const k in sides) {
+                const ext = Theme.wallBehind(sides[k].x0, sides[k].x1);
+                if (ext)
+                    out[k] = {
+                        ext: ext,
+                        fg: fitTo(Qt.color(Theme.text), ext)
+                    };
             }
         }
-        return best;
+        usedSides = sides;
+        sideInfo = out;
     }
 
-    // The colour for `item` (the same as readable() when the bar has a background). Without one, every
-    // plain text and icon on a side of the bar gets the SAME colour: the one that keeps the best contrast
-    // against everything behind that side of the wallpaper (the lightest and the darkest of its cells).
-    // Only a colour that means something (an alert, a charging battery...) keeps its hue, adjusted the same
-    // way. The last argument only makes the call depend on relayoutTick.
-    function readableFor(item, fg, minRatio, tick) {
-        if (!noBackground || Theme.wallTopCells.length === 0 || !item || !item.width)
-            return readable(fg, minRatio ?? 4.5);
-        const range = sides[sideOf(item)];
-        const ext = range ? Theme.wallBehind(range.x0, range.x1) : null;
-        if (!ext)
-            return readable(fg, minRatio ?? 4.5);
-        const c0 = Qt.color(fg);
-        const base = c0.hsvSaturation > 0.35 ? c0 : Qt.color(Theme.text);
+    // The wallpaper and the palette change in bursts while the colours animate: one measurement after the last.
+    Timer {
+        id: refreshTimer
+        interval: 250
+        onTriggered: BarLayout.refreshSideInfo()
+    }
+    readonly property var watchedCells: Theme.wallTopCells
+    readonly property color watchedText: Theme.text
+    onWatchedCellsChanged: refreshTimer.restart()
+    onWatchedTextChanged: refreshTimer.restart()
+    onNoBackgroundChanged: refreshTimer.restart()
+
+    // `base` moved towards white or black until it keeps 4.5:1 against the lightest and the darkest of `ext`
+    // (the best it can do when no colour keeps it against both).
+    function fitTo(base, ext) {
         const r = 4.5;
         const worst = c => Math.min(Theme.contrast(c, ext.light), Theme.contrast(c, ext.dark));
         if (worst(base) >= r)
-            return Qt.rgba(base.r, base.g, base.b, c0.a);
+            return base;
         let best = base;
         let bestWorst = worst(base);
         for (const target of ["#ffffff", "#000000"]) {
@@ -221,7 +251,27 @@ Singleton {
                     break;
             }
         }
-        return Qt.rgba(best.r, best.g, best.b, c0.a);
+        return best;
+    }
+
+    // The side of the bar an element is on: the nearest section above it (Section.side in Bar.qml and MiniBar.qml).
+    function sideOf(item) {
+        for (let p = item; p; p = p.parent)
+            if (p.side !== undefined && p.side !== "")
+                return p.side;
+        return "";
+    }
+
+    // The colour for `item` (the same as readable() when the bar has no background to be measured against).
+    // Without a background, every plain text and icon on a side of the bar gets the SAME colour (sideInfo);
+    // only a colour that means something (an alert, a charging battery...) keeps its hue, adjusted the same way.
+    function readableFor(item, fg, minRatio) {
+        const info = noBackground && item ? sideInfo[sideOf(item)] : undefined;
+        if (!info)
+            return readable(fg, minRatio ?? 4.5);
+        const c0 = Qt.color(fg);
+        const c = c0.hsvSaturation > 0.35 ? fitTo(c0, info.ext) : info.fg;
+        return Qt.rgba(c.r, c.g, c.b, c0.a);
     }
 
     // Readable color over the islands: text 4.5:1, icons and graphical elements 3:1.

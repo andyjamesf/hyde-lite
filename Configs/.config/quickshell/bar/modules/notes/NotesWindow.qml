@@ -44,11 +44,23 @@ PanelWindow {
     HyprlandFocusGrab {
         windows: [win]
         active: win.open && win.grabReady
-        onCleared: view.close()
+        onCleared: {
+            // Hyprland sometimes cancels the grab on the first click ON the window, which is not a click
+            // outside: the pointer is still over it. Then the grab is armed again and the window stays.
+            if (win.open && overCard.hovered) {
+                win.grabReady = false;
+                return;
+            }
+            view.close();
+        }
     }
 
     Rectangle {
         id: card
+        // Whether the pointer is over it (the compositor says so when it enters the surface).
+        HoverHandler {
+            id: overCard
+        }
 
         anchors.fill: parent
         radius: Theme.shapeXL
