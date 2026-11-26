@@ -124,6 +124,16 @@ ColumnLayout {
             id: pathField
             Layout.fillWidth: true
             placeholder: "Or type a path…"
+            // Opening the picker's window clears the popout's focus grab,
+            // which closes this whole panel before a file is even chosen; a
+            // path picked earlier is read once here, in whichever instance
+            // of this panel happens to open next (see LocalSend.pickedPath).
+            Component.onCompleted: {
+                if (LocalSend.pickedPath !== "") {
+                    text = LocalSend.pickedPath;
+                    LocalSend.pickedPath = "";
+                }
+            }
             onAccepted: sendButton.clicked()
         }
 
@@ -137,13 +147,6 @@ ColumnLayout {
                 LocalSend.sendFiles(LocalSend.selectedTarget, [pathField.text]);
                 pathField.text = "";
             }
-        }
-    }
-
-    Connections {
-        target: LocalSend
-        function onFilePicked(path) {
-            pathField.text = path;
         }
     }
 

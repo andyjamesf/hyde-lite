@@ -49,13 +49,15 @@ Singleton {
     // the component boundary, unlike a qualified singleton property.
     property string selectedTarget: ""
 
-    // A file was chosen with `browseFile()`. Drag-and-drop from an outside
-    // app onto a layer-shell popup is not reliable on Hyprland/wlroots (no
-    // working precedent for it anywhere in this tree, and real-world reports
-    // of the same failure elsewhere), so this is the real way to pick a file
-    // — the same xdg-desktop-portal chooser the avatar picker already uses
-    // (shared/scripts/pick_file.py), not a new mechanism.
-    signal filePicked(string path)
+    // A file chosen with `browseFile()`, waiting to be read into a path field
+    // and cleared. Property, not a signal: opening the portal's own window
+    // clears this shell's HyprlandFocusGrab (the bar popout and the control
+    // centre both use one), which closes whatever panel called browseFile()
+    // before the user has picked anything — same as SysInfo.chooseAvatar(),
+    // whose callers close their own panel on purpose first. A signal would
+    // have nothing left listening by the time it fires; a property survives
+    // for the panel to read when it (or a fresh instance of it) reopens.
+    property string pickedPath: ""
 
     function browseFile() {
         if (!filePicker.running)
@@ -280,8 +282,10 @@ Singleton {
         stdout: StdioCollector {
             onStreamFinished: {
                 const path = text.trim();
-                if (path !== "")
-                    root.filePicked(path);
+                if (path !== "") {
+                    root.pickedPath = path;
+                    root._notify("LocalSend", `Ready to send: ${path.split("/").pop()}`);
+                }
             }
         }
     }

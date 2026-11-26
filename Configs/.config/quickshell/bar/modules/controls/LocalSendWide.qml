@@ -125,13 +125,29 @@ Item {
                     size: 36
                     tonal: true
                     tooltip: "Browse…"
-                    onClicked: LocalSend.browseFile()
+                    // Opening the picker's window clears the control
+                    // centre's own focus grab, closing this tab anyway, same
+                    // as SysInfo.chooseAvatar()'s callers already do on
+                    // purpose first.
+                    onClicked: {
+                        ShellState.closeControlCenter();
+                        LocalSend.browseFile();
+                    }
                 }
 
                 StyledTextField {
                     id: pathField
                     Layout.fillWidth: true
                     placeholder: "Or type a path…"
+                    // A path picked earlier is read once here, in whichever
+                    // instance of this tab happens to open next (see
+                    // LocalSend.pickedPath).
+                    Component.onCompleted: {
+                        if (LocalSend.pickedPath !== "") {
+                            text = LocalSend.pickedPath;
+                            LocalSend.pickedPath = "";
+                        }
+                    }
                     onAccepted: sendButton.clicked()
                 }
 
@@ -145,13 +161,6 @@ Item {
                         LocalSend.sendFiles(LocalSend.selectedTarget, [pathField.text]);
                         pathField.text = "";
                     }
-                }
-            }
-
-            Connections {
-                target: LocalSend
-                function onFilePicked(path) {
-                    pathField.text = path;
                 }
             }
 
