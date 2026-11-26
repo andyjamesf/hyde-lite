@@ -68,8 +68,18 @@ Pairing a device still has to happen once, interactively (`localsend-cli` with n
   not introduced here, and were left alone). `localsend-cli receive` was run standalone on a
   throwaway port/config dir and printed a single `{"event":"ready",...}` line, then ran until
   killed — confirmed it starts without a TTY and without crashing.
-- **NOT TESTED**: an actual file transfer end to end (no second LocalSend device was available in
-  this environment). `cli/src/app/receive_headless.rs`'s event ordering around `FileUpload` /
-  `SessionEnd` mirrors `receive.rs`'s proven logic, but that specific mirroring has not been
-  exercised against a real sender. Nothing here has been wired into a Quickshell widget yet — that
-  is separate, future work.
+- Measured 2026-11-26, end to end over loopback (one `send` instance and one `receive` instance on
+  this machine, separate `XDG_CONFIG_HOME`/ports, real TLS handshake, no mocking): sending a text
+  file and a 2 MiB random binary to `receive --quick-save` landed both at the destination directory,
+  byte-identical (`sha256sum` match on the binary, `diff` clean on the text file); the receiver's
+  JSON stream was `ready` → `incoming` (`accepted: true`) → `file_done` ×2 → `session_done`
+  (`files_ok: 2, files_failed: 0, bytes: 2097232, cancelled: false`), matching what was actually
+  sent. Restarting the receiver *without* `--quick-save` and repeating the send from the same
+  (still unpaired) sender correctly declined: sender exited 1 and logged `Declined`, receiver logged
+  `incoming` with `accepted: false`, and the destination directory stayed empty.
+- **NOT TESTED**: the already-paired auto-accept branch specifically (pairing itself needs the
+  interactive TUI's `P` keypress, which was not scripted here) — the two tests above exercise the
+  same downstream accept/decline code paths `quick_save` and `paired` both feed into, so this is a
+  narrow gap (the `paired` boolean itself), not the receive pipeline. Also not tested: a real second
+  device (phone/another machine) over the actual LAN rather than loopback, and the Quickshell widget
+  side, which does not exist yet.
