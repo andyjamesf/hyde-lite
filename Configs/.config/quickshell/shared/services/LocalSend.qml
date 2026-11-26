@@ -103,8 +103,13 @@ Singleton {
         Quickshell.execDetached(["notify-send", "--app-name=LocalSend", "--icon=folder-download", summary, body]);
     }
 
-    function _dropPending(sessionId) {
+    // Removes a pending request and returns it (or undefined if it was
+    // already gone), so a caller can still use its alias/file count/bytes
+    // after it drops out of `pending`.
+    function _takePending(sessionId) {
+        const found = root.pending.find(r => r.sessionId === sessionId);
         root.pending = root.pending.filter(r => r.sessionId !== sessionId);
+        return found;
     }
 
     function _handle(line) {
@@ -147,20 +152,30 @@ Singleton {
                 root._notify("LocalSend", `${event.alias}: declined (not paired)`);
             }
             break;
-        case "aborted":
-            root._dropPending(event.session_id);
+        case "aborted": {
+            const request = root._takePending(event.session_id);
+            if (request)
+                root._pushHistory({
+                    kind: "declined",
+                    alias: request.alias,
+                    fileCount: request.fileCount,
+                    bytes: request.totalBytes,
+                    time: Date.now()
+                });
             break;
-        case "timeout":
-            root._dropPending(event.session_id);
+        }
+        case "timeout": {
+            const request = root._takePending(event.session_id);
             root._pushHistory({
                 kind: "declined",
-                alias: "",
-                fileCount: 0,
-                bytes: 0,
+                alias: request?.alias ?? "",
+                fileCount: request?.fileCount ?? 0,
+                bytes: request?.totalBytes ?? 0,
                 time: Date.now()
             });
-            root._notify("LocalSend", "A request timed out and was declined");
+            root._notify("LocalSend", `${request?.alias ?? "A request"} timed out and was declined`);
             break;
+        }
         case "session_done":
             root._pushHistory({
                 kind: event.files_failed > 0 ? "partial" : "received",
