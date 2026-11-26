@@ -52,8 +52,12 @@ cargo build --release -p localsend-cli
 ```
 
 No Flutter, `fvm`, `cmake` or `ninja` needed — this is a plain Cargo workspace of two crates. The
-resulting binary is `target/release/localsend-cli`; it is not currently installed anywhere by this
-repository's own install script, only built on demand.
+resulting binary is `target/release/localsend-cli`.
+
+The repository's `install.sh` (so `hyde-lite update` too) runs `tools/build_localsend.sh`, which installs it as
+`~/.local/bin/localsend-cli`. It builds only when this source changed or the binary is missing, installs `rust`
+with `pacman` only when there is no `cargo`, and removes the build directory afterwards. To build it again by
+hand, delete `~/.local/state/hyde-lite/localsend-cli.source` and run the script.
 
 ## Usage
 
