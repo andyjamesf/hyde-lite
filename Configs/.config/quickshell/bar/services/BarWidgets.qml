@@ -27,7 +27,8 @@ Singleton {
             "nightLight": "NightLight",
             "notifications": "Notifications",
             "power": "Power",
-            "controlCenter": "ControlCenter"
+            "controlCenter": "ControlCenter",
+            "localSend": "LocalSend"
         })
     readonly property var ids: Object.keys(files)
 
