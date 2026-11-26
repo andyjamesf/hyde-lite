@@ -1,5 +1,5 @@
 """Configs/.local/bin/hyde-lite (the updater), against throwaway git repositories: an origin, a checkout with a
-stub install.sh that only records how it was called, and stub hyprctl / island / qs. Run:
+stub install.sh that only records how it was called, and stub hyprctl / island / qs / systemctl. Run:
 
     python3 -I tools/tests/test_hyde_lite_update.py
 """
@@ -53,7 +53,8 @@ class Updater(unittest.TestCase):
         git(self.dir, "branch", "-q", "--set-upstream-to=origin/main", "main")
         self.bin = self.tmp / "bin"
         self.bin.mkdir()
-        for name in ("hyprctl", "island", "qs"):
+        # systemctl too: without the stub these tests would restart the real bar.
+        for name in ("hyprctl", "island", "qs", "systemctl"):
             stub(self.bin / name, f'echo "{name} $@" >> {self.log}\n')
 
     def upstream(self, path, text, msg="change"):
@@ -78,6 +79,7 @@ class Updater(unittest.TestCase):
         if bar:
             (self.state / "morphing-island/active").unlink()
         e = {**os.environ, "HYDE_LITE_DIR": str(self.dir), "XDG_STATE_HOME": str(self.state),
+             "XDG_SESSION_DESKTOP": "Hyprland",
              "PATH": f"{self.bin}:{os.environ['PATH']}", **(env or {})}
         return subprocess.run(["bash", str(SCRIPT), *args], capture_output=True, text=True, env=e, stdin=subprocess.DEVNULL)
 
@@ -118,12 +120,31 @@ class Updater(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertEqual(self.calls(), ["install --island --no-services", "hyprctl reload", "island off", "island on"])
 
-    def test_a_bar_user_gets_bar_and_the_bar_reload(self):
+    def test_a_bar_user_gets_bar_and_its_service_restarted(self):
+        # Not "qs ipc call shell reload": that target is part of the bar, and a reload that failed while the
+        # installer was copying files leaves the process running with no bar and no targets.
         self.mark_installed()
         self.upstream("Configs/.config/quickshell/bar/a.qml", "y\n")
         r = self.run_it("update", "--restart", bar=True)
         self.assertEqual(r.returncode, 0, r.stderr)
-        self.assertEqual(self.calls(), ["install --bar --no-services", "qs ipc call shell reload"])
+        self.assertEqual(self.calls(), ["install --bar --no-services",
+                                        "systemctl --user restart hyde-Hyprland-qsbar.service"])
+
+    def test_a_bar_service_that_cannot_be_restarted_is_started_again(self):
+        self.mark_installed()
+        stub(self.bin / "systemctl", f'echo "systemctl $@" >> {self.log}\nexit 5\n')   # unit not loaded
+        self.upstream("Configs/.config/quickshell/bar/a.qml", "y\n")
+        r = self.run_it("update", "--restart", bar=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(self.calls()[1:], ["systemctl --user restart hyde-Hyprland-qsbar.service", "island off"])
+
+    def test_without_restart_a_bar_user_is_told_the_command(self):
+        self.mark_installed()
+        self.upstream("Configs/.config/quickshell/bar/a.qml", "y\n")
+        r = self.run_it("update", bar=True, env={"XDG_SESSION_DESKTOP": ""})
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("to restart the shell: systemctl --user restart hyde-Hyprland-qsbar.service || island off", r.stdout)
+        self.assertEqual(self.calls(), ["install --bar --no-services"])
 
     def test_only_documents_changed_means_nothing_to_reload(self):
         self.mark_installed()
