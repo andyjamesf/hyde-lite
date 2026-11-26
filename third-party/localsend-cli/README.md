@@ -24,14 +24,25 @@ A new `receive` subcommand (`cli/src/app/receive_headless.rs`) fills that gap:
 - No raw terminal mode, no keyboard thread — unlike the interactive mode, this one can be spawned
   with its stdout as a plain pipe (which is what a Quickshell `Process` gives it).
 - A request from a device already paired (accepted with `P` in the interactive mode, which upstream
-  already persists to `paired-v2.json`) and certificate-verified is auto-accepted, reusing the exact
-  trust check the interactive mode uses (`storage.paired.contains(fingerprint)`). Every other
-  request is declined, unless `--quick-save` is passed, which accepts everyone.
-- One JSON object per line on stdout (`ready`, `incoming`, `file_done`, `session_done`,
-  `server_stopped`) instead of the human-readable log lines the rest of the CLI prints, so a GUI can
-  parse it instead of scraping text.
+  already persists to `paired-v2.json`, or with a `decision` line here — see below) and
+  certificate-verified is auto-accepted, reusing the exact trust check the interactive mode uses
+  (`storage.paired.contains(fingerprint)`). With `--quick-save`, every request is auto-accepted.
+  Otherwise, a request from anyone else is held open (`incoming` with `decision: "pending"`) instead
+  of declined on the spot: upstream's interactive mode asks a human on the terminal (Y/N/P); this
+  mode asks whoever is reading its stdout, by waiting for a `decision` line on stdin —
+  `{"session_id": "...", "decision": "accept" | "accept_and_pair" | "decline"}`. A pending request
+  nobody answers within 60s is declined on its own (`timeout`); one whose sender disconnects first
+  is reported as `aborted`.
+- Every discovery event re-emits the full list of currently confirmed devices (`devices`), including
+  ones that only ever contacted *us* (`ServerEventV2::Register` is wired to the same
+  `discovery::device_confirmed` the interactive mode uses — easy to miss, since `headless::run`'s own
+  send-only mode needs it for a different reason and this mode's first draft didn't call it at all).
+  So a caller gets "available devices" for free, without running its own discovery.
+- One JSON object per line on stdout (`ready`, `incoming`, `aborted`, `timeout`, `file_done`,
+  `session_done`, `devices`, `server_stopped`) instead of the human-readable log lines the rest of
+  the CLI prints, so a GUI can parse it instead of scraping text.
 
-See `cli/src/app/receive_headless.rs` for the exact event shapes.
+See `cli/src/app/receive_headless.rs` for the exact event and decision shapes.
 
 ## Building
 
@@ -51,12 +62,15 @@ repository's own install script, only built on demand.
 localsend-cli send --to <alias-or-ip> <file>...
 
 # New: receive in the background, no terminal needed.
-localsend-cli receive                 # auto-accept only already-paired devices
-localsend-cli receive --quick-save    # auto-accept everyone
+localsend-cli receive                 # auto-accept paired devices; others wait for a decision
+localsend-cli receive --quick-save    # auto-accept everyone, no pending/decisions at all
 ```
 
-Pairing a device still has to happen once, interactively (`localsend-cli` with no arguments, then
-`P` on its first request) before `receive` will auto-accept it.
+Pairing a device so it is auto-accepted by `receive` can happen two ways: once, interactively
+(`localsend-cli` with no arguments, then `P` on its first request), or by answering a pending
+request from `receive` with `{"session_id": "...", "decision": "accept_and_pair"}` on its stdin.
+A request from an unpaired device otherwise waits (`incoming` with `decision: "pending"`) for a
+`decision` line — `accept`, `accept_and_pair` or `decline` — or 60 seconds, whichever comes first.
 
 ## Measured / NOT TESTED
 
@@ -77,9 +91,27 @@ Pairing a device still has to happen once, interactively (`localsend-cli` with n
   sent. Restarting the receiver *without* `--quick-save` and repeating the send from the same
   (still unpaired) sender correctly declined: sender exited 1 and logged `Declined`, receiver logged
   `incoming` with `accepted: false`, and the destination directory stayed empty.
+- Measured 2026-11-26, the pending-decision protocol over loopback (a fifo opened read-write on an
+  extra fd so the receiver's stdin never saw EOF, decisions written to it from a separate shell
+  while the receiver kept running): an unpaired sender's request came through as `incoming` with
+  `decision: "pending"` and was *not* auto-declined; writing `{"session_id": "...", "decision":
+  "accept"}` to the fifo made it go through exactly like an auto-accept (`file_done` → `session_done`,
+  file landed byte-identical); a second request answered with `"decision": "decline"` was declined
+  (sender logged `Declined`, nothing new in the destination directory). The `devices` event was also
+  observed live: it listed the real sender by alias, host and fingerprint, confirming the
+  `Register` → `device_confirmed` wiring above actually fires.
+- Also observed live, worth knowing rather than hiding: `send --to <IP>` always probes the fixed
+  default port (53317) directly, in addition to whatever discovery finds — so `--to 127.0.0.1`
+  on a machine already running a receiver on the default port reaches *that* one, not a test
+  instance on another port. Target a non-default-port test instance by alias, not IP, or it can
+  silently hit the wrong receiver (it did here, once, harmlessly: the real deployed receiver just
+  declined the unpaired test sender, exactly as it should).
 - **NOT TESTED**: the already-paired auto-accept branch specifically (pairing itself needs the
-  interactive TUI's `P` keypress, which was not scripted here) — the two tests above exercise the
-  same downstream accept/decline code paths `quick_save` and `paired` both feed into, so this is a
-  narrow gap (the `paired` boolean itself), not the receive pipeline. Also not tested: a real second
-  device (phone/another machine) over the actual LAN rather than loopback, and the Quickshell widget
-  side, which does not exist yet.
+  interactive TUI's `P` keypress, which was not scripted here) — it feeds into the same accept code
+  path `quick_save` and a stdin `"accept"` decision both already exercised, so this is a narrow gap
+  (the `paired` boolean itself), not the receive pipeline. Also not tested: the 60s timeout firing
+  for real (it reuses the same decline call already tested, just time-triggered, so this was reasoned
+  through rather than run), `accept_and_pair` actually writing `paired-v2.json`, a real second device
+  (phone/another machine) over the actual LAN rather than loopback, and the Quickshell widget's own
+  handling of `pending`/`devices` (see `Configs/.config/quickshell/shared/services/LocalSend.qml`
+  for what's wired up so far).
