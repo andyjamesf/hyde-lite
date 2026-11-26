@@ -5,17 +5,16 @@ import Quickshell.Io
 
 // Background receiver for our localsend-cli fork (hyde-lite-publico's own
 // third-party/localsend-cli, not part of this deployed tree — see its
-// README for what the `receive` subcommand does and why it exists).
+// README for what the `receive` subcommand does and why it exists, and the
+// exact shape of every event and decision below).
 //
-// A request from a device already paired in the interactive CLI (`P` on its
-// first request) is auto-accepted; everyone else is declined unless
-// `quickSave` is on. `quickSave` has no settings UI yet: change the default
-// below for now, on both this and the island's copy if they ever diverge.
-//
-// Sending is not wired into either shell yet: for now, send a file with
-// `localsend-cli send --to <alias-or-ip> <file>` from a terminal (already
-// scriptable, see the fork's README). This service only covers receiving
-// and the toast/history around it.
+// A request from a device already paired (`P` in the interactive CLI, or
+// `accept_and_pair` here) is auto-accepted; with quickSave on, so is
+// everyone else. Otherwise a request waits in `pending` until `answer()` is
+// called, or 60s pass and the fork declines it on its own (an `aborted` or
+// `timeout` event then drops it from `pending` here too). `quickSave` has
+// no settings UI yet: change the default below for now, on both this and
+// the island's copy if they ever diverge.
 Singleton {
     id: root
 
@@ -28,9 +27,27 @@ Singleton {
     property string alias: ""
     property int port: 0
 
+    // Requests waiting for `answer()`, oldest first: { sessionId, alias,
+    // verified, paired, fileCount, totalBytes, since }.
+    property var pending: []
+
+    // Confirmed devices from the fork's own discovery, replaced wholesale on
+    // every update (not a diff): { alias, host, port, fingerprint, paired }.
+    property var devices: []
+
     // Most recent first, capped at `historyLimit`.
     property var history: []
     readonly property int historyLimit: 20
+
+    property bool sendBusy: false
+    // "" when idle or the last send succeeded.
+    property string lastSendError: ""
+
+    // The device currently picked to send to (an alias from `devices`), kept
+    // here rather than in the panel: referencing an outer `id: root` from
+    // inside a `ListRow` delegate is not reliably resolved by qmllint across
+    // the component boundary, unlike a qualified singleton property.
+    property string selectedTarget: ""
 
     function restart() {
         installError = false;
@@ -39,11 +56,34 @@ Singleton {
         proc.running = true;
     }
 
+    // decision: "accept" | "accept_and_pair" | "decline".
+    function answer(sessionId, decision) {
+        if (!proc.running)
+            return;
+        proc.write(JSON.stringify({
+            session_id: sessionId,
+            decision: decision
+        }) + "\n");
+        root.pending = root.pending.filter(r => r.sessionId !== sessionId);
+    }
+
+    // `paths`: local file paths (no "file://" prefix). `target`: a device's
+    // alias or host, e.g. one of `devices`' entries.
+    function sendFiles(target, paths) {
+        if (root.sendBusy || !target || !paths || paths.length === 0)
+            return;
+        root.sendBusy = true;
+        root.lastSendError = "";
+        sendProc.command = [root.bin, "send", "--to", target].concat(paths);
+        sendProc.running = true;
+    }
+
     function _pushHistory(entry) {
         history = [entry].concat(history).slice(0, historyLimit);
     }
 
-    function _formatBytes(n) {
+    // Public: the panel also uses this for a pending request's size.
+    function formatBytes(n) {
         if (n < 1024)
             return `${n} B`;
         const units = ["KB", "MB", "GB", "TB"];
@@ -63,6 +103,10 @@ Singleton {
         Quickshell.execDetached(["notify-send", "--app-name=LocalSend", "--icon=folder-download", summary, body]);
     }
 
+    function _dropPending(sessionId) {
+        root.pending = root.pending.filter(r => r.sessionId !== sessionId);
+    }
+
     function _handle(line) {
         let event;
         try {
@@ -79,7 +123,20 @@ Singleton {
             root.port = event.port ?? 0;
             break;
         case "incoming":
-            if (!event.accepted) {
+            if (event.decision === "pending") {
+                root.pending = root.pending.concat([
+                    {
+                        sessionId: event.session_id,
+                        alias: event.alias ?? "",
+                        verified: !!event.verified,
+                        paired: !!event.paired,
+                        fileCount: event.file_count ?? 0,
+                        totalBytes: event.total_bytes ?? 0,
+                        since: Date.now()
+                    }
+                ]);
+                root._notify("LocalSend", `${event.alias} wants to send ${event.file_count} file${event.file_count === 1 ? "" : "s"} — open LocalSend to decide`);
+            } else if (event.decision === "declined") {
                 root._pushHistory({
                     kind: "declined",
                     alias: event.alias ?? "",
@@ -89,6 +146,20 @@ Singleton {
                 });
                 root._notify("LocalSend", `${event.alias}: declined (not paired)`);
             }
+            break;
+        case "aborted":
+            root._dropPending(event.session_id);
+            break;
+        case "timeout":
+            root._dropPending(event.session_id);
+            root._pushHistory({
+                kind: "declined",
+                alias: "",
+                fileCount: 0,
+                bytes: 0,
+                time: Date.now()
+            });
+            root._notify("LocalSend", "A request timed out and was declined");
             break;
         case "session_done":
             root._pushHistory({
@@ -103,7 +174,16 @@ Singleton {
             if (event.cancelled)
                 root._notify("LocalSend", `${event.alias}: cancelled`);
             else
-                root._notify("LocalSend", `${event.alias} sent ${event.files_ok} file${event.files_ok === 1 ? "" : "s"} (${root._formatBytes(event.bytes)})`);
+                root._notify("LocalSend", `${event.alias} sent ${event.files_ok} file${event.files_ok === 1 ? "" : "s"} (${root.formatBytes(event.bytes)})`);
+            break;
+        case "devices":
+            root.devices = (event.devices ?? []).map(d => ({
+                        alias: d.alias ?? "",
+                        host: d.host ?? "",
+                        port: d.port ?? 0,
+                        fingerprint: d.fingerprint ?? "",
+                        paired: !!d.paired
+                    }));
             break;
         case "server_stopped":
             root.ready = false;
@@ -122,6 +202,7 @@ Singleton {
 
         command: root.quickSave ? [root.bin, "receive", "--quick-save"] : [root.bin, "receive"]
         running: true
+        stdinEnabled: true
         stdout: SplitParser {
             onRead: line => root._handle(line)
         }
@@ -130,6 +211,8 @@ Singleton {
             root.ready = false;
             root.installError = !_started;
             _started = false;
+            root.pending = [];
+            root.devices = [];
             restartTimer.start();
         }
     }
@@ -139,5 +222,24 @@ Singleton {
         interval: 3000
         onTriggered: if (!proc.running)
             proc.running = true
+    }
+
+    // One-shot `send`; `sendFiles()` sets its command before starting it.
+    // Concurrent sends are not queued: `sendBusy` blocks a second one until
+    // this finishes, which is enough for "drop one file, pick a device".
+    Process {
+        id: sendProc
+        onExited: code => {
+            root.sendBusy = false;
+            if (code === 0) {
+                root.lastSendError = "";
+            } else {
+                // Not reading stderr here: a StdioCollector's `text` is only
+                // reliable inside its own `onStreamFinished`, and ordering
+                // against this `onExited` is not something to rely on.
+                root.lastSendError = `send exited with code ${code}`;
+                root._notify("LocalSend", "Send failed");
+            }
+        }
     }
 }
