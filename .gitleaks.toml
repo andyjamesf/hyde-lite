@@ -1,0 +1,14 @@
+[extend]
+useDefault = true
+
+# third-party/localsend-cli is vendored, unmodified, from the official
+# LocalSend CLI (localsend/localsend, tag v1.19.0). Its crypto tests hardcode
+# PEM certificates/keys as fixtures to exercise certificate parsing and
+# validation (core/src/crypto/cert.rs): no real private key material, just
+# literal test data and a string-prefix assertion against the
+# "-----BEGIN PRIVATE KEY-----" header, which gitleaks' default private-key
+# rule flags regardless of whether real key bytes follow.
+[allowlist]
+paths = [
+  '''third-party/localsend-cli/core/src/crypto/cert\.rs''',
+]

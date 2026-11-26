@@ -203,6 +203,19 @@ Scope {
         }
     }
 
+    // A file picked for LocalSend reopens whichever panel asked for it (the control centre's
+    // focus grab, or the bar popout's own, closed it on its own the moment the picker's window
+    // took focus — see shared/services/LocalSend.qml).
+    Connections {
+        target: LocalSend
+        function onFilePicked(path) {
+            if (LocalSend.pickSource === "controlCenter")
+                ShellState.openControlCenter("", "localSend");
+            else
+                ShellState.requestPopout("localsend");
+        }
+    }
+
     // The control centre's shared components read their look from CcTheme; this binds the bar's.
     CcThemeBindings {}
 

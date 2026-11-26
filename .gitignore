@@ -40,3 +40,6 @@ google/client.json
 
 # graphify output (local dependency graph)
 graphify-out/
+
+# Rust build output of vendored crates under third-party/
+third-party/*/target/

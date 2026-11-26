@@ -50,6 +50,7 @@ Singleton {
             //   "idle"           idle inhibitor
             //   "nightLight"     night light
             //   "notifications"  notifications and "do not disturb"
+            //   "localSend"      LocalSend receiver status (third-party/localsend-cli); no send UI yet
             //   "controlCenter"  the control centre's button
             //   "power"          power menu
             // A layout's other keys: style ("islands" | "continuous"), height, margin, spacing,
