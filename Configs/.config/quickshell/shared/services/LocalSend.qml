@@ -49,6 +49,19 @@ Singleton {
     // the component boundary, unlike a qualified singleton property.
     property string selectedTarget: ""
 
+    // A file was chosen with `browseFile()`. Drag-and-drop from an outside
+    // app onto a layer-shell popup is not reliable on Hyprland/wlroots (no
+    // working precedent for it anywhere in this tree, and real-world reports
+    // of the same failure elsewhere), so this is the real way to pick a file
+    // — the same xdg-desktop-portal chooser the avatar picker already uses
+    // (shared/scripts/pick_file.py), not a new mechanism.
+    signal filePicked(string path)
+
+    function browseFile() {
+        if (!filePicker.running)
+            filePicker.running = true;
+    }
+
     function restart() {
         installError = false;
         ready = false;
@@ -254,6 +267,21 @@ Singleton {
                 // against this `onExited` is not something to rely on.
                 root.lastSendError = `send exited with code ${code}`;
                 root._notify("LocalSend", "Send failed");
+            }
+        }
+    }
+
+    // Same script and portal call as SysInfo.chooseAvatar(): no filter (any
+    // file), starting in the home directory. Exits 1 on cancel, in which
+    // case stdout is empty and nothing is emitted.
+    Process {
+        id: filePicker
+        command: ["python3", Quickshell.shellPath("shared/scripts/pick_file.py"), "Choose a file to send", "", `${Quickshell.env("HOME")}`]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const path = text.trim();
+                if (path !== "")
+                    root.filePicked(path);
             }
         }
     }

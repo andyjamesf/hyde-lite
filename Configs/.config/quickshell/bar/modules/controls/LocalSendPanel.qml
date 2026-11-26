@@ -5,7 +5,9 @@ import qs.bar.services
 import qs.shared.services
 
 // LocalSend: the background receiver's status, pending requests waiting for
-// a decision, a device picker and a drop zone to send, and recent activity.
+// a decision, a device picker and a file browser to send, and recent
+// activity. No drag-and-drop: unreliable from an outside app onto a
+// layer-shell popup on Hyprland/wlroots (see shared/services/LocalSend.qml).
 ColumnLayout {
     id: root
     property bool backButton: false
@@ -96,40 +98,13 @@ ColumnLayout {
         }
     }
 
-    Rectangle {
-        id: dropZone
+    StyledText {
+        visible: LocalSend.selectedTarget !== ""
         Layout.fillWidth: true
         Layout.topMargin: 4
-        implicitHeight: 64
-        radius: Theme.shapeMedium
-        color: fileDropArea.containsDrag ? Theme.primaryContainer : Theme.surfaceContainerHighest
-        border.width: 1
-        border.color: fileDropArea.containsDrag ? Theme.primary : Theme.outlineVariant
-
-        StyledText {
-            anchors.centerIn: parent
-            text: LocalSend.selectedTarget === "" ? "Pick a device above, then drop a file here" : LocalSend.sendBusy ? "Sending…" : `Drop a file here to send to ${LocalSend.selectedTarget}`
-            font.pixelSize: Theme.labelSmall
-            color: Theme.textDim
-            horizontalAlignment: Text.AlignHCenter
-            width: parent.width - 16
-            wrapMode: Text.WordWrap
-        }
-
-        // Real file drag-and-drop from a file manager onto a layer-shell
-        // popup is NOT verified in this environment (no display here) — it
-        // may need the compositor's own DnD-over-layer-surface support. The
-        // pasted-path field below always works as a fallback.
-        DropArea {
-            id: fileDropArea
-            anchors.fill: parent
-            onDropped: event => {
-                if (LocalSend.selectedTarget === "" || !event.hasUrls)
-                    return;
-                const paths = event.urls.map(u => String(u).replace(/^file:\/\//, "")).filter(p => p !== "");
-                LocalSend.sendFiles(LocalSend.selectedTarget, paths);
-            }
-        }
+        text: LocalSend.sendBusy ? "Sending…" : `Sending to ${LocalSend.selectedTarget}`
+        font.pixelSize: Theme.labelSmall
+        color: Theme.textDim
     }
 
     RowLayout {
@@ -137,10 +112,18 @@ ColumnLayout {
         Layout.topMargin: 4
         spacing: 8
 
+        IconButton {
+            icon: "folder_open"
+            size: 36
+            tonal: true
+            tooltip: "Browse…"
+            onClicked: LocalSend.browseFile()
+        }
+
         StyledTextField {
             id: pathField
             Layout.fillWidth: true
-            placeholder: "Or paste a file path…"
+            placeholder: "Or type a path…"
             onAccepted: sendButton.clicked()
         }
 
@@ -154,6 +137,13 @@ ColumnLayout {
                 LocalSend.sendFiles(LocalSend.selectedTarget, [pathField.text]);
                 pathField.text = "";
             }
+        }
+    }
+
+    Connections {
+        target: LocalSend
+        function onFilePicked(path) {
+            pathField.text = path;
         }
     }
 
