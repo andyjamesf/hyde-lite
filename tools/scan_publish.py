@@ -42,6 +42,7 @@ TEXT_EXEMPT = {
     "tools/scan_publish.py",
     "LITE.md",
     "third-party/localsend-cli/core/src/crypto/cert.rs",
+    ".gitleaks.toml",
 }
 SECRET_FILE_NAMES = re.compile(
     r"(^|/)(\.env(\..*)?|id_rsa|id_ed25519|\.netrc|\.pypirc|token\.json|client_secret.*\.json"
