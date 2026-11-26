@@ -99,6 +99,10 @@ go to `~/.local/state/hyde-lite-install/`. It is made for a generic PC: it knows
 assumes no hardware; monitors and GPU are left to Hyprland's detection. Then log out and pick the Hyprland
 session, or reboot.
 
+One step compiles the LocalSend receiver the shells use (`third-party/localsend-cli`), which installs `rust` if
+there is no `cargo` and takes a few minutes the first time. The installer does not touch your firewall: if you run
+one, other devices need TCP and UDP port 53317 open to your local network.
+
 <details>
 <summary><b>Installer options</b></summary>
 

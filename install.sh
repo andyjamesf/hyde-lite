@@ -4,7 +4,7 @@
 #   git clone <this repository> && cd hyde-lite && ./install.sh
 #
 # It installs only what this repository ships (HyDE LiTE, the two Quickshell shells, the matugen colour
-# pipeline, the starter wallpapers). It does not know your apps or settings, and it assumes no hardware:
+# pipeline, the starter wallpapers, the LocalSend receiver, which it compiles). It does not know your apps or settings, and it assumes no hardware:
 # monitors are detected by Hyprland and Nvidia drivers are installed only with --nvidia.
 #
 # It runs the upstream installer (Scripts/install.sh) in three separate steps (packages, configs,
@@ -190,6 +190,9 @@ run_step "Configs and themes" "$upstream" -r "${nv[@]}"
 # after a combined install and restore, which would also run its pre-install script (Chaotic AUR, boot
 # loader and pacman.conf changes) and is not wanted here.
 run_step "Login screen and shell" "$root/Scripts/install_pst.sh"
+# The shells' LocalSend widget needs our fork of localsend-cli, built from third-party/. The first run installs
+# rust when there is no cargo; later runs build only when that source changed.
+run_step "LocalSend" "$root/tools/build_localsend.sh"
 ((services)) && run_step "Services" "$upstream" -s "${nv[@]}"
 
 # The Morphing Island as the first shell: the "active" file is what hyprland.lua (island.lua) reads at login,
