@@ -48,10 +48,10 @@ class Build(unittest.TestCase):
         path.write_text(body)
         path.chmod(0o755)
 
-    def run_script(self, dry=0):
-        env = {"HOME": str(self.home), "PATH": str(self.bin), "LOG": str(self.log), "flg_DryRun": str(dry)}
+    def run_script(self, dry=0, **extra):
+        env = {"HOME": str(self.home), "PATH": str(self.bin), "LOG": str(self.log), "flg_DryRun": str(dry), **extra}
         return subprocess.run(["bash", str(self.repo / "tools/build_localsend.sh")], env=env, capture_output=True,
-                              text=True, stdin=subprocess.DEVNULL, timeout=60)
+                              text=True, stdin=subprocess.DEVNULL, timeout=60, cwd=self.home)
 
     def calls(self, name):
         path = self.log / name
@@ -121,6 +121,25 @@ class Build(unittest.TestCase):
         self.assertNotEqual(r.returncode, 0)
         self.assertIn("[err]", r.stdout)
         self.assertFalse(self.dest.exists())
+
+    def test_a_relative_xdg_cache_home_is_ignored(self):
+        # The XDG specification: a relative path in these variables is invalid.
+        self.fake("cargo", FAKE_CARGO)
+        r = self.run_script(XDG_CACHE_HOME="relative-cache")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertEqual(self.dest.read_text(), "version one\n")
+        self.assertEqual(list(self.repo.rglob("relative-cache")) + list(self.home.rglob("relative-cache")), [])
+
+    def test_a_run_interrupted_while_cleaning_up_is_finished_by_the_next_one(self):
+        self.fake("cargo", FAKE_CARGO)
+        (self.bin / "rm").unlink()
+        self.fake("rm", "#!/bin/bash\nexit 130\n")  # as if interrupted while removing the build directory
+        self.assertNotEqual(self.run_script().returncode, 0)
+        self.assertTrue(self.cache.exists())
+        (self.bin / "rm").unlink()
+        os.symlink(shutil.which("rm") or "rm", self.bin / "rm")
+        self.assertEqual(self.run_script().returncode, 0)
+        self.assertFalse(self.cache.exists(), "the leftover build directory is removed")
 
     def test_a_dry_run_changes_nothing(self):
         self.fake("cargo", FAKE_CARGO)
