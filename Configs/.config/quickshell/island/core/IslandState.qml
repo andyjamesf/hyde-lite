@@ -18,6 +18,8 @@ Singleton {
     readonly property string controlCenter: "controlcenter"
     readonly property string wifi: "wifi"
     readonly property string bluetooth: "bluetooth"
+    // LocalSend (components/CcLocalSendPage.qml), from the "localsend" status icon.
+    readonly property string localsend: "localsend"
     readonly property string audio: "audio"
     readonly property string media: "media"
     readonly property string battery: "battery"
@@ -40,12 +42,12 @@ Singleton {
     readonly property string weather: "weather"
 
     readonly property var transients: [volume, mic, brightness, notification, screenshot]
-    readonly property var surfaces: [launcher, controlCenter, wifi, bluetooth, audio, media, battery, system, theme, wallpaper, settings, power, auth, calendar, agent, ai, overview, notepad, weather]
+    readonly property var surfaces: [launcher, controlCenter, wifi, bluetooth, localsend, audio, media, battery, system, theme, wallpaper, settings, power, auth, calendar, agent, ai, overview, notepad, weather]
     // Surfaces that take the keyboard exclusively: text input, and the pickers with a grid (so
     // arrows and Enter work without clicking first).
     readonly property var keyboardModes: [launcher, auth, settings, theme, wallpaper, power, calendar, agent, overview, notepad]
     // Control center subviews (Esc goes back to the control center, not to the clock).
-    readonly property var subviews: [wifi, bluetooth, audio, media, battery, system]
+    readonly property var subviews: [wifi, bluetooth, localsend, audio, media, battery, system]
 
     function isTransient(m) {
         return transients.includes(m);

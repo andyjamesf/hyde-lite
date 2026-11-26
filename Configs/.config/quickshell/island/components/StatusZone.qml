@@ -13,7 +13,8 @@ import qs.shared.services
 // "caffeine" (dim when off, accent when on), "notifications" (bell with the unread count; crossed
 // out in peace mode), "power" (the power menu), "ai" (AI usage: the symbol, coloured by the tool
 // closest to its limit; a click shows the numbers), "updates" (only while updates wait, with their
-// number; a click opens the update in a terminal). With `extras`, shortcut buttons fill the free space on their left.
+// number; a click opens the update in a terminal), "localsend" (dim until the receiver is ready, accent while a
+// request waits, with their number; a click opens the LocalSend page). With `extras`, shortcut buttons fill the free space on their left.
 // Every icon is a button; resting the pointer on one shows what it does. Actions and hints:
 // services/Shortcuts.qml.
 Item {
@@ -82,6 +83,7 @@ Item {
     readonly property var iconComponents: ({
             volume: volumeIcon,
             bluetooth: bluetoothIcon,
+            localsend: localSendIcon,
             wifi: wifiIcon,
             battery: batteryIcon,
             caffeine: caffeineIcon,
@@ -281,6 +283,35 @@ Item {
             color: Bluetooth.enabled ? Theme.icon : Theme.dim
             enabled: Bluetooth.enabled
             connected: Bluetooth.connected
+        }
+    }
+
+    // LocalSend (shared/services/LocalSend.qml): dim until the receiver is ready; accent and a count while
+    // requests wait for an answer (they are declined after 60 s).
+    Component {
+        id: localSendIcon
+
+        Row {
+            id: localSendRow
+
+            readonly property real iconSize: Math.round(Pill.height * Expanded.statusIconFactor)
+
+            spacing: 3
+
+            Label {
+                anchors.verticalCenter: parent.verticalCenter
+                text: "\u{F09D5}"
+                font.family: Appearance.nerdFont
+                font.pixelSize: Math.round(localSendRow.iconSize * 0.95)
+                elide: Text.ElideNone
+                color: LocalSend.pending.length > 0 ? Theme.accent : LocalSend.ready ? Theme.icon : Theme.dim
+            }
+            Label {
+                visible: LocalSend.pending.length > 0
+                anchors.verticalCenter: parent.verticalCenter
+                text: String(LocalSend.pending.length)
+                font.pixelSize: Appearance.fontSize - 1
+            }
         }
     }
 

@@ -399,6 +399,16 @@ Scope {
         }
     }
 
+    // The file picker's window takes the focus, which closes the island: the LocalSend page comes back with
+    // the picked file. open() toggles, so it is only called when the page is not already there.
+    Connections {
+        target: LocalSend
+        function onFilePicked(path) {
+            if (LocalSend.pickSource === "island" && IslandController.mode !== IslandState.localsend)
+                IslandController.open(IslandState.localsend);
+        }
+    }
+
     Connections {
         target: SysInfo
         function onAvatarFilePicked(path) {
