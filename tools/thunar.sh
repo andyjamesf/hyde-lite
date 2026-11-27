@@ -87,6 +87,17 @@ install_package() {
     echo "thunar-hyde-lite $want installed (open Thunar windows use it after 'thunar -q')"
 }
 
+# wallpaper-palette skips a run for a wallpaper it has already rendered, so a machine that only received the new
+# template and stylesheet needs a forced one. Before the first wallpaper there is nothing to render yet.
+render_colours() {
+    local gtk=$HOME/.config/gtk-3.0 palette
+    [[ $dry == 1 ]] && return 0
+    grep -qs thunar.css "$gtk/gtk.css" && grep -qs m3_primary_container "$gtk/wallpaper.css" && return 0
+    palette=$(command -v wallpaper-palette) || palette=$HOME/.local/bin/wallpaper-palette
+    [[ -x $palette ]] || return 0
+    "$palette" apply --force >/dev/null 2>&1 || echo "thunar: its colours follow at the next wallpaper change"
+}
+
 rc=0
 if ! install_package; then
     rc=1
@@ -94,4 +105,5 @@ if ! install_package; then
     pacman -Q thunar >/dev/null 2>&1 || sudo pacman -S --needed --noconfirm thunar || err "no file manager installed"
 fi
 apply_defaults || rc=1
+render_colours
 exit "$rc"

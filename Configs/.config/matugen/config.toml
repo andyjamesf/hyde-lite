@@ -32,7 +32,7 @@ post_hook = "hyprctl reload >/dev/null 2>&1 || true"
 [templates.gtk3]
 input_path = "~/.config/matugen/templates/gtk.css"
 output_path = "~/.config/gtk-3.0/wallpaper.css"
-post_hook = "for f in wallpaper thunar; do grep -qs $f.css ~/.config/gtk-3.0/gtk.css || printf '@import url(\\\"%s.css\\\");\\n' $f >> ~/.config/gtk-3.0/gtk.css; done"
+post_hook = "for f in wallpaper thunar; do grep -qs $f.css ~/.config/gtk-3.0/gtk.css || printf '@import url(\"%s.css\");\\n' $f >> ~/.config/gtk-3.0/gtk.css; done"
 
 [templates.gtk4]
 input_path = "~/.config/matugen/templates/gtk.css"

@@ -33,11 +33,25 @@ class Colours(unittest.TestCase):
     def test_stylesheet_has_no_literal_colour(self):
         self.assertEqual(re.findall(r"#[0-9a-fA-F]{3,8}\b|\brgba?\(", without_comments(STYLE.read_text())), [])
 
-    def test_stylesheet_is_deployed(self):
-        entries = tomllib.loads(DOTS.read_text())["thunar"]["files"]
-        deployed = [(e.get("source_root"), p) for e in entries
-                    for p in ([e["paths"]] if isinstance(e["paths"], str) else e["paths"])]
-        self.assertIn(("Configs/.config", "gtk-3.0/thunar.css"), deployed)
+    def test_stylesheet_is_deployed_by_exactly_one_dot(self):
+        # deez refuses to deploy a file another dot already owns, and the whole step fails
+        owners = []
+        for dot in (REPO / "Scripts/dots").glob("*.toml"):
+            for name, section in tomllib.loads(dot.read_text()).items():
+                for e in section.get("files", []) if isinstance(section, dict) else []:
+                    paths = [e["paths"]] if isinstance(e.get("paths"), str) else e.get("paths", [])
+                    for path in paths:
+                        full = os.path.join(e.get("source_root", ""), path)
+                        target = "Configs/.config/gtk-3.0/thunar.css"
+                        ignored = any(os.path.join(e.get("source_root", ""), i) == target for i in e.get("ignored_paths", []))
+                        if not ignored and (target == full or target.startswith(full + "/")):
+                            owners.append(f"{dot.name}:{name}")
+        self.assertEqual(owners, ["hyde.toml:hyde"])
+
+    def test_the_import_hook_needs_no_shell_specific_escapes(self):
+        # printf keeps the backslash of \" in dash (Ubuntu's sh, and CI's)
+        hook = tomllib.loads(MATUGEN.read_text())["templates"]["gtk3"]["post_hook"]
+        self.assertNotIn('\\"', hook)
 
     def test_gtk3_hook_imports_each_file_once_and_wallpaper_first(self):
         hook = tomllib.loads(MATUGEN.read_text())["templates"]["gtk3"]["post_hook"]
@@ -77,6 +91,8 @@ touch "$PKGDEST/thunar-hyde-lite-4.20.10-1-x86_64.pkg.tar.zst"
     "sudo": 'echo "sudo $*" >>"$LOG"; exec "$@"',
     "xfconf-query": """echo "xfconf-query $*" >>"$LOG"
 [[ -z ${FAKE_XFCONF_FAIL:-} || "$*" != *"$FAKE_XFCONF_FAIL"* ]]""",
+    "wallpaper-palette": """echo "wallpaper-palette $*" >>"$LOG"
+[[ -z ${FAKE_PALETTE_FAIL:-} ]]""",
     "dbus-run-session": """echo "dbus-run-session" >>"$LOG"
 shift
 DBUS_SESSION_BUS_ADDRESS=private exec "$@"
@@ -162,6 +178,33 @@ class Step(unittest.TestCase):
         self.assertEqual(calls.count("dbus-run-session"), 1)
         self.assertEqual(len([c for c in calls if c.startswith("xfconf-query")]), len(DEFAULTS))
         self.assertTrue(self.marker.exists())
+
+    def gtk_files(self, imports, colours):
+        gtk = self.tmp / ".config/gtk-3.0"
+        gtk.mkdir(parents=True)
+        (gtk / "gtk.css").write_text(imports)
+        (gtk / "wallpaper.css").write_text(colours)
+
+    def test_an_existing_machine_gets_its_colours_rendered_again(self):
+        # wallpaper-palette skips a run for the same wallpaper, so a new template alone changes nothing
+        self.gtk_files('@import url("wallpaper.css");\n', "")
+        _, calls = self.run_step(FAKE_INSTALLED=VERSION)
+        self.assertIn("wallpaper-palette apply --force", calls)
+
+    def test_colours_already_in_place_are_left_alone(self):
+        self.gtk_files('@import url("wallpaper.css");\n@import url("thunar.css");\n',
+                       "@define-color m3_primary_container #000000;\n")
+        _, calls = self.run_step(FAKE_INSTALLED=VERSION)
+        self.assertFalse([c for c in calls if c.startswith("wallpaper-palette")])
+
+    def test_no_wallpaper_yet_does_not_fail_the_step(self):
+        r, _ = self.run_step(FAKE_INSTALLED=VERSION, FAKE_PALETTE_FAIL="1")
+        self.assertEqual(r.returncode, 0, r.stdout)
+        self.assertNotIn("[err]", r.stdout)
+
+    def test_dry_run_renders_nothing(self):
+        _, calls = self.run_step(flg_DryRun="1")
+        self.assertFalse([c for c in calls if c.startswith("wallpaper-palette")])
 
     def test_install_sh_runs_the_step(self):
         self.assertIn('run_step "Thunar" "$root/tools/thunar.sh"', (REPO / "install.sh").read_text())
