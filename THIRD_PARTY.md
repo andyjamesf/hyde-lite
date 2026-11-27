@@ -26,6 +26,13 @@ Everything else under `Scripts/`, `Configs/` and `Source/` started as HyDE's own
 ([contributor list](https://github.com/HyDE-Project/HyDE/graphs/contributors)). Their notices are kept; do not
 remove `LICENSE` or [`CREDITS.md`](CREDITS.md) when redistributing.
 
+## Patched Thunar
+
+[`third-party/thunar-hyde-lite`](third-party/thunar-hyde-lite) is a build recipe and a patch for
+[Thunar](https://gitlab.xfce.org/xfce/thunar) 4.20.10 (GPL-2.0-or-later, LGPL-2.1 for its library). Thunar's source
+is not stored here: the recipe downloads the release tarball and checks it. The recipe follows Arch Linux's
+`thunar` PKGBUILD; the patch is under Thunar's licence.
+
 ## Code from other projects, with its own notice in the file
 
 Checked by reading the file headers. All of these are compatible with the GPL-3.0.

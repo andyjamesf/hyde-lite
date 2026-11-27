@@ -1,0 +1,393 @@
+--- a/thunar/thunar-compact-view.c
++++ b/thunar/thunar-compact-view.c
+@@ -83,6 +83,7 @@
+ 
+   /* setup the icon renderer */
+   g_object_set (G_OBJECT (THUNAR_STANDARD_VIEW (compact_view)->icon_renderer),
++                "xpad", 6u,
+                 "ypad", 2u,
+                 NULL);
+ 
+@@ -91,6 +92,7 @@
+   /* setup the name renderer */
+   g_object_set (G_OBJECT (THUNAR_STANDARD_VIEW (compact_view)->name_renderer),
+                 "xalign", 0.0f,
++                "xpad", 8u,
+                 "yalign", 0.5f,
+                 NULL);
+ 
+--- a/thunar/thunar-icon-renderer.c
++++ b/thunar/thunar-icon-renderer.c
+@@ -527,7 +527,8 @@
+ 
+   g_object_get (renderer, "is-expanded", &is_expanded, NULL);
+ 
+-  if (THUNAR_ICON_RENDERER (renderer)->highlighting_enabled)
++  /* the selection is painted here too (the stylesheet leaves it transparent), with or without file highlighting */
++  if (THUNAR_ICON_RENDERER (renderer)->highlighting_enabled || (flags & GTK_CELL_RENDERER_SELECTED) != 0)
+     thunar_util_clip_view_background (renderer, cr, background_area, widget, flags);
+ 
+   /* determine the icon state */
+--- a/thunar/thunar-icon-view.c
++++ b/thunar/thunar-icon-view.c
+@@ -49,6 +49,12 @@
+ thunar_icon_view_set_consistent_horizontal_spacing (ThunarIconView *icon_view);
+ static void
+ thunar_icon_view_zoom_level_changed (ThunarStandardView *standard_view);
++static void
++thunar_icon_view_fit_columns (ThunarIconView *icon_view);
++static void
++thunar_icon_view_size_allocate (GtkWidget     *widget,
++                                GtkAllocation *allocation,
++                                gpointer       user_data);
+ 
+ 
+ 
+@@ -60,6 +66,11 @@
+ struct _ThunarIconView
+ {
+   ThunarAbstractIconView __parent__;
++
++  /* width of one item at the current zoom level (0 while the text is beside the icon) */
++  gint                   base_item_width;
++  /* width last given to the items by thunar_icon_view_fit_columns() */
++  gint                   fitted_item_width;
+ };
+ 
+ 
+@@ -113,8 +124,13 @@
+   /* setup the name renderer */
+   g_object_set (G_OBJECT (THUNAR_STANDARD_VIEW (icon_view)->name_renderer),
+                 "wrap-mode", PANGO_WRAP_WORD_CHAR,
++                "ellipsize", PANGO_ELLIPSIZE_END,
+                 NULL);
+ 
++  /* spread the columns over the whole width whenever the view is resized */
++  g_signal_connect (G_OBJECT (gtk_bin_get_child (GTK_BIN (icon_view))), "size-allocate",
++                    G_CALLBACK (thunar_icon_view_size_allocate), icon_view);
++
+   /* synchronize the "text-beside-icons" property with the global preference */
+   g_object_bind_property (G_OBJECT (THUNAR_STANDARD_VIEW (icon_view)->preferences),
+                           "misc-text-beside-icons",
+@@ -139,7 +155,10 @@
+       if (G_UNLIKELY (g_value_get_boolean (value)))
+         {
+           exo_icon_view_set_orientation (EXO_ICON_VIEW (gtk_bin_get_child (GTK_BIN (standard_view))), GTK_ORIENTATION_HORIZONTAL);
+-          g_object_set (G_OBJECT (standard_view->name_renderer), "wrap-width", 128, "yalign", 0.5f, "xalign", 0.0f, "alignment", PANGO_ALIGN_LEFT, NULL);
++          g_object_set (G_OBJECT (standard_view->name_renderer), "wrap-width", 128, "xpad", 2u, "yalign", 0.5f, "xalign", 0.0f, "alignment", PANGO_ALIGN_LEFT, NULL);
++          gtk_cell_renderer_set_fixed_size (standard_view->name_renderer, -1, -1);
++          THUNAR_ICON_VIEW (standard_view)->base_item_width = 0;
++          THUNAR_ICON_VIEW (standard_view)->fitted_item_width = 0;
+ 
+           /* disconnect the "zoom-level" signal handler, since we're using a fixed wrap-width here */
+           g_signal_handlers_disconnect_by_func (object, thunar_icon_view_zoom_level_changed, NULL);
+@@ -150,7 +169,8 @@
+       else
+         {
+           exo_icon_view_set_orientation (EXO_ICON_VIEW (gtk_bin_get_child (GTK_BIN (standard_view))), GTK_ORIENTATION_VERTICAL);
+-          g_object_set (G_OBJECT (standard_view->name_renderer), "yalign", 0.0f, "xalign", 0.5f, "alignment", PANGO_ALIGN_CENTER, NULL);
++          /* the padding keeps the name clear of the rounded corners of the selection */
++          g_object_set (G_OBJECT (standard_view->name_renderer), "xpad", 6u, "yalign", 0.0f, "xalign", 0.5f, "alignment", PANGO_ALIGN_CENTER, NULL);
+ 
+           /* connect the "zoom-level" signal handler as the wrap-width is now synced with the "zoom-level" */
+           g_signal_connect (object, "notify::zoom-level", G_CALLBACK (thunar_icon_view_zoom_level_changed), NULL);
+@@ -205,9 +225,6 @@
+ {
+   ThunarStandardView *standard_view = THUNAR_STANDARD_VIEW (icon_view);
+   ExoIconView        *exo_icon_view = EXO_ICON_VIEW (gtk_bin_get_child (GTK_BIN (standard_view)));
+-  gint                wrap_width;
+-  gint                xpad;
+-  gint                column_spacing;
+ 
+   if (exo_icon_view_get_orientation (exo_icon_view) == GTK_ORIENTATION_HORIZONTAL)
+     {
+@@ -216,13 +233,72 @@
+       return;
+     }
+ 
+-  g_object_get (G_OBJECT (standard_view->name_renderer), "wrap-width", &wrap_width, NULL);
+-  gtk_cell_renderer_get_padding (standard_view->name_renderer, &xpad, NULL);
++  /* the width of one item comes from the zoom level; the real width is worked out from the view's width */
++  icon_view->fitted_item_width = 0;
++  thunar_icon_view_fit_columns (icon_view);
++}
++
++
++
++/**
++ * thunar_icon_view_fit_columns:
++ *
++ * The items have a width per zoom level (the "wrap-width" of the names). Whatever is left over in a row used
++ * to stay empty at the right edge. Here the number of columns that fit is worked out and the width of every
++ * item is stretched so that the columns fill the view exactly, with the name on one line (ellipsis).
++ **/
++static void
++thunar_icon_view_fit_columns (ThunarIconView *icon_view)
++{
++  ThunarStandardView *standard_view = THUNAR_STANDARD_VIEW (icon_view);
++  ExoIconView        *exo_icon_view = EXO_ICON_VIEW (gtk_bin_get_child (GTK_BIN (standard_view)));
++  gint                column_spacing;
++  gint                margin;
++  gint                focus_width;
++  gint                available;
++  gint                cost;
++  gint                columns;
++  gint                item_width;
++  gint                xpad;
++
++  if (exo_icon_view_get_orientation (exo_icon_view) == GTK_ORIENTATION_HORIZONTAL
++      || icon_view->base_item_width <= 0)
++    return;
+ 
+   column_spacing = exo_icon_view_get_column_spacing (exo_icon_view);
++  margin = exo_icon_view_get_margin (exo_icon_view);
++  gtk_widget_style_get (GTK_WIDGET (exo_icon_view), "focus-line-width", &focus_width, NULL);
++
++  /* ExoIconView puts another item in a row while  2 * (margin + focus) + n * (item + spacing + 2 * focus)  still fits
++   * in the allocated width, so that is the cost of one column */
++  available = gtk_widget_get_allocated_width (GTK_WIDGET (exo_icon_view)) - 2 * (margin + focus_width);
++  cost = icon_view->base_item_width + column_spacing + 2 * focus_width;
++  if (available <= cost)
++    item_width = icon_view->base_item_width;
++  else
++    {
++      columns = available / cost;
++      item_width = MAX (icon_view->base_item_width, available / columns - column_spacing - 2 * focus_width);
++    }
++
++  /* nothing to do (and no resize loop) when the width did not change */
++  if (item_width == icon_view->fitted_item_width)
++    return;
++  icon_view->fitted_item_width = item_width;
+ 
+-  /* set consistent horizontal spacing */
+-  exo_icon_view_set_item_width (exo_icon_view, wrap_width + MAX (0, xpad * 2 - column_spacing));
++  gtk_cell_renderer_get_padding (standard_view->name_renderer, &xpad, NULL);
++  gtk_cell_renderer_set_fixed_size (standard_view->name_renderer, MAX (1, item_width - 2 * xpad), -1);
++  exo_icon_view_set_item_width (exo_icon_view, item_width);
++}
++
++
++
++static void
++thunar_icon_view_size_allocate (GtkWidget     *widget,
++                                GtkAllocation *allocation,
++                                gpointer       user_data)
++{
++  thunar_icon_view_fit_columns (THUNAR_ICON_VIEW (user_data));
+ }
+ 
+ 
+@@ -255,18 +331,25 @@
+       break;
+ 
+     case THUNAR_ZOOM_LEVEL_75_PERCENT:
+-      wrap_width = 112;
++      wrap_width = 152;
+       break;
+ 
+     default:
+-      wrap_width = 128;
++      wrap_width = 168;
+       break;
+     }
+ 
+-  /* set the new "wrap-width" for the text renderer */
+-  g_object_set (G_OBJECT (standard_view->name_renderer), "wrap-width", wrap_width, NULL);
++  /* the item keeps the width the zoom level gave it as its minimum; the names no longer wrap */
++  {
++    gint xpad;
++    gint column_spacing = exo_icon_view_get_column_spacing (exo_icon_view);
++
++    gtk_cell_renderer_get_padding (standard_view->name_renderer, &xpad, NULL);
++    THUNAR_ICON_VIEW (standard_view)->base_item_width = wrap_width + MAX (0, xpad * 2 - column_spacing);
++  }
++  g_object_set (G_OBJECT (standard_view->name_renderer), "wrap-width", -1, NULL);
+ 
+-  /* set consistent horizontal spacing */
++  /* spread the columns over the width */
+   thunar_icon_view_set_consistent_horizontal_spacing (THUNAR_ICON_VIEW (standard_view));
+ 
+   /* Like that rubber band selection can be done properly on high zoom levels */
+--- a/thunar/thunar-shortcuts-view.c
++++ b/thunar/thunar-shortcuts-view.c
+@@ -319,6 +319,21 @@
+ 
+ 
+ 
++/* the section titles are quieter than the entries: the palette's outline colour, when the stylesheet defines it */
++static void
++thunar_shortcuts_view_header_style_updated (GtkWidget       *view,
++                                            GtkCellRenderer *renderer)
++{
++  GdkRGBA color;
++
++  if (gtk_style_context_lookup_color (gtk_widget_get_style_context (view), "m3_outline", &color))
++    g_object_set (G_OBJECT (renderer), "foreground-rgba", &color, NULL);
++  else
++    g_object_set (G_OBJECT (renderer), "foreground-set", FALSE, NULL);
++}
++
++
++
+ static void
+ thunar_shortcuts_view_init (ThunarShortcutsView *view)
+ {
+@@ -355,7 +370,8 @@
+ 
+   /* header */
+   renderer = g_object_new (GTK_TYPE_CELL_RENDERER_TEXT,
+-                           "weight", PANGO_WEIGHT_BOLD,
++                           "weight", PANGO_WEIGHT_SEMIBOLD,
++                           "scale", 0.85,
+                            "xpad", 6,
+                            "ypad", 4,
+                            "ellipsize", PANGO_ELLIPSIZE_END,
+@@ -366,6 +382,8 @@
+                                        "visible", THUNAR_SHORTCUTS_MODEL_COLUMN_IS_HEADER,
+                                        NULL);
+ 
++  g_signal_connect (G_OBJECT (view), "style-updated", G_CALLBACK (thunar_shortcuts_view_header_style_updated), renderer);
++
+   /* separator for indent */
+   renderer = gtk_cell_renderer_text_new ();
+   g_object_set (G_OBJECT (renderer), "xpad", 6, NULL);
+--- a/thunar/thunar-text-renderer.c
++++ b/thunar/thunar-text-renderer.c
+@@ -247,7 +247,8 @@
+                              const GdkRectangle  *cell_area,
+                              GtkCellRendererState flags)
+ {
+-  if (THUNAR_TEXT_RENDERER (cell)->highlighting_enabled)
++  /* the selection is painted here too (the stylesheet leaves it transparent), with or without file highlighting */
++  if (THUNAR_TEXT_RENDERER (cell)->highlighting_enabled || (flags & GTK_CELL_RENDERER_SELECTED) != 0)
+     thunar_util_clip_view_background (cell, cr, background_area, widget, flags);
+ 
+   /* we only needed to manipulate the background_area, otherwise everything remains the same.
+--- a/thunar/thunar-util.c
++++ b/thunar/thunar-util.c
+@@ -64,11 +64,11 @@
+ #include "thunar/thunar-text-renderer.h"
+ #include "thunar/thunar-util.h"
+ #include "thunar/thunar-window.h"
++#include "thunar/thunar-standard-view.h"
+ 
+ #include <glib.h>
+ #include <glib/gstdio.h>
+ 
+-#define BORDER_RADIUS 8
+ 
+ enum
+ {
+@@ -916,7 +916,7 @@
+         {
+           /* Compact View */
+           /* determine the radius proportional to either height or width (depens on the view) */
+-          *radius = cell_height * (BORDER_RADIUS / 100.0);
++          *radius = cell_height / 2.0;
+ 
+           text_direction = gtk_widget_get_direction (widget);
+ 
+@@ -929,7 +929,8 @@
+       else
+         {
+           /* Icon View */
+-          *radius = cell_width * (BORDER_RADIUS / 100.0);
++          /* the same radius on the icon (top) and the name (bottom), as round as the name's cell allows */
++          *radius = MIN (ICON_VIEW_PILL_RADIUS, cell_height);
+ 
+           /* text direction has no effect on this view */
+           /* decide which side to draw the rounded corners */
+@@ -1002,6 +1003,27 @@
+ 
+ 
+ 
++/* In the details view every cell clips its background to one pill spanning the visible part of the row */
++static void
++thunar_util_clip_row_pill (cairo_t            *cr,
++                           GtkTreeView        *tree_view,
++                           const GdkRectangle *background_area)
++{
++  GtkAdjustment *hadjustment = gtk_scrollable_get_hadjustment (GTK_SCROLLABLE (tree_view));
++  GdkRectangle   row = *background_area;
++
++  row.x = ROW_PILL_INSET + (hadjustment != NULL ? (gint) gtk_adjustment_get_value (hadjustment) : 0);
++  row.width = gtk_widget_get_allocated_width (GTK_WIDGET (tree_view)) - 2 * ROW_PILL_INSET;
++
++  /* a gap between neighbouring pills, so several selected rows read as several */
++  row.y += 1;
++  row.height -= 2;
++
++  thunar_util_draw_rounded_corners (cr, &row, row.height / 2.0, DRAW_ON_ALL_SIDES);
++}
++
++
++
+ void
+ thunar_util_clip_view_background (GtkCellRenderer     *cell,
+                                   cairo_t             *cr,
+@@ -1019,12 +1041,23 @@
+   gint             side = DRAW_ON_ALL_SIDES;
+   GtkWidget       *toplevel;
+   gboolean         window_is_backdrop = TRUE;
++  gboolean         from_palette = FALSE;
++  gboolean         highlighting_enabled = FALSE;
+ 
+   g_object_get (G_OBJECT (cell),
+                 "highlight-color", &highlight_color,
+                 "rounded-corners", &rounded_corners,
++                "highlighting-enabled", &highlighting_enabled,
+                 NULL);
+ 
++  /* the shared renderers keep the last file's colour after highlighting is switched off */
++  if (!highlighting_enabled)
++    g_clear_pointer (&highlight_color, g_free);
++
++  /* only the file views get their selection from here; dialogs and side panes using these renderers do not */
++  if (gtk_widget_get_ancestor (widget, THUNAR_TYPE_STANDARD_VIEW) == NULL)
++    color_selected = FALSE;
++
+   cairo_save (cr);
+ 
+   if (G_LIKELY (rounded_corners))
+@@ -1036,6 +1069,8 @@
+ 
+       thunar_util_draw_rounded_corners (cr, background_area, radius, side);
+     }
++  else if (color_selected && GTK_IS_TREE_VIEW (widget))
++    thunar_util_clip_row_pill (cr, GTK_TREE_VIEW (widget), background_area);
+ 
+   if (G_UNLIKELY (highlight_color != NULL))
+     {
+@@ -1056,7 +1091,10 @@
+   if (G_UNLIKELY (color_selected && !(THUNAR_IS_ICON_RENDERER (cell) && highlight_color != NULL)))
+     {
+       context = gtk_widget_get_style_context (widget);
+-      if (window_is_backdrop)
++      /* the wallpaper palette's container colour when the stylesheet defines it, equally strong without focus */
++      if (gtk_style_context_lookup_color (context, "m3_primary_container", &highlight_color_rgba))
++        from_palette = TRUE;
++      else if (window_is_backdrop)
+         gtk_style_context_lookup_color (context, "theme_unfocused_selected_bg_color", &highlight_color_rgba);
+       else
+         gtk_style_context_lookup_color (context, "theme_selected_bg_color", &highlight_color_rgba);
+@@ -1070,7 +1108,7 @@
+     {
+       gdk_cairo_set_source_rgba (cr, color);
+       gdk_rgba_free (color);
+-      cairo_paint_with_alpha (cr, window_is_backdrop ? ALPHA_BACKDROP : ALPHA_FOCUSED);
++      cairo_paint_with_alpha (cr, window_is_backdrop && !from_palette ? ALPHA_BACKDROP : ALPHA_FOCUSED);
+     }
+ 
+   g_free (highlight_color);
+--- a/thunar/thunar-util.h
++++ b/thunar/thunar-util.h
+@@ -30,6 +30,8 @@
+ 
+ #define ALPHA_BACKDROP 0.5
+ #define ALPHA_FOCUSED 1.0
++#define ROW_PILL_INSET        6
++#define ICON_VIEW_PILL_RADIUS 22
+ 
+ /* if we need an array of size greater
+  * than this threshold; we'll use heap */

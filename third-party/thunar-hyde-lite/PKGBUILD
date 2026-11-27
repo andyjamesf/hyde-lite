@@ -1,0 +1,55 @@
+# Thunar with hyde-lite's changes, built by tools/thunar.sh. Based on Arch's thunar 4.20.10-1 recipe, from the
+# release tarball instead of the git tag (no maintainer tools needed).
+#
+# The patch: pill-shaped selection in m3_primary_container painted by Thunar itself, wider names in the icon view
+# that fill the row, rounder compact view, quieter side pane titles.
+#
+# Bump pkgrel when the patch changes: tools/thunar.sh rebuilds only when pkgver-pkgrel differs from what is
+# installed.
+
+pkgname=thunar-hyde-lite
+pkgver=4.20.10
+pkgrel=1
+pkgdesc="Thunar file manager with hyde-lite's selection and spacing changes"
+arch=('x86_64')
+url="https://github.com/andyjamesf/hyde-lite"
+license=('GPL-2.0-or-later' 'LGPL-2.1-only')
+depends=('desktop-file-utils' 'libexif' 'hicolor-icon-theme' 'libnotify'
+         'pcre2' 'libgudev' 'exo' 'libxfce4util' 'libxfce4ui')
+makedepends=('glib2-devel' 'gobject-introspection')
+optdepends=('gvfs: trash support, mounting with udisk and remote filesystems'
+            'tumbler: thumbnail previews'
+            'thunar-volman: removable device management'
+            'thunar-archive-plugin: archive creation and extraction')
+provides=("thunar=$pkgver")
+conflicts=('thunar')
+options=('!debug')
+source=("https://archive.xfce.org/src/xfce/thunar/${pkgver%.*}/thunar-$pkgver.tar.bz2"
+        'thunar-hyde-lite.patch')
+sha256sums=('a5a32b51028dc821155e44cdec025fe70398bae193c619ae6ba8b1babf6f49f1'
+            '835eca9f89521a2d70cb043d19373f5964310e1ad390fd1c8134357bf8f5d0b3')
+
+prepare() {
+  cd "thunar-$pkgver"
+  patch -Np1 -i "$srcdir/thunar-hyde-lite.patch"
+}
+
+build() {
+  cd "thunar-$pkgver"
+  ./configure \
+    --prefix=/usr \
+    --sysconfdir=/etc \
+    --enable-gio-unix \
+    --enable-gudev \
+    --enable-notifications \
+    --enable-exif \
+    --enable-introspection \
+    --disable-gtk-doc \
+    --disable-debug
+  make
+}
+
+package() {
+  cd "thunar-$pkgver"
+  make DESTDIR="$pkgdir" install
+}
