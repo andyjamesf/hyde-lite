@@ -99,7 +99,10 @@ update() {
     local receiver
     receiver=$(grep '^third-party/localsend-cli/' <<<"$changed" | grep -v '\.md$' || true)
     if [[ -n $receiver ]]; then reload_shell=1; fi
-    local shell_cmd="qs ipc call shell reload"
+    # The bar's service is restarted, not asked to reload over IPC: Quickshell reloads by itself while the installer
+    # copies files, and a reload that fails there leaves the process with no bar and no IPC targets. When there is
+    # no unit to restart, "island off" starts it.
+    local shell_cmd="systemctl --user restart hyde-${XDG_SESSION_DESKTOP:-Hyprland}-qsbar.service || island off"
     [[ $(shell_in_use) == island ]] && shell_cmd="island off && island on"
     echo
     echo "hyde-lite updated to $(git -C "$dir" rev-parse --short HEAD)."

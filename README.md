@@ -132,8 +132,9 @@ hyde-lite update --restart    # also reload Hyprland and restart the shell when 
 
 It lists the new commits, pulls `main`, runs `./install.sh` for the shell you use now (`--island` or `--bar`,
 so the installer does not ask again) and reports what to load afterwards: `hyprctl reload` if the Hyprland
-configuration changed, and `island off && island on` (island) or `qs ipc call shell reload` (bar) if the
-shells changed. It asks for `sudo` once, for packages.
+configuration changed, and `island off && island on` (island) or
+`systemctl --user restart hyde-Hyprland-qsbar.service || island off` (bar) if the shells changed. It asks for `sudo` once, for
+packages.
 
 It stops without changing anything when the checkout has changes of its own, is not on `main`, or has diverged
 from `origin/main`. The installer redeploys only the dots whose content changed and does not overwrite what is
