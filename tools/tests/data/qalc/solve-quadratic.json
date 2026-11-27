@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "qalc",
+    "-defaults",
+    "-t",
+    "--",
+    "x^2=4"
+  ],
+  "stdout": "x = 2 or x = −2\n",
+  "stderr": "",
+  "exit_code": 0,
+  "elapsed_ms": 43.09
+}

@@ -1,0 +1,11 @@
+{
+  "argv": [
+    "qalc",
+    "-defaults",
+    "-i"
+  ],
+  "stdin": "help\\n",
+  "exit_code": 0,
+  "stdout": "> help\n\nEnter a mathematical expression or a command and press enter.\nComplete functions, units and variables with the tabulator key.\n\nAvailable commands are:\n\napproximate\nassume ASSUMPTIONS\nbase BASE\nclear\nclear history\ndelete NAME\nexact\nexpand\nexrates\nfactor\nfind/list [NAME]\nfunction NAME EXPRESSION\nhelp [COMMAND]\nhistory\ninfo NAME\nkeep NAME\n\nPress Enter to continue.MC/MS/M+/M- (memory operations)\nmode\npartial fraction\nsave/store NAME [CATEGORY] [TITLE]\nsave definitions\nsave mode\nset OPTION VALUE\nto/convert/-> UNIT or \"TO\" COMMAND\nvariable NAME EXPRESSION\nquit/exit\n\nCommands for RPN mode:\nrpn STATE\nstack\nclear stack\ncopy [INDEX]\nmove INDEX 1 [INDEX 2]\npop [INDEX]\nrotate [DIRECTION]\nswap [INDEX 1] [INDEX 2]\n\nType help COMMAND for more information (example: help save).\nType info NAME for information about a function, variable, unit, or prefix\n(example: info sin).\nWhen a line begins with '/', the following text is always interpreted as a\ncommand.\n\nFor more information about mathematical expression and different options, please\nconsult the man page, or the relevant sections in the manual of the graphical\nuser interface (available at https://qalculate.github.io/manual/index.html),\nwhich also includes a complete list of functions, variables, and units.\n\n> ",
+  "stderr": ""
+}

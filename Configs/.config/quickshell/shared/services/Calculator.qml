@@ -34,7 +34,7 @@ Singleton {
         })
 
     // Returns the result (a number), or null when `text` is not a valid, complete expression.
-    function evaluate(text) {
+    function evaluate(text, angle) {
         const src = String(text ?? "").replace(/,/g, ".").replace(/×/g, "*").replace(/÷/g, "/").trim();
         // Needs a digit (or a constant of two letters or more, so "pi" works on its own; a lone "e" is left to the
         // launcher's search) and at least one operator/function (a lone number does not count).
@@ -43,7 +43,7 @@ Singleton {
         const tokens = _tokenize(src);
         if (!tokens)
             return null;
-        const functions = _functions;
+        const functions = angle === "deg" ? Object.assign({}, _functions, { sin: x => Math.sin(x * Math.PI / 180), cos: x => Math.cos(x * Math.PI / 180), tan: x => Math.tan(x * Math.PI / 180), asin: x => Math.asin(x) * 180 / Math.PI, acos: x => Math.acos(x) * 180 / Math.PI, atan: x => Math.atan(x) * 180 / Math.PI }) : _functions;
         const constants = _constants;
         let pos = 0;
         const peek = () => tokens[pos];
@@ -137,6 +137,75 @@ Singleton {
         } catch (e) {
             return null;
         }
+    }
+
+    // Compile the smaller, eval-free graph language. Substitution happens only after token validation;
+    // implicit multiplication is accepted around x (for example 2x and x(x)).
+    function compile(text, angle) {
+        let src = String(text ?? "").trim().toLowerCase().replace(/×/g, "*").replace(/÷/g, "/");
+        if (src === "" || /,/.test(src) || !/^[a-z0-9.pi e()+\-*/^%]*$/.test(src.replace(/\s/g, ""))) return null;
+        // "ex" is e times x, but "exp" stays a name: split only letter runs made of constants and x.
+        const raw = _tokenize(src);
+        if (!raw) return null;
+        const tokens = [];
+        for (const t of raw)
+            tokens.push(...(typeof t === "string" && /^(?:pi|e|x){2,}$/.test(t) ? t.match(/pi|e|x/g) : [t]));
+        const expanded = [];
+        for (const token of tokens) {
+            const prior = expanded[expanded.length - 1];
+            const priorEndsValue = typeof prior === "number" || ["x", "pi", "e", ")"].includes(prior);
+            const startsValue = typeof token === "number" || ["x", "pi", "e", "("].includes(token) || Object.prototype.hasOwnProperty.call(_functions, token);
+            if (priorEndsValue && startsValue) expanded.push("*");
+            expanded.push(token);
+        }
+        tokens.splice(0, tokens.length, ...expanded);
+        const names = new Set(["x", "pi", "e", ...Object.keys(_functions)]);
+        if (tokens.some(t => typeof t === "string" && !["(", ")", "+", "-", "*", "/", "^", "%"].includes(t) && !names.has(t))) return null;
+        let pos = 0;
+        const peek = () => tokens[pos];
+        const next = () => tokens[pos++];
+        function expr() {
+            let left = term();
+            while (peek() === "+" || peek() === "-") { const op = next(); const right = term(); const prior = left; left = x => op === "+" ? prior(x) + right(x) : prior(x) - right(x); }
+            return left;
+        }
+        function term() {
+            let left = unary();
+            while (peek() === "*" || peek() === "/" || peek() === "%") { const op = next(); const right = unary(); const prior = left; left = x => op === "*" ? prior(x) * right(x) : op === "/" ? prior(x) / right(x) : prior(x) % right(x); }
+            return left;
+        }
+        // In a graph the sign binds looser than the power: -x^2 opens downwards.
+        function unary() { if (peek() === "-") { next(); const v = unary(); return x => -v(x); } if (peek() === "+") { next(); return unary(); } return power(); }
+        function power() { const left = postfix(); if (peek() === "^") { next(); const right = unary(); return x => Math.pow(left(x), right(x)); } return left; }
+        function postfix() { let v = primary(); if (peek() === "%") { next(); const prior = v; v = x => prior(x) / 100; } return v; }
+        function primary() {
+            const t = next();
+            if (typeof t === "number") return () => t;
+            if (t === "x") return x => x;
+            if (t === "pi") return () => Math.PI;
+            if (t === "e") return () => Math.E;
+            if (t === "(") { const v = expr(); if (next() !== ")") throw "parenthesis"; return v; }
+            if (Object.prototype.hasOwnProperty.call(_functions, t)) {
+                if (next() !== "(") throw "function";
+                const arg = expr();
+                if (next() !== ")") throw "parenthesis";
+                return x => {
+                    const value = arg(x);
+                    if (angle === "deg" && ["sin", "cos", "tan"].includes(t)) return _functions[t](value * Math.PI / 180);
+                    if (angle === "deg" && ["asin", "acos", "atan"].includes(t)) return _functions[t](value) * 180 / Math.PI;
+                    return _functions[t](value);
+                };
+            }
+            throw "symbol";
+        }
+        try {
+            const run = expr();
+            if (pos !== tokens.length) return null;
+            return x => {
+                if (typeof x !== "number" || !isFinite(x)) return null;
+                try { const value = run(x); return Number.isFinite(value) ? value : null; } catch (e) { return null; }
+            };
+        } catch (e) { return null; }
     }
 
     // Tokens: numbers (optional exponent), identifiers and operators; null if junk is left over.

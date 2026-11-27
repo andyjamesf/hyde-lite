@@ -25,6 +25,8 @@ Column {
     property var tabs: []
     property string tab: "home"
     property Component tabContent: null
+    // A tab that needs more room than the Home panes asks for it here; 0 keeps their height.
+    property int tabMinHeight: 0
     signal tabRequested(string id)
 
     signal pageRequested(string page)
@@ -176,7 +178,7 @@ Column {
     Card {
         visible: root.tab !== "home" && root.tabContent !== null
         width: parent.width
-        height: panes.paneHeight
+        height: Math.max(panes.paneHeight, root.tabMinHeight)
 
         Loader {
             anchors.fill: parent

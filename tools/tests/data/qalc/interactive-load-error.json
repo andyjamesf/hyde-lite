@@ -1,0 +1,27 @@
+{
+  "argv": [
+    "qalc",
+    "-defaults",
+    "-i"
+  ],
+  "stdin": "load definitely_missing_file\\nquit\\n",
+  "exit_code": 0,
+  "stdout": "> load definitely_missing_file\n\n  \u001b[0;31merror: \u001b[0m\u001b[3mFailed to load definitely_missing_file.\u001b[23m\n  load(\u001b[0;33m\u001b[3mdefinitely_missing_file\u001b[23m\u001b[0m) = load(\u001b[0;33m\u001b[3mdefinitely_missing_file\u001b[23m\u001b[0m)\n\n> quit\n",
+  "stderr": "",
+  "created_files": [
+    [
+      "/tmp/tmpk2an4hoo",
+      []
+    ],
+    [
+      "/tmp/tmpk2an4hoo/config",
+      []
+    ],
+    [
+      "/tmp/tmpk2an4hoo/config/qalculate",
+      [
+        "qalc.cfg"
+      ]
+    ]
+  ]
+}
