@@ -207,7 +207,15 @@ Item {
     }
 
     onModeChanged: {
+        // A tab is a new search; the stand-alone launcher keeps what was typed while its mode changes.
+        if (pinnedMode !== "") {
+            query = "";
+            input.text = "";
+        }
         current = 0;
+        lastMouse = Qt.point(-1, -1);
+        if (open)
+            focusTimer.restart();
         Qt.callLater(refreshForMode);
     }
     onQueryChanged: current = 0

@@ -19,8 +19,8 @@ Singleton {
     // Status icons on the right, in this order. Used only when the status pill is off: with it on,
     // the expanded island shows StatusPillConfig.icons instead, since the pill slides into it. Known
     // ids: "volume", "bluetooth", "localsend", "wifi" (also shows wired), "battery". Remove an id to hide that
-    // icon. Default ["volume", "bluetooth", "localsend", "wifi", "battery"].
-    readonly property var statusIcons: ["volume", "bluetooth", "localsend", "wifi", "battery"]
+    // icon. Default ["volume", "bluetooth", "localsend", "kdeconnect", "wifi", "battery"].
+    readonly property var statusIcons: ["volume", "bluetooth", "localsend", "kdeconnect", "wifi", "battery"]
     // Shortcut buttons that fill the free space of the right zone: when the left side grows
     // (workspaces, media playing) the right one gets as wide, and these appear next to the status
     // icons, as many as fit, in this order. Ids: "nightlight" (on/off), "screenshot" (select an

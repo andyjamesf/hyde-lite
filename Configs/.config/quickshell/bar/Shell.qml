@@ -216,6 +216,17 @@ Scope {
         }
     }
 
+    // KDE Connect's picker can close the requesting layer; restore that surface when it returns.
+    Connections {
+        target: KdeConnect
+        function onFilePicked(path) {
+            if (KdeConnect.pickSource === "bar")
+                ShellState.requestPopout("kdeconnect");
+            else if (KdeConnect.pickSource === "controlCenter")
+                ShellState.openControlCenter("", "kdeConnect");
+        }
+    }
+
     // The control centre's shared components read their look from CcTheme; this binds the bar's.
     CcThemeBindings {}
 
@@ -472,7 +483,7 @@ Scope {
         function page(name: string): void {
             ShellState.openControlCenter(name);
         }
-        // "home", "apps", "clipboard", "keys", "notes", "calendar", "system", "power" or "more"
+        // "home", "apps", "calc", "clipboard", "keys", "files", "notes", "calendar", "system", "localSend", "kdeConnect", "power" or "more"
         function tab(name: string): void {
             ShellState.toggleControlCenterTab(name);
         }

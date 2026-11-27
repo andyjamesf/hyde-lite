@@ -47,8 +47,9 @@ Singleton {
         "volume",         // volume
         "bluetooth",      // Bluetooth
         "localsend",      // files from and to nearby devices
+        "kdeconnect",     // paired phone and desktop actions
         "wifi",           // network
-        "battery",          // percentage inside, time left next to it (batteryTime below)
+        "battery",        // percentage inside, time left next to it (batteryTime below)
         "power",          // power menu
     ])
     // Battery percentage, inside the battery icon. Default true.

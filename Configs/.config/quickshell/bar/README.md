@@ -34,3 +34,7 @@ Settings picked in the menus are stored in `~/.local/state/quickshell/`.
   menus, tooltips and popouts without a mouse, for testing.
 - Colors, spacing, type scale and shapes come from `services/Theme.qml`; please don't hardcode
   sizes.
+
+KDE Connect is available as the `kdeConnect` bar/minibar widget when `kdeconnect-cli` is installed. It lists paired devices and provides ring, ping, clipboard, and file sharing actions.
+
+The bar control centre cycles through its tabs with Tab and Shift+Tab. Calculator is a dedicated tab after Apps; KDE Connect follows LocalSend when `kdeconnect-cli` is installed. Clicking the KDE Connect bar widget opens that tab while control-centre tabs are enabled, and its compact popout otherwise.

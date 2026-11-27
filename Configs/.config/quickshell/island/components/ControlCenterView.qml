@@ -36,7 +36,7 @@ Item {
     readonly property bool sliding: progress < 1
 
     readonly property Item currentItem: {
-        const loaders = [mainPage, wifiPage, bluetoothPage, localSendPage, audioPage, mediaPage, batteryPage, systemPage];
+        const loaders = [mainPage, wifiPage, bluetoothPage, localSendPage, kdeConnectPage, audioPage, mediaPage, batteryPage, systemPage];
         return loaders.find(l => l.name === current)?.item ?? null;
     }
 
@@ -175,6 +175,17 @@ Item {
         function onReleaseFocus() {
             root.releaseFocus();
         }
+    }
+
+    Loader {
+        id: kdeConnectPage
+        readonly property string name: IslandState.kdeconnect
+        active: root.live(name)
+        visible: active
+        width: root.width
+        x: root.offsetFor(name)
+        opacity: root.opacityFor(name)
+        sourceComponent: CcKdeConnectPage {}
     }
 
     Loader {

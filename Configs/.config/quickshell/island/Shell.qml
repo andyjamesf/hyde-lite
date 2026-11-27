@@ -410,6 +410,14 @@ Scope {
     }
 
     Connections {
+        target: KdeConnect
+        function onFilePicked(path) {
+            if (KdeConnect.pickSource === "island" && IslandController.mode !== IslandState.kdeconnect)
+                IslandController.open(IslandState.kdeconnect);
+        }
+    }
+
+    Connections {
         target: SysInfo
         function onAvatarFilePicked(path) {
             SysInfo.applyAvatar(path);

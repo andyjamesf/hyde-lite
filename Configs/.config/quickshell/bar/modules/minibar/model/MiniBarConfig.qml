@@ -119,7 +119,7 @@ Singleton {
     //        While hidden it reserves no space at all, whatever `reserveSpace` says above.
     // false: the bar is always on screen (it still takes no space from windows unless
     //        `reserveSpace` is true).
-    readonly property bool autoHide: false 
+    readonly property bool autoHide: false
 
     // How long the pointer has to be away before the bar hides again, in milliseconds. It never
     // hides while one of its own panels is open (the calendar, the volume panel…).
@@ -184,6 +184,7 @@ Singleton {
     //   "nightLight"     night light
     //   "notifications"  notifications and "do not disturb"
     //   "localSend"      LocalSend: requests waiting, nearby devices, sending a file
+    //   "kdeConnect"     KDE Connect paired devices and actions
     //   "controlCenter"  the control centre's button
     //   "power"          power menu
     //
@@ -211,7 +212,7 @@ Singleton {
                 ["clock"],
             ],
             right: [
-                ["localSend", "battery"],
+                ["localSend", "kdeConnect", "battery"],
             ],
         },
         {
@@ -246,7 +247,7 @@ Singleton {
             clockDate: true,
             left: [["workspaces"], ["activeWindow"], ["stats"]],
             center: [["clock"]],
-            right: [["notes"], ["idle", "audio", "network", "bluetooth", "localSend", "battery"], ["notifications", "controlCenter", "power"]],
+            right: [["notes"], ["idle", "audio", "network", "bluetooth", "localSend", "kdeConnect", "battery"], ["notifications", "controlCenter", "power"]],
         },
 
         // A TEMPLATE WITH EVERY MODULE: uncomment the block, then comment out what you do not want.

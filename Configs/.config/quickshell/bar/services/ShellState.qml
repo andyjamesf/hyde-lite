@@ -24,13 +24,12 @@ Singleton {
     property bool controlCenterOpen: false
     property string controlCenterScreen: ""
     property string controlCenterPage: ""
-    // The tab under the header: "home" (toggles, player, notifications) or one of the launcher's
-    // ("apps", "clipboard", "keys"). Opening the panel from the bar's button always starts at home.
+    // The tab under the header. Opening from the bar's button always starts at home.
     property string controlCenterTab: "home"
     // Launcher modes that are tabs of the panel (config.json controlCenter.tabs; off: the old window).
     readonly property var launcherTabs: ({
             apps: "apps",
-            calc: "apps",
+            calc: "calc",
             clipboard: "clipboard",
             keys: "keys"
         })
@@ -192,6 +191,9 @@ Singleton {
     readonly property var popoutRoutes: ({
             calendar: {
                 tab: "calendar"
+            },
+            kdeconnect: {
+                tab: "kdeConnect"
             },
             audio: {
                 page: "audio"

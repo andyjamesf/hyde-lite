@@ -38,6 +38,7 @@
                 "network",
                 "bluetooth",
                 "localSend",
+                "kdeConnect",
                 "battery"
             ],
             [
@@ -72,6 +73,7 @@
                 "audio",
                 "network",
                 "localSend",
+                "kdeConnect",
                 "battery"
             ],
             [
@@ -107,6 +109,7 @@
                 "network",
                 "bluetooth",
                 "localSend",
+                "kdeConnect",
                 "battery",
                 "notifications",
                 "controlCenter",
@@ -128,6 +131,7 @@
                 "audio",
                 "network",
                 "localSend",
+                "kdeConnect",
                 "battery",
                 "notifications",
                 "controlCenter",
@@ -167,6 +171,7 @@
                 "audio",
                 "network",
                 "localSend",
+                "kdeConnect",
                 "battery"
             ],
             [
@@ -203,6 +208,7 @@
                 "audio",
                 "network",
                 "localSend",
+                "kdeConnect",
                 "battery"
             ],
             [
@@ -240,6 +246,7 @@
                 "audio",
                 "network",
                 "localSend",
+                "kdeConnect",
                 "battery"
             ],
             [

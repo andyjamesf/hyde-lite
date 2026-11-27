@@ -143,7 +143,7 @@ PanelWindow {
     }
 
     // Tab goes to the next tab and Shift+Tab to the previous one, round all of them (Home to More).
-    readonly property var tabIds: ["home", "apps", "clipboard", "keys", "files", "notes", "calendar", "system", "localSend", "power", "more"]
+    readonly property var tabIds: ["home", "apps", "calc", "clipboard", "keys", "files", "notes", "calendar", "system", "localSend"].concat(KdeConnect.installed ? ["kdeConnect"] : []).concat(["power", "more"])
 
     function cycleTab(step) {
         const i = Math.max(0, tabIds.indexOf(ShellState.controlCenterTab));
@@ -547,6 +547,12 @@ PanelWindow {
         LocalSendWide {}
     }
 
+    Component {
+        id: kdeConnectTab
+
+        KdeConnectWide {}
+    }
+
     // System: the resource manager (load per core, memory, temperatures, storage, network, the heaviest
     // processes), the same view as the System page, filling the tab.
     Component {
@@ -734,6 +740,11 @@ PanelWindow {
                         label: "Apps"
                     },
                     {
+                        id: "calc",
+                        glyph: "\u{F00EC}",
+                        label: "Calculator"
+                    },
+                    {
                         id: "clipboard",
                         glyph: "\u{F014C}",
                         label: "Clipboard"
@@ -768,6 +779,11 @@ PanelWindow {
                         glyph: "\u{F048A}",
                         label: "LocalSend"
                     },
+                    ...(KdeConnect.installed ? [{
+                        id: "kdeConnect",
+                        glyph: "\u{F011C}",
+                        label: "KDE Connect"
+                    }] : []),
                     {
                         id: "power",
                         glyph: "\u{F0425}",
@@ -788,6 +804,7 @@ PanelWindow {
                                 calendar: calendarTab,
                                 system: systemTab,
                                 localSend: localSendTab,
+                                kdeConnect: kdeConnectTab,
                                 power: powerTab
                             })[ShellState.controlCenterTab] ?? searchTab
                     }

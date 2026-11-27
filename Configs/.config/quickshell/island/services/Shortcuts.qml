@@ -22,6 +22,8 @@ Singleton {
             return Audio.muted ? "Volume: muted" : `Volume: ${Math.round(Audio.volume * 100)}%`;
         case "bluetooth":
             return `Bluetooth: ${Bluetooth.summary}`;
+        case "kdeconnect":
+            return !KdeConnect.installed ? "KDE Connect: not installed" : KdeConnect.reachableCount > 0 ? `KDE Connect: ${KdeConnect.reachableCount} reachable` : "KDE Connect: no reachable devices";
         case "localsend":
             return LocalSend.installError ? "LocalSend: localsend-cli not found" : LocalSend.pending.length > 0 ? `LocalSend: ${LocalSend.pending.length} waiting for an answer` : LocalSend.ready ? `LocalSend: receiving as "${LocalSend.alias}"` : "LocalSend: starting…";
         case "wifi":
@@ -92,6 +94,8 @@ Singleton {
             IslandController.open(IslandState.bluetooth);
         else if (id === "wifi")
             IslandController.open(IslandState.wifi);
+        else if (id === "kdeconnect")
+            IslandController.open(IslandState.kdeconnect);
         else if (id === "localsend")
             IslandController.open(IslandState.localsend);
         else if (id === "caffeine")
