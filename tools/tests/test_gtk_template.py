@@ -13,7 +13,7 @@ TEMPLATE = pathlib.Path(__file__).resolve().parents[2] / "Configs/.config/matuge
 ROLES = {"background", "on_background", "surface_container_lowest", "surface_container_low", "surface_container",
          "surface_container_high", "surface_container_highest", "on_surface", "on_surface_variant", "outline",
          "outline_variant", "primary", "on_primary", "primary_container", "on_primary_container", "secondary",
-         "tertiary", "error", "on_error"}
+         "tertiary", "error", "on_error", "secondary_container", "on_secondary_container"}
 
 
 class GtkTemplate(unittest.TestCase):

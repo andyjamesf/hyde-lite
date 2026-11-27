@@ -1,0 +1,174 @@
+/* Thunar drawn like the shell: compact pills (the shell uses `radius: height` and bars of about 30px), two
+ * rounded panels on a darker background, tonal layers, Inter. One spacing (8px) everywhere.
+ * Every colour is an @m3_* / @theme_* name from wallpaper.css, which matugen writes from the wallpaper:
+ * nothing here is literal.
+ * Scope: Thunar 4.20 puts no class of its own on the window, so the window, bars and panel rules reach every
+ * GTK3 app; the rest uses Thunar's classes. */
+
+/* Spacing: every island has a 4px margin and the window 4px of padding, so there are 8px at the corners and 8px
+ * between any two islands. The toolbar is a 34px pill. */
+window.background { background-color: @m3_surface_lowest; padding: 4px; }
+window, entry, button, treeview, iconview, statusbar, menubar { font-family: "Inter", "Cantarell", sans-serif; }
+
+/* ---- toolbar: a compact pill ---- */
+toolbar {
+  background-color: @m3_surface;
+  color: @m3_on_surface;
+  border: none;
+  border-radius: 999px;
+  box-shadow: none;
+  margin: 8px 8px 4px 8px;
+  padding: 3px 8px;
+  min-height: 0;
+}
+toolbar toolbutton, toolbar .toolitem { margin: 0; padding: 0; }
+toolbar button {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 999px;
+  min-height: 28px;
+  min-width: 28px;
+  margin: 0 1px;
+  padding: 0;
+  color: @m3_on_surface_variant;
+}
+toolbar button:hover { background-color: alpha(@m3_on_surface, 0.10); color: @m3_on_surface; }
+toolbar button:active, toolbar button:checked { background-color: @m3_secondary_container; color: @m3_on_secondary_container; }
+toolbar button:disabled { color: alpha(@m3_on_surface_variant, 0.45); }
+
+/* address: as tall as the buttons */
+toolbar entry {
+  background-color: @m3_surface_high;
+  color: @m3_on_surface;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  box-shadow: none;
+  padding: 0 12px;
+  min-height: 24px;
+  margin: 0 4px;
+}
+toolbar entry:focus { border-color: @m3_primary; }
+.path-bar button {
+  background-color: transparent;
+  border-radius: 999px;
+  margin: 0 1px;
+  padding: 0 8px;
+  min-height: 24px;
+  min-width: 0;
+}
+.path-bar button:hover { background-color: alpha(@m3_on_surface, 0.10); }
+.path-bar button:checked { background-color: @m3_secondary_container; color: @m3_on_secondary_container; }
+
+/* classic menu bar (hidden by default, reached from the ⋮ button) */
+menubar { background: transparent; border: none; box-shadow: none; padding: 0 8px; }
+menubar > menuitem { border-radius: 999px; padding: 3px 12px; color: @m3_on_surface_variant; }
+menubar > menuitem:hover { background-color: alpha(@m3_on_surface, 0.10); color: @m3_on_surface; }
+
+/* ---- panels: two cards 8px apart ----
+ * GTK3 does not clip children to the radius: what goes inside stays transparent. */
+/* the outer paned gives the 4px missing at the corners, the inner one (split view) none; handles take no room */
+paned { margin: 0 4px 4px 4px; padding: 0; }
+paned paned { margin: 0; }
+paned > separator, paned > separator.wide {
+  background: transparent; border: none; margin: 0 -4px 0 -2px; padding: 0; min-width: 0; min-height: 0;
+}
+scrolledwindow {
+  background-color: @m3_surface_low;
+  border: none;
+  border-radius: 16px;
+  box-shadow: none;
+  margin: 4px;
+}
+/* Thunar keeps the view in a notebook (tabs hidden) and the theme draws it a translucent background with
+ * another radius: that was a second layer, of another colour, around the card. */
+notebook, notebook.frame, notebook > stack, notebook > header, notebook > header.top, notebook > header.bottom {
+  background: transparent; background-image: none; border: none; box-shadow: none; border-radius: 0; padding: 0; margin: 0;
+}
+
+/* a scrolledwindow inside another (the file view has two) draws no card and no margin */
+scrolledwindow scrolledwindow { background: transparent; margin: 0; border-radius: 0; }
+scrolledwindow > viewport, scrolledwindow treeview.view,
+scrolledwindow iconview, scrolledwindow .view:not(:selected) { background-color: transparent; }
+
+/* side pane: header and rows share one margin */
+.shortcuts-pane {
+  padding: 12px 8px 12px 12px;
+  color: @m3_on_surface_variant;
+  font-size: 13px;
+  -GtkTreeView-vertical-separator: 2px;
+  -GtkTreeView-horizontal-separator: 6px;
+}
+.shortcuts-pane:hover { background-color: alpha(@m3_on_surface, 0.08); }
+.shortcuts-pane:selected { background-color: @m3_secondary_container; color: @m3_on_secondary_container; }
+.shortcuts-pane header { color: @m3_outline; }
+
+/* files */
+iconview { padding: 12px; color: @m3_on_surface; font-size: 13px; }
+iconview:hover { background-color: alpha(@m3_on_surface, 0.07); border-radius: 12px; }
+iconview:selected, iconview:selected:focus {
+  background-color: @m3_primary_container;
+  color: @m3_on_primary_container;
+  border-radius: 12px;
+}
+treeview.view { color: @m3_on_surface; font-size: 13px; }
+/* the list does not touch the card's edges (the padding is per row) */
+treeview.standard-view, .standard-view treeview.view { padding: 1px 6px; }
+treeview.view:hover { background-color: alpha(@m3_on_surface, 0.07); }
+treeview.view:selected { background-color: @m3_primary_container; color: @m3_on_primary_container; }
+treeview header button {
+  background-color: transparent;
+  border: none;
+  border-bottom: 1px solid @m3_outline_variant;
+  border-radius: 0;
+  box-shadow: none;
+  color: @m3_outline;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+/* ---- status bar: hidden by default (View > Status bar shows it). When visible it is only a quiet line of text,
+ * with no island of its own: GtkStatusbar has fixed margins that do not line up with the islands. ---- */
+statusbar { background: transparent; color: @m3_on_surface_variant; border: none; font-size: 12px; min-height: 0; }
+statusbar > box, statusbar label { margin: 0; padding: 0; }
+
+/* ---- scrollbars: invisible until the pointer is over the view ---- */
+scrollbar { background: transparent; border: none; margin: 8px 2px; }
+scrollbar trough { background: transparent; border: none; }
+scrollbar slider {
+  min-width: 4px;
+  min-height: 4px;
+  border-radius: 999px;
+  background-color: transparent;
+  border: 2px solid transparent;
+}
+scrolledwindow:hover scrollbar slider { background-color: alpha(@m3_on_surface, 0.25); }
+scrollbar slider:hover { background-color: @m3_primary; }
+
+/* ---- context menus and popovers ---- */
+menu, .menu, .context-menu { border-radius: 14px; padding: 6px; }
+menu menuitem, .menu menuitem { border-radius: 10px; padding: 5px 10px; }
+
+/* ---- selection: one pill in the palette's container colour, focused or not ----
+ * In the file views the patched Thunar paints it itself (thunar-util.c, m3_primary_container): the theme's
+ * background is made transparent and only the text is set here. The side pane is CSS. Keep this at the end. */
+window.background .standard-view .view:selected,
+window.background .standard-view .view:selected:hover,
+window.background .standard-view .view:selected:backdrop {
+  background-color: transparent;
+  background-image: none;
+  color: @m3_on_primary_container;
+}
+window.background .shortcuts-pane treeview.view:selected,
+window.background .shortcuts-pane treeview.view:selected:hover,
+window.background .shortcuts-pane treeview.view:selected:backdrop {
+  background-color: @m3_primary_container;
+  background-image: none;
+  color: @m3_on_primary_container;
+  border-radius: 999px;
+}
+
+/* ---- list and compact views: more room between items, a readable header ---- */
+.standard-view treeview.view { -GtkTreeView-vertical-separator: 8px; }
+.standard-view treeview.view header button { color: @m3_on_surface_variant; font-weight: 600; }
+.standard-view { -ThunarCompactView-row-spacing: 4; }
