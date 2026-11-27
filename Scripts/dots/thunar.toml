@@ -1,5 +1,6 @@
-# The file manager is Thunar (GTK3): it takes its colours from gtk-3.0, which matugen already
-# writes (Configs/.config/matugen), so it matches the other GTK apps with nothing of its own to maintain.
+# The file manager is Thunar (GTK3): it takes its colours from gtk-3.0, which matugen writes
+# (Configs/.config/matugen). Its look is gtk-3.0/thunar.css (deployed with the rest of gtk-3.0 by hyde.toml);
+# tools/thunar.sh installs the patched build.
 [thunar]
     action      = "sync"
     description = "Thunar file manager"

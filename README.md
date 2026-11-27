@@ -100,7 +100,8 @@ assumes no hardware; monitors and GPU are left to Hyprland's detection. Then log
 session, or reboot.
 
 One step compiles the LocalSend receiver the shells use (`third-party/localsend-cli`), which installs `rust` if
-there is no `cargo` and takes a few minutes the first time. The installer does not touch your firewall: if you run
+there is no `cargo` and takes a few minutes the first time. Another builds the file manager, a patched
+Thunar (`third-party/thunar-hyde-lite`), and installs it over the distribution's package. The installer does not touch your firewall: if you run
 one, other devices need TCP and UDP port 53317 open to your local network.
 
 <details>

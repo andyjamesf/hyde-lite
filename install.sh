@@ -193,6 +193,9 @@ run_step "Login screen and shell" "$root/Scripts/install_pst.sh"
 # The shells' LocalSend widget needs our fork of localsend-cli, built from third-party/. The first run installs
 # rust when there is no cargo; later runs build only when that source changed.
 run_step "LocalSend" "$root/tools/build_localsend.sh"
+# Thunar with hyde-lite's changes (third-party/thunar-hyde-lite), over the distribution's package. Builds only
+# when the recipe changed; when it fails the distribution's Thunar stays.
+run_step "Thunar" "$root/tools/thunar.sh"
 ((services)) && run_step "Services" "$upstream" -s "${nv[@]}"
 
 # The Morphing Island as the first shell: the "active" file is what hyprland.lua (island.lua) reads at login,
