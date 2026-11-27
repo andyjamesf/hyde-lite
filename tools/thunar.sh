@@ -50,7 +50,7 @@ apply_defaults() {
     local bus=()
     [[ -n ${DBUS_SESSION_BUS_ADDRESS:-} ]] || bus=(dbus-run-session --)
     if "${bus[@]}" bash "$self" --set-defaults; then
-        mkdir -p "$state" && : >"$marker"
+        { mkdir -p "$state" && : >"$marker"; } || { err "defaults applied, but $marker cannot be written"; return 1; }
         echo "Thunar's defaults set"
     else
         err "could not set the defaults; the next install tries again"
@@ -71,7 +71,8 @@ install_package() {
         echo "would build and install thunar-hyde-lite $want"
         return 0
     fi
-    if ! command -v makepkg >/dev/null; then
+    # makepkg comes with pacman; the compiler and the other build tools come with base-devel.
+    if ! pacman -Q base-devel >/dev/null 2>&1; then
         sudo pacman -S --needed --noconfirm base-devel || { err "could not install base-devel"; return 1; }
     fi
     rm -rf "$build"

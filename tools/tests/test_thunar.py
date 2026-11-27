@@ -81,6 +81,7 @@ FAKES = {
 case "$1 $2" in
     "-Q thunar-hyde-lite") [[ -n ${FAKE_INSTALLED:-} ]] && echo "thunar-hyde-lite $FAKE_INSTALLED" ;;
     "-Q thunar") [[ -n ${FAKE_THUNAR:-} ]] ;;
+    "-Q base-devel") [[ -n ${FAKE_BASE_DEVEL:-} ]] ;;
     *) true ;;
 esac""",
     "makepkg": """echo "makepkg $*" >>"$LOG"
@@ -117,7 +118,7 @@ class Step(unittest.TestCase):
         self.log.write_text("")
         base = {"PATH": f"{self.tmp / 'bin'}:/usr/bin:/bin", "HOME": str(self.tmp), "LOG": str(self.log),
                 "XDG_STATE_HOME": str(self.tmp / "state"), "XDG_CACHE_HOME": str(self.tmp / "cache"),
-                "DBUS_SESSION_BUS_ADDRESS": "session", "FAKE_THUNAR": "1"}
+                "DBUS_SESSION_BUS_ADDRESS": "session", "FAKE_THUNAR": "1", "FAKE_BASE_DEVEL": "1"}
         merged = {k: v for k, v in {**base, **env}.items() if v is not None}
         r = subprocess.run(["bash", str(SCRIPT)], env=merged, capture_output=True, text=True, timeout=60)
         return r, self.log.read_text().splitlines()
@@ -205,6 +206,23 @@ class Step(unittest.TestCase):
     def test_dry_run_renders_nothing(self):
         _, calls = self.run_step(flg_DryRun="1")
         self.assertFalse([c for c in calls if c.startswith("wallpaper-palette")])
+
+    def test_a_machine_without_base_devel_gets_it_before_the_build(self):
+        # makepkg ships with pacman, so its presence says nothing about the build tools
+        _, calls = self.run_step(FAKE_BASE_DEVEL=None)
+        build = next(i for i, c in enumerate(calls) if c.startswith("makepkg"))
+        self.assertIn("pacman -S --needed --noconfirm base-devel", calls[:build])
+
+    def test_base_devel_already_there_is_left_alone(self):
+        _, calls = self.run_step()
+        self.assertFalse([c for c in calls if c.startswith("pacman -S")])
+
+    def test_a_marker_that_cannot_be_written_is_an_error(self):
+        (self.tmp / "state").write_text("not a directory")
+        r, _ = self.run_step(FAKE_INSTALLED=VERSION)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("[err]", r.stdout)
+        self.assertNotIn("defaults set", r.stdout)
 
     def test_install_sh_runs_the_step(self):
         self.assertIn('run_step "Thunar" "$root/tools/thunar.sh"', (REPO / "install.sh").read_text())
