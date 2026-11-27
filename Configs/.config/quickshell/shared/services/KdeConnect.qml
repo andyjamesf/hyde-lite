@@ -15,22 +15,26 @@ Singleton {
     property string pickedPath: ""
     signal filePicked(string path)
     property var _actionQueue: []
+    property int _requestedAction: 0
+    property bool _actionTimedOut: false
 
     function _notify(message) {
         Quickshell.execDetached(["notify-send", "--app-name=KDE Connect", "KDE Connect", message]);
     }
 
     function _action(args) {
+        _requestedAction++;
         lastError = "";
-        _actionQueue = _actionQueue.concat([args]);
+        _actionQueue = _actionQueue.concat([{ args: args, requestId: _requestedAction }]);
         _startNextAction();
     }
     function _startNextAction() {
         if (actionProc.running || _actionQueue.length === 0)
             return;
         _actionStderr = "";
-        actionProc.command = _actionQueue[0];
+        actionProc.command = _actionQueue[0].args;
         actionProc.running = true;
+        actionTimeout.start();
     }
     function ring(id) { _action(["kdeconnect-cli", "-d", String(id), "--ring"]); }
     function ping(id) { _action(["kdeconnect-cli", "-d", String(id), "--ping"]); }
@@ -71,12 +75,28 @@ Singleton {
         id: actionProc
         stderr: SplitParser { onRead: line => { if (line.trim() !== "") root._actionStderr = line.trim(); } }
         onExited: code => {
-            if (code !== 0) {
-                root.lastError = root._actionStderr || `Command failed (exit ${code})`;
-                root._notify(root.lastError);
-            }
+            actionTimeout.stop();
+            if (root._actionQueue.length === 0) return;
+            const requestId = root._actionQueue[0].requestId;
+            const timedOut = root._actionTimedOut;
+            root._actionTimedOut = false;
+            if (code !== 0 || timedOut) {
+                const message = timedOut ? "KDE Connect action timed out" : root._actionStderr || `Command failed (exit ${code})`;
+                if (requestId === root._requestedAction) root.lastError = message;
+                root._notify(message);
+            } else if (requestId === root._requestedAction) root.lastError = "";
             root._actionQueue = root._actionQueue.slice(1);
             root._startNextAction();
+        }
+    }
+    Timer {
+        id: actionTimeout
+        interval: 15000
+        repeat: false
+        // Only kills: onExited reports it and moves the queue on, once.
+        onTriggered: {
+            root._actionTimedOut = true;
+            actionProc.running = false;
         }
     }
     Process {

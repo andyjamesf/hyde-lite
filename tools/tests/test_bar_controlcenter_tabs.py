@@ -13,7 +13,9 @@ class Tabs(unittest.TestCase):
         self.assertIn('"home", "apps", "calc", "clipboard"', center)
         self.assertIn('id: "calc"', center)
         self.assertIn('calc: "calc"', state)
-        self.assertIn("query = \"\";", launcher[launcher.index("onModeChanged:"):])
+        block = launcher[launcher.index("onModeChanged:"):]
+        block = block[:block.index("\n        }")]
+        self.assertIn("query = \"\";", block)
         self.assertIn("focusTimer.restart()", launcher[launcher.index("onModeChanged:"):])
 
     def test_kde_connect_is_after_localsend_and_optional_in_cycle_and_strip(self):
@@ -21,6 +23,9 @@ class Tabs(unittest.TestCase):
         state = (QS / "bar/services/ShellState.qml").read_text()
         self.assertIn('.concat(KdeConnect.installed ? ["kdeConnect"] : [])', center)
         self.assertIn('label: "KDE Connect"', center)
+        item = center[center.index('label: "LocalSend"'):]
+        self.assertIn('...(KdeConnect.installed ? [{', item)
+        self.assertLess(item.index('label: "LocalSend"'), item.index('...(KdeConnect.installed ? [{'))
         self.assertIn('kdeconnect: {\n                tab: "kdeConnect"', state)
         self.assertIn('kdeConnect: kdeConnectTab', center)
 

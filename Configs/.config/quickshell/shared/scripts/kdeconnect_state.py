@@ -3,6 +3,7 @@
 import ctypes
 import json
 import os
+import re
 import select
 import shutil
 import signal
@@ -72,24 +73,22 @@ def snapshot():
     devices = []
     for ident in ids:
         path = BASE + "/devices/" + ident
-        try:
-            if not prop(path, DEVICE_IFACE, "isPaired"):
-                continue
-            name = prop(path, DEVICE_IFACE, "name")
-            kind = prop(path, DEVICE_IFACE, "type")
-            reachable = bool(prop(path, DEVICE_IFACE, "isReachable"))
-            battery, charging = -1, False
-            try:
-                bat = path + "/battery"
-                if prop(bat, BATTERY_IFACE, "hasBattery"):
-                    battery = int(prop(bat, BATTERY_IFACE, "charge"))
-                    charging = bool(prop(bat, BATTERY_IFACE, "isCharging"))
-            except (RuntimeError, ValueError, TypeError):
-                pass
-            devices.append(dict(id=ident, name=str(name), type=str(kind), reachable=reachable,
-                                battery=battery, charging=charging))
-        except (RuntimeError, ValueError, TypeError):
+        # A required property that cannot be read raises: the snapshot would be incomplete.
+        if not prop(path, DEVICE_IFACE, "isPaired"):
             continue
+        name = prop(path, DEVICE_IFACE, "name")
+        kind = prop(path, DEVICE_IFACE, "type")
+        reachable = bool(prop(path, DEVICE_IFACE, "isReachable"))
+        battery, charging = -1, False
+        try:
+            bat = path + "/battery"
+            if prop(bat, BATTERY_IFACE, "hasBattery"):
+                battery = int(prop(bat, BATTERY_IFACE, "charge"))
+                charging = bool(prop(bat, BATTERY_IFACE, "isCharging"))
+        except (RuntimeError, ValueError, TypeError):
+            pass  # no battery object is a normal answer
+        devices.append(dict(id=ident, name=str(name), type=str(kind), reachable=reachable,
+                            battery=battery, charging=charging))
     return {"installed": True, "devices": sorted(devices, key=lambda d: (d["name"].casefold(), d["id"]))}
 
 
@@ -128,7 +127,6 @@ def emit_if_changed(state, previous):
 def relevant_line(line):
     if owner_event(line):
         return True
-    import re
     match = re.match(r"^\S+: (\S+)\.(\w+) \(", line)
     if not match:
         return False
@@ -156,123 +154,92 @@ def owner_event(line):
     return None
 
 
-def monitor_events(proc):
-    """Yield relevant monitor lines using only unbuffered fd reads."""
+class Scheduler:
+    """Decides when the next snapshot is due. Times are seconds from a monotonic clock."""
+    STARTUP = 1.0  # fallback if the monitor never announces the owner
+    QUIET = 0.15   # a burst of signals is coalesced until this long after the last one...
+    LIMIT = 0.5    # ...but never later than this after the first one
+
+    def __init__(self, now):
+        self.owner_missing = False
+        self.due = now + self.STARTUP
+        self.first = None
+        self.retry = 1
+
+    def line(self, text, now):
+        """Take one monitor line; True when the empty state must be published."""
+        owner = owner_event(text)
+        if owner == "missing":
+            self.owner_missing = True
+            self.succeeded()
+            return True
+        if owner == "owned":
+            self.owner_missing = False
+            self.succeeded()
+            self.due = now
+        elif not self.owner_missing and relevant_line(text):
+            if self.first is None:
+                self.first = now
+            self.due = min(now + self.QUIET, self.first + self.LIMIT)
+        return False
+
+    def succeeded(self):
+        self.due = None
+        self.first = None
+        self.retry = 1
+
+    def failed(self, now):
+        self.first = None
+        self.due = now + self.retry
+        self.retry = min(self.retry * 2, 30)
+
+    def timeout(self, now):
+        return None if self.due is None else max(0, self.due - now)
+
+    def ready(self, now):
+        return self.due is not None and now >= self.due
+
+
+def watch(proc, previous):
+    """Follow one monitor process until it ends. The only reader of its pipe, so lines stay in order."""
     fd = proc.stdout.fileno()
-    os.set_blocking(fd, False)
+    schedule = Scheduler(time.monotonic())
     buffer = b""
     while True:
-        ready, _, _ = select.select([fd], [], [], 1)
-        if not ready:
-            if proc.poll() is not None:
-                return
-            continue
-        try:
+        # With nothing due this blocks until the next line: no idle wake-ups.
+        readable, _, _ = select.select([fd], [], [], schedule.timeout(time.monotonic()))
+        if readable:
             chunk = os.read(fd, 65536)
-        except BlockingIOError:
-            continue
-        if not chunk:
-            return
-        buffer += chunk
-        while b"\n" in buffer:
-            raw, buffer = buffer.split(b"\n", 1)
-            line = raw.decode("utf-8", "replace")
-            if relevant_line(line):
-                yield line
-
-
-def debounce(proc, first_event, window=0.15, maximum=0.5):
-    """Coalesce a burst, with a hard deadline under a continuous event stream."""
-    started = first_event
-    deadline = min(started + window, started + maximum)
-    fd = proc.stdout.fileno()
-    buffer = b""
-    while time.monotonic() < deadline:
-        ready, _, _ = select.select([fd], [], [], max(0, deadline - time.monotonic()))
-        if not ready:
-            break
-        try:
-            chunk = os.read(fd, 65536)
-        except BlockingIOError:
-            continue
-        if not chunk:
-            return False
-        buffer += chunk
-        while b"\n" in buffer:
-            raw, buffer = buffer.split(b"\n", 1)
-            line = raw.decode("utf-8", "replace")
-            owner = owner_event(line)
-            if owner:
-                return owner
-            if relevant_line(line):
-                deadline = min(time.monotonic() + window, started + maximum)
-    return True
+            if not chunk:
+                return previous
+            buffer += chunk
+            while b"\n" in buffer:
+                raw, buffer = buffer.split(b"\n", 1)
+                if schedule.line(raw.decode("utf-8", "replace"), time.monotonic()):
+                    previous = emit_if_changed({"installed": True, "devices": []}, previous)
+        if schedule.ready(time.monotonic()):
+            try:
+                # An incomplete snapshot raises: the last good state stays and it is tried again.
+                previous = emit_if_changed(snapshot(), previous)
+                schedule.succeeded()
+            except (RuntimeError, ValueError, OSError):
+                schedule.failed(time.monotonic())
 
 
 def main():
     signal.signal(signal.SIGTERM, terminate)
     signal.signal(signal.SIGINT, terminate)
-    if not shutil.which("kdeconnect-cli") or not shutil.which("busctl"):
+    if not all(shutil.which(tool) for tool in ("kdeconnect-cli", "busctl", "gdbus")):
         emit({"installed": False, "devices": []})
         return 0
     previous = None
     restart_delay = 1
-    owner_missing = False
     while True:
-        if not owner_missing:
-            try:
-                state = snapshot()
-            except (RuntimeError, ValueError, OSError):
-                state = {"installed": True, "devices": []}
-            previous = emit_if_changed(state, previous)
+        # The monitor starts before the first snapshot, so no change falls between the two.
         proc = spawn(["gdbus", "monitor", "--session", "--dest", BUS], stdout=subprocess.PIPE,
                      stderr=subprocess.DEVNULL, start_new_session=True)
         try:
-            first = None
-            for line in monitor_events(proc):
-                owner = owner_event(line)
-                if owner == "owned":
-                    owner_missing = False
-                    try:
-                        state = snapshot()
-                    except (RuntimeError, ValueError, OSError):
-                        state = {"installed": True, "devices": []}
-                    previous = emit_if_changed(state, previous)
-                    first = None
-                    continue
-                if owner == "missing":
-                    owner_missing = True
-                    previous = emit_if_changed({"installed": True, "devices": []}, previous)
-                    first = None
-                    continue
-                if first is None:
-                    first = time.monotonic()
-                    result = debounce(proc, first)
-                    if result == "missing":
-                        owner_missing = True
-                        previous = emit_if_changed({"installed": True, "devices": []}, previous)
-                        first = None
-                        continue
-                    if result == "owned":
-                        owner_missing = False
-                        try:
-                            state = snapshot()
-                        except (RuntimeError, ValueError, OSError):
-                            state = {"installed": True, "devices": []}
-                        previous = emit_if_changed(state, previous)
-                        first = None
-                        continue
-                    if not result:
-                        break
-                    if owner_missing:
-                        first = None
-                        continue
-                    try:
-                        state = snapshot()
-                    except (RuntimeError, ValueError, OSError):
-                        state = {"installed": True, "devices": []}
-                    previous = emit_if_changed(state, previous)
-                    first = None
+            previous = watch(proc, previous)
         finally:
             children.discard(proc)
             if proc.poll() is None:
@@ -281,8 +248,7 @@ def main():
                     proc.wait(timeout=1)
                 except subprocess.TimeoutExpired:
                     proc.kill()
-        # The monitor itself reports when the well-known name disappears or returns.
-        time.sleep(min(restart_delay, 30))
+        time.sleep(restart_delay)
         restart_delay = min(restart_delay * 2, 30)
 
 

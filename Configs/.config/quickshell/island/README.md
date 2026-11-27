@@ -51,6 +51,8 @@ Run by hand: create the `active` file above and start `qs` (the default configur
 | Control center | `Super+Alt+C`, `Super+N` | tiles (Wi‑Fi, Bluetooth, Sound, Peace Mode, Night Light, Caffeine): icon toggles, the rest opens the page; volume/brightness sliders; media; notification history with Clear All |
 | Wi‑Fi / Bluetooth / Sound / Media pages | from the control center | slide in while the island resizes; Esc goes back |
 | KDE Connect page | the `kdeconnect` status icon | paired devices, battery state, ring, ping, clipboard and file sharing. Needs `kdeconnect-cli` and the KDE Connect daemon. |
+
+Individual KDE Connect device actions have not been verified on hardware.
 | LocalSend page | the LocalSend status icon (accent and a count while a transfer waits) | accept, accept and pair or decline a request (declined by itself after 60 s); pick a nearby device and send a file (system picker or typed path); recent activity. Needs `~/.local/bin/localsend-cli` (`third-party/localsend-cli`) and TCP and UDP port 53317 open to the local network |
 | Themes | `Super+Shift+T` | 18 schemes (dark, light, e‑ink) + "Wallpaper" (wallbash palette) + "HyDE" (theme's bar colors) |
 | Wallpapers | `Super+Shift+W` | HyDE thumbnails, accent ring on the active one; set through HyDE (palette follows) |

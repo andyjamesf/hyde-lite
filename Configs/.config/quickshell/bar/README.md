@@ -38,3 +38,5 @@ Settings picked in the menus are stored in `~/.local/state/quickshell/`.
 KDE Connect is available as the `kdeConnect` bar/minibar widget when `kdeconnect-cli` is installed. It lists paired devices and provides ring, ping, clipboard, and file sharing actions.
 
 The bar control centre cycles through its tabs with Tab and Shift+Tab. Calculator is a dedicated tab after Apps; KDE Connect follows LocalSend when `kdeconnect-cli` is installed. Clicking the KDE Connect bar widget opens that tab while control-centre tabs are enabled, and its compact popout otherwise.
+
+Individual KDE Connect device actions have not been verified on hardware.

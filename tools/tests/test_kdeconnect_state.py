@@ -25,6 +25,58 @@ def response(data, kind="s"):
 DEVICE_IDS = ["11111111_1111_4111_8111_111111111111", "22222222222242228222222222222222"]
 
 
+class Scheduling(unittest.TestCase):
+    """When to take a snapshot: a pure clock-driven object, so no test sleeps."""
+    OWNED = "The name org.kde.kdeconnect is owned by :1.100"
+    MISSING = "The name org.kde.kdeconnect does not have an owner"
+    BATTERY = "/modules/kdeconnect/devices/x/battery: org.kde.kdeconnect.device.battery.refreshed (false, 51)"
+
+    def test_first_snapshot_waits_for_the_monitor_to_be_listening(self):
+        s = helper.Scheduler(0.0)
+        self.assertFalse(s.ready(0.0))
+        self.assertFalse(s.line(self.OWNED, 0.1))
+        self.assertTrue(s.ready(0.1))
+
+    def test_continuous_stream_cannot_postpone_the_snapshot(self):
+        s = helper.Scheduler(0.0)
+        s.succeeded()
+        now = 10.0
+        while now < 10.5:
+            s.line(self.BATTERY, now)
+            now += 0.05
+        self.assertTrue(s.ready(10.5))
+
+    def test_irrelevant_line_schedules_nothing(self):
+        s = helper.Scheduler(0.0)
+        s.succeeded()
+        s.line("/modules/kdeconnect: org.kde.kdeconnect.daemon.customDevicesChanged ([],)", 1.0)
+        self.assertIsNone(s.timeout(1.0))
+
+    def test_failure_retries_with_bounded_backoff_until_success(self):
+        s = helper.Scheduler(0.0)
+        delays, now = [], 0.0
+        for _ in range(8):
+            s.failed(now)
+            delays.append(s.timeout(now))
+        self.assertEqual(delays, [1, 2, 4, 8, 16, 30, 30, 30])
+        s.succeeded()
+        self.assertIsNone(s.timeout(now))
+
+    def test_vanished_daemon_cancels_the_retry_and_publishes_empty(self):
+        s = helper.Scheduler(0.0)
+        s.failed(0.0)
+        self.assertTrue(s.line(self.MISSING, 0.2))
+        self.assertIsNone(s.timeout(0.2))
+        s.line(self.BATTERY, 0.3)
+        self.assertIsNone(s.timeout(0.3))
+
+    def test_owner_events_apply_in_order(self):
+        s = helper.Scheduler(0.0)
+        s.line(self.MISSING, 0.0)
+        s.line(self.OWNED, 0.0)
+        self.assertTrue(s.ready(0.0))
+
+
 class Snapshot(unittest.TestCase):
     def test_dbus_json_preserves_arbitrary_names(self):
         names = ["Ana's iPhone", "a>b <c>", "São José 📱"]
@@ -34,7 +86,7 @@ class Snapshot(unittest.TestCase):
             if args[3] == "call":
                 return response([ids], "as")
             if args[3] == "get-property":
-                path, iface, prop = args[5], args[6], args[7]
+                path, _iface, prop = args[5], args[6], args[7]
                 if prop == "isPaired": return response(True, "b")
                 if prop == "name": return response(names[ids.index(path.rsplit("/", 1)[1])])
                 if prop == "type": return response("phone")
@@ -71,6 +123,20 @@ class Snapshot(unittest.TestCase):
         with patch.object(helper, "run", side_effect=fake):
             device = helper.snapshot()["devices"][0]
         self.assertEqual((device["battery"], device["charging"]), (-1, False))
+
+    def test_failed_required_property_aborts_snapshot(self):
+        def fake(args, timeout=5):
+            if args[3] == "call": return response([["p"]], "as")
+            if args[7] == "isPaired": return response(True, "b")
+            if args[7] == "name": raise RuntimeError("temporary failure")
+            return response("phone")
+        with patch.object(helper, "run", side_effect=fake):
+            with self.assertRaises(RuntimeError): helper.snapshot()
+
+    def test_monitor_binary_is_required(self):
+        with patch.object(helper.shutil, "which", side_effect=lambda x: None if x == "gdbus" else "/bin/x"), patch.object(helper, "emit") as emit:
+            self.assertEqual(helper.main(), 0)
+        emit.assert_called_once_with({"installed": False, "devices": []})
 
     def test_nonzero_child_dies_when_parent_is_killed(self):
         child_code = "import time; time.sleep(30)"
