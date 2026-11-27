@@ -6,13 +6,17 @@ QS = Path(__file__).resolve().parents[2] / "Configs/.config/quickshell"
 
 
 class Tabs(unittest.TestCase):
-    def test_calculator_has_its_own_tab_and_launcher_mode(self):
+    def test_calculator_has_its_own_tab_and_existing_keybinding_route(self):
         center = (QS / "bar/modules/controlcenter/ControlCenter.qml").read_text()
         state = (QS / "bar/services/ShellState.qml").read_text()
-        launcher = (QS / "bar/modules/launcher/LauncherView.qml").read_text()
+        shell = (QS / "bar/Shell.qml").read_text()
         self.assertIn('"home", "apps", "calc", "clipboard"', center)
         self.assertIn('id: "calc"', center)
         self.assertIn('calc: "calc"', state)
+        self.assertIn("id: calculatorTab", center)
+        self.assertRegex(center, r"calc:\s*calculatorTab")
+        self.assertIn('ShellState.toggleLauncher("calc")', shell)
+        launcher = (QS / "bar/modules/launcher/LauncherView.qml").read_text()
         block = launcher[launcher.index("onModeChanged:"):]
         block = block[:block.index("\n        }")]
         self.assertIn("query = \"\";", block)

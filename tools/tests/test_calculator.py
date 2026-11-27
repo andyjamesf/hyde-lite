@@ -48,6 +48,12 @@ class Evaluate(unittest.TestCase):
         self.check([("1+2*3", 7), ("(1+2)*3", 9), ("2^3^2", 512), ("2*3^2", 18), ("10-4-3", 3), ("100/10/5", 2),
                     ("2^-1", 0.5), ("--3+1", 4), ("+3*+2", 6), ("8/4*2", 4)])
 
+    def test_optional_angle_mode_keeps_default_radians(self):
+        got = qml_js.run_node(f"{PRELUDE}\nconsole.log(JSON.stringify([evaluate('sin(90)'),evaluate('sin(90)','deg'),evaluate('asin(1)','deg')]));")
+        self.assertAlmostEqual(got[0], __import__('math').sin(90))
+        self.assertAlmostEqual(got[1], 1)
+        self.assertAlmostEqual(got[2], 90)
+
     def test_unary_minus_binds_tighter_than_power(self):
         # Pins the current behaviour, which is Excel's: -2^2 is (-2)^2 = 4. Most programming languages and
         # mathematical notation give -(2^2) = -4. Changing it is a decision for the maintainer, not a test fix.

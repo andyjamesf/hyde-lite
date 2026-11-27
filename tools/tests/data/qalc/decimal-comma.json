@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "qalc",
+    "-defaults",
+    "-t",
+    "--",
+    "2,5*2"
+  ],
+  "stdout": "[2  10]\n",
+  "stderr": "",
+  "exit_code": 0,
+  "elapsed_ms": 45.229
+}

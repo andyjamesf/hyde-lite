@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "qalc",
+    "-defaults",
+    "-t",
+    "--",
+    "foo("
+  ],
+  "stdout": "0 B²\n",
+  "stderr": "",
+  "exit_code": 0,
+  "elapsed_ms": 47.228
+}

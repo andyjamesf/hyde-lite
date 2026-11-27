@@ -10,6 +10,7 @@ import qs.bar.services
 import qs.bar.modules.controls
 import qs.bar.modules.launcher
 import qs.bar.modules.notes
+import qs.bar.modules.calculator
 import qs.shared.services
 import qs.shared.controlcenter
 
@@ -542,6 +543,16 @@ PanelWindow {
     }
 
     Component {
+        id: calculatorTab
+
+        CalculatorWide {
+            open: panel.open && ShellState.controlCenterPage === "" && ShellState.controlCenterTab === "calc"
+            onCloseRequested: ShellState.closeControlCenter()
+            onCycleTabRequested: step => panel.cycleTab(step)
+        }
+    }
+
+    Component {
         id: localSendTab
 
         LocalSendWide {}
@@ -728,6 +739,7 @@ PanelWindow {
                 // The bar's own extra button: cycle its layout.
                 shortcuts: ["nextwallpaper", "wallpaper", "animations", "keybindings", "syncshell", "barlayout"]
                 visibleRows: Math.min(Math.max(Notifications.count, 1), 3)
+                tabMinHeight: ShellState.controlCenterTab === "calc" ? 500 : 0
                 tabs: Config.controlCenter.tabs ? [
                     {
                         id: "home",
@@ -802,6 +814,7 @@ PanelWindow {
                         sourceComponent: ({
                                 notes: notesTab,
                                 calendar: calendarTab,
+                                calc: calculatorTab,
                                 system: systemTab,
                                 localSend: localSendTab,
                                 kdeConnect: kdeConnectTab,
