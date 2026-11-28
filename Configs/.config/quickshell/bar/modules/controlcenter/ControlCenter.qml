@@ -10,6 +10,7 @@ import qs.bar.services
 import qs.bar.modules.controls
 import qs.bar.modules.launcher
 import qs.bar.modules.notes
+import qs.bar.modules.calculator
 import qs.shared.services
 import qs.shared.controlcenter
 
@@ -143,7 +144,7 @@ PanelWindow {
     }
 
     // Tab goes to the next tab and Shift+Tab to the previous one, round all of them (Home to More).
-    readonly property var tabIds: ["home", "apps", "clipboard", "keys", "files", "notes", "calendar", "system", "localSend", "power", "more"]
+    readonly property var tabIds: ["home", "apps", "calc", "clipboard", "keys", "files", "notes", "calendar", "system", "localSend"].concat(KdeConnect.installed ? ["kdeConnect"] : []).concat(["power", "more"])
 
     function cycleTab(step) {
         const i = Math.max(0, tabIds.indexOf(ShellState.controlCenterTab));
@@ -542,9 +543,25 @@ PanelWindow {
     }
 
     Component {
+        id: calculatorTab
+
+        CalculatorWide {
+            open: panel.open && ShellState.controlCenterPage === "" && ShellState.controlCenterTab === "calc"
+            onCloseRequested: ShellState.closeControlCenter()
+            onCycleTabRequested: step => panel.cycleTab(step)
+        }
+    }
+
+    Component {
         id: localSendTab
 
         LocalSendWide {}
+    }
+
+    Component {
+        id: kdeConnectTab
+
+        KdeConnectWide {}
     }
 
     // System: the resource manager (load per core, memory, temperatures, storage, network, the heaviest
@@ -722,6 +739,7 @@ PanelWindow {
                 // The bar's own extra button: cycle its layout.
                 shortcuts: ["nextwallpaper", "wallpaper", "animations", "keybindings", "syncshell", "barlayout"]
                 visibleRows: Math.min(Math.max(Notifications.count, 1), 3)
+                tabMinHeight: ShellState.controlCenterTab === "calc" ? 500 : 0
                 tabs: Config.controlCenter.tabs ? [
                     {
                         id: "home",
@@ -732,6 +750,11 @@ PanelWindow {
                         id: "apps",
                         glyph: "\u{F0570}",
                         label: "Apps"
+                    },
+                    {
+                        id: "calc",
+                        glyph: "\u{F00EC}",
+                        label: "Calculator"
                     },
                     {
                         id: "clipboard",
@@ -768,6 +791,11 @@ PanelWindow {
                         glyph: "\u{F048A}",
                         label: "LocalSend"
                     },
+                    ...(KdeConnect.installed ? [{
+                        id: "kdeConnect",
+                        glyph: "\u{F011C}",
+                        label: "KDE Connect"
+                    }] : []),
                     {
                         id: "power",
                         glyph: "\u{F0425}",
@@ -786,8 +814,10 @@ PanelWindow {
                         sourceComponent: ({
                                 notes: notesTab,
                                 calendar: calendarTab,
+                                calc: calculatorTab,
                                 system: systemTab,
                                 localSend: localSendTab,
+                                kdeConnect: kdeConnectTab,
                                 power: powerTab
                             })[ShellState.controlCenterTab] ?? searchTab
                     }

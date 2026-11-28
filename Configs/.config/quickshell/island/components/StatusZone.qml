@@ -84,6 +84,7 @@ Item {
             volume: volumeIcon,
             bluetooth: bluetoothIcon,
             localsend: localSendIcon,
+            kdeconnect: kdeConnectIcon,
             wifi: wifiIcon,
             battery: batteryIcon,
             caffeine: caffeineIcon,
@@ -122,6 +123,8 @@ Item {
             return Brightness.available;
         if (id === "media")
             return Media.active;
+        if (id === "kdeconnect")
+            return KdeConnect.installed;
         return id === "bluetooth" ? Bluetooth.available : id === "battery" ? Battery.available : true;
     }
 
@@ -143,6 +146,7 @@ Item {
                 readonly property bool on: modelData === "nightlight" && NightLight.active
 
                 anchors.verticalCenter: parent.verticalCenter
+                // qmllint disable unqualified
                 implicitWidth: root.iconSize + 2 * root.cellPadding
                 implicitHeight: root.iconSize + 2 * root.cellPadding
 
@@ -312,6 +316,16 @@ Item {
                 text: String(LocalSend.pending.length)
                 font.pixelSize: Appearance.fontSize - 1
             }
+        }
+    }
+
+    Component {
+        id: kdeConnectIcon
+        Label {
+            text: "\u{F011C}"
+            font.family: Appearance.nerdFont
+            font.pixelSize: Math.round(root.iconSize * 0.95)
+            color: KdeConnect.reachableCount > 0 ? Theme.icon : Theme.dim
         }
     }
 

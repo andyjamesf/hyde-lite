@@ -23,6 +23,7 @@ Singleton {
         { id: "volume", label: "Volume" },
         { id: "bluetooth", label: "Bluetooth" },
         { id: "localsend", label: "LocalSend" },
+        { id: "kdeconnect", label: "KDE Connect" },
         { id: "wifi", label: "Network" },
         { id: "battery", label: "Battery" },
         { id: "power", label: "Power" },

@@ -28,7 +28,8 @@ Singleton {
             "notifications": "Notifications",
             "power": "Power",
             "controlCenter": "ControlCenter",
-            "localSend": "LocalSend"
+            "localSend": "LocalSend",
+            "kdeConnect": "KdeConnect"
         })
     readonly property var ids: Object.keys(files)
 

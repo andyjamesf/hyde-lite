@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "qalc",
+    "-defaults",
+    "-t",
+    "-s",
+    "angle unit degrees",
+    "--",
+    "sin(90)"
+  ],
+  "stdout": "1\n",
+  "stderr": "",
+  "exit_code": 0,
+  "elapsed_ms": 48.949
+}

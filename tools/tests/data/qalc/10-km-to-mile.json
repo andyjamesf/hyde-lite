@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "qalc",
+    "-defaults",
+    "-t",
+    "--",
+    "10 km to mile"
+  ],
+  "stdout": "6 mi + 376 yd + 4.787401575 in\n",
+  "stderr": "",
+  "exit_code": 0,
+  "elapsed_ms": 44.746
+}

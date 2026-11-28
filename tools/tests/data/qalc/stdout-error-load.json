@@ -1,0 +1,29 @@
+{
+  "argv": [
+    "qalc",
+    "-defaults",
+    "-t",
+    "--",
+    "load(1)"
+  ],
+  "exit_code": 1,
+  "elapsed_ms": 79.55306700023357,
+  "stdout": "load('1')\n",
+  "stderr": "",
+  "home_files": [
+    [
+      "/tmp/tmp8k6xsi98",
+      []
+    ],
+    [
+      "/tmp/tmp8k6xsi98/c",
+      []
+    ],
+    [
+      "/tmp/tmp8k6xsi98/c/qalculate",
+      [
+        "qalc.cfg"
+      ]
+    ]
+  ]
+}
